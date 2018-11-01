@@ -1,0 +1,56 @@
+{
+  "name": "wwjs",
+  "version": "2.0.0",
+  "description": "wware browser runtime library",
+  "main": "index.html",
+  "scripts": {
+    "lint": "eslint src",
+    "check": "npm run lint && npm run test",
+    "build": "npm run check && webpack-cli --env=prod",
+    "build-dev": "webpack-cli --env=dev",
+    "doc": "node_modules/.bin/jsdoc  --configure .jsdoc.json --verbose;xdg-open ./docs/wwjs/2.0.0/index.html",
+    "test": "node test/runner.node.js"
+  },
+  "testling": {
+    "preprocess": "build/build.sh",
+    "html": "spec/runner.html?src=build/output/knockout-latest.js&testling=true",
+    "browsers": [
+      "ie/6..latest",
+      "chrome/20..latest",
+      "firefox/3..latest",
+      "safari/5.0.5..latest",
+      "opera/11.0..latest",
+      "iphone/6..latest",
+      "ipad/6..latest"
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "wwjs@scm.spolo.org:/home/source/wwjs/wware.git"
+  },
+  "author": {
+    "name": "SanPolo Co.LTD",
+    "email": "masol.li@gmail.com",
+    "url": "https://www.wware.org"
+  },
+  "dependencies": {},
+  "license": "WWARE LICENSE",
+  "homepage": "https://www.wware.org",
+  "private": true,
+  "devDependencies": {
+    "@babel/core": "^7.1.2",
+    "@babel/preset-env": "^7.1.0",
+    "babelify": "^10.0.0",
+    "browserify": "^16.2.3",
+    "docdash": "^1.0.0",
+    "fs-extra": "^7.0.0",
+    "gulp": "^4.0.0",
+    "gulp-buffer": "0.0.2",
+    "gulp-rename": "^1.4.0",
+    "gulp-sourcemaps": "^2.6.4",
+    "gulp-uglify-es": "^1.0.4",
+    "jsdoc": "^3.5.5",
+    "underscore": "^1.9.1",
+    "vinyl-source-stream": "^2.0.0"
+  }
+}
