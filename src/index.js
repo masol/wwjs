@@ -17,7 +17,7 @@ import $ from 'jquery'
 // import { isElement, isFunction } from 'underscore'
 import utils from 'utils'
 
-import loadjs from 'loadjs'
+import loader from 'johnnydepp'
 
 console.log(utils)
 
@@ -34,23 +34,25 @@ console.log(utils)
 
 console.log('before load : window.Promise=', window.Promise)
 delete window.Promise
-loadjs(['/libs/promise-polyfill/polyfill.min.js'], {
-  success: function (polifill) {
-    console.log('after load : window.Promise=', window.Promise)
-    console.log('success loaed:', arguments)
-  },
-  error: function () {
-    console.log('error:', arguments)
+
+loader.define({
+  'promise-polyfill': ['/libs/promise-polyfill/polyfill.min.js']
+})
+
+loader.require(['promise-polyfill'], function (polifill) {
+  console.log('after load : window.Promise=', window.Promise)
+  console.log('success loaed:', arguments)
+},
+function (file, err) {
+  if (process.env.NODE_ENV === 'development') {
+    console.warn(`无法加载文件${file},是不是忘记执行"npm run-script fetch:lib"了？`)
   }
+  console.error('error:', arguments)
 })
 
 window.$ = window.jQuery = $
 
 console.log($)
-
-if (process.env.NODE_ENV === 'development') {
-  console.warn('This warning will dissapear on production build!')
-}
 
 $(document).ready(function () {
   console.log('ready!!!')
@@ -70,7 +72,7 @@ module.exports = (() => {
   }
 
   return {
-    loader: loadjs,
+    loader: loader,
     utils,
     $,
 
