@@ -6,10 +6,26 @@
   "scripts": {
     "lint": "eslint src",
     "check": "npm run lint && npm run test",
-    "build": "npm run check && webpack-cli --env=prod",
-    "build-dev": "webpack-cli --env=dev",
+    "build": "npm run check && webpack  --optimize-minimize --mode production --env=prod",
+    "build-dev": "webpack --env=dev",
     "doc": "node_modules/.bin/jsdoc  --configure .jsdoc.json --verbose;xdg-open ./docs/wwjs/2.0.0/index.html",
+    "v:patch": "npm version --no-git-tag-version patch",
+    "precommit": "lint-staged",
     "test": "node test/runner.node.js"
+  },
+  "babel": {
+    "presets": [
+      "@babel/preset-env"
+    ],
+    "plugins": [
+      "transform-object-rest-spread"
+    ]
+  },
+  "lint-staged": {
+    "{src,test}/**/*.js": [
+      "prettier --single-quote --write",
+      "git add"
+    ]
   },
   "testling": {
     "preprocess": "build/build.sh",
@@ -33,24 +49,22 @@
     "email": "masol.li@gmail.com",
     "url": "https://www.wware.org"
   },
-  "dependencies": {},
+  "dependencies": {
+    "cash-dom": "^2.3.9"
+  },
   "license": "WWARE LICENSE",
   "homepage": "https://www.wware.org",
   "private": true,
   "devDependencies": {
     "@babel/core": "^7.1.2",
     "@babel/preset-env": "^7.1.0",
-    "babelify": "^10.0.0",
-    "browserify": "^16.2.3",
+    "babel-loader": "^8.0.4",
+    "babel-plugin-transform-object-rest-spread": "^7.0.0-beta.3",
+    "babel-preset-env": "^1.7.0",
     "docdash": "^1.0.0",
-    "fs-extra": "^7.0.0",
-    "gulp": "^4.0.0",
-    "gulp-buffer": "0.0.2",
-    "gulp-rename": "^1.4.0",
-    "gulp-sourcemaps": "^2.6.4",
-    "gulp-uglify-es": "^1.0.4",
+    "html-webpack-plugin": "^3.2.0",
     "jsdoc": "^3.5.5",
-    "underscore": "^1.9.1",
-    "vinyl-source-stream": "^2.0.0"
+    "string-replace-loader": "^2.1.1",
+    "webpack": "^4.23.1"
   }
 }

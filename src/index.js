@@ -13,6 +13,10 @@
 
 'use strict'
 
+import $ from 'cash-dom'
+// import { isElement, isFunction } from 'underscore'
+import utils from 'utils'
+
 module.exports = (() => {
   const editors = []
   const defaultConfig = {
@@ -27,6 +31,8 @@ module.exports = (() => {
   }
 
   return {
+    utils,
+    $,
 
     editors,
 

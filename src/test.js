@@ -1,4 +1,4 @@
-const defaultConfig = {
+const tetX = {
   // If true renders editor on init
   autorender: 1,
 
@@ -9,4 +9,6 @@ const defaultConfig = {
   pluginsOpts: {}
 }
 
-module.exports = defaultConfig
+module.exports = () => {
+  return tetX
+}

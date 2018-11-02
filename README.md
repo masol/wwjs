@@ -8,7 +8,7 @@
   #请配置使用oracle java8以上。closure compiler依赖java。
   sudo update-alternatives --config java
   sudo apt-get install libssl1.0-dev nodejs-dev npm p7zip proxychains4
-  sudo npm install -g electron electron-builder yarn jsdoc gulp-cli prettyjson eslint eslint-plugin-import eslint-plugin-node eslint-plugin-promise eslint-plugin-standard eslint-plugin-compat
+  sudo npm install -g electron electron-builder yarn jsdoc gulp-cli prettyjson eslint eslint-plugin-import eslint-plugin-node eslint-plugin-promise eslint-plugin-standard eslint-plugin-compat webpack
 ```
  - 部分构建如果遭遇GFW的阻拦，而无法成功构建。请配置proxychains，通过代理来构建。编辑`/etc/proxychains.conf`，在最下方加入`http            127.0.0.1 33211`(改为你自己的代理服务器),然后，执行的命令前面都加上`proxychains4 原始命令`。
  - Atom推荐包
