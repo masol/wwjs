@@ -13,9 +13,48 @@
 
 'use strict'
 
-import $ from 'cash-dom'
+import $ from 'jquery'
 // import { isElement, isFunction } from 'underscore'
 import utils from 'utils'
+
+import loadjs from 'loadjs'
+
+console.log(utils)
+
+// const SystemJS = require('systemjs')
+
+// let requirejs = require('requirejs')
+
+// console.log(requirejs)
+
+// if (typeof Promise === 'undefined') {
+// //  console.log(core)
+// }
+// console.log(SystemJS)
+
+console.log('before load : window.Promise=', window.Promise)
+delete window.Promise
+loadjs(['/libs/promise-polyfill/polyfill.min.js'], {
+  success: function (polifill) {
+    console.log('after load : window.Promise=', window.Promise)
+    console.log('success loaed:', arguments)
+  },
+  error: function () {
+    console.log('error:', arguments)
+  }
+})
+
+window.$ = window.jQuery = $
+
+console.log($)
+
+if (process.env.NODE_ENV === 'development') {
+  console.warn('This warning will dissapear on production build!')
+}
+
+$(document).ready(function () {
+  console.log('ready!!!')
+})
 
 module.exports = (() => {
   const editors = []
@@ -31,6 +70,7 @@ module.exports = (() => {
   }
 
   return {
+    loader: loadjs,
     utils,
     $,
 
