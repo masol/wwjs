@@ -8,7 +8,7 @@
     "check": "npm run lint && npm run test",
     "build": "npm run check && webpack  --optimize-minimize --mode production --env=prod --display-modules",
     "build-dev": "webpack --env=dev --display-modules ",
-    "doc": "node_modules/.bin/jsdoc  --configure .jsdoc.json --verbose;xdg-open ./docs/wwjs/2.0.0/index.html",
+    "doc": "node_modules/.bin/jsdoc  --configure .jsdoc.json --verbose;xdg-open ./docs/wwjs/`node -p 'require(\"./package.json\").version'`/index.html",
     "v:patch": "npm version --no-git-tag-version patch",
     "start:dev": "webpack-dev-server --open --progress --colors",
     "start": "webpack-dev-server --open --progress --colors --env=prod",
@@ -65,6 +65,10 @@
   },
   "dependencies": {
   },
+  "files" : [
+    "dist/*",
+    "CHANGELOG.md"
+  ],
   "license": "WWARE LICENSE",
   "homepage": "https://www.wware.org",
   "private": true,
