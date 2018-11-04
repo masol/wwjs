@@ -2,7 +2,8 @@
   "name": "wwjs",
   "version": "2.0.0",
   "description": "wware browser runtime library",
-  "main": "index.html",
+  "browser": "src/index.js",
+  "keywords" : [],
   "scripts": {
     "lint": "eslint src",
     "check": "npm run lint && npm run test",
@@ -54,7 +55,7 @@
     "url": "wwjs@scm.spolo.org:/home/source/wwjs/wware.git"
   },
   "author": {
-    "name": "SanPolo Co.LTD",
+    "name": "masol",
     "email": "masol.li@gmail.com",
     "url": "https://www.wware.org"
   },
@@ -71,7 +72,6 @@
   ],
   "license": "WWARE LICENSE",
   "homepage": "https://www.wware.org",
-  "private": true,
   "devDependencies": {
     "@babel/core": "^7.1.2",
     "@babel/preset-env": "^7.1.0",
