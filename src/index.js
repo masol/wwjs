@@ -1,4 +1,3 @@
-
 // / ///////////////////////////////////////////////////////////////////////////
 //  Copyright (C) 2013 by sanpolo CO.LTD                                    //
 //                                                                          //
@@ -14,75 +13,152 @@
 'use strict'
 
 import $ from 'jquery'
-// import { isElement, isFunction } from 'underscore'
-import utils from 'utils'
+import 'systemjs/dist/s'
+import 'systemjs/dist/extras/amd'
 
-import loader from 'johnnydepp'
+if (process.env.NODE_ENV === 'development') {
+  window._debug = true
+}
 
-console.log(utils)
-
-// const SystemJS = require('systemjs')
-
-// let requirejs = require('requirejs')
-
-// console.log(requirejs)
-
-// if (typeof Promise === 'undefined') {
-// //  console.log(core)
-// }
-// console.log(SystemJS)
-
-console.log('before load : window.Promise=', window.Promise)
-delete window.Promise
-
-loader.define({
-  'promise-polyfill': ['/libs/promise-polyfill/polyfill.min.js']
-})
-
-loader.require(['promise-polyfill'], function (polifill) {
-  console.log('after load : window.Promise=', window.Promise)
-  console.log('success loaed:', arguments)
-},
-function (file, err) {
-  if (process.env.NODE_ENV === 'development') {
-    console.warn(`无法加载文件${file},是不是忘记执行"npm run-script fetch:lib"了？`)
-  }
-  console.error('error:', arguments)
-})
-
+/**
+内建的jQuery支持。注意，这不是原生jQuery,而是[cash-dom](https://github.com/kenwheeler/cash)，并被绑定到window.jQuery以及window.$
+ * @type {jQuery}
+ * @name $
+ **/
 window.$ = window.jQuery = $
 
-console.log($)
+/**
+回调风格的模块加载。通常需要在html的head部分，写下容错代码，这在wwjs就绪之前，缓冲模块加载请求，并在就绪之后，异步并行加载。
+```
+<script>
+window.wwimport = function(mod,callback,errcb){
+  window.wwimcache = window.wwimcache || [];
+  window.wwimcache.push({id : id,suc : callback,err : errcb});
+}
+</script>
+```
+部分特殊的id被预约，以在内部特定事件发生时，得到通知：
+- fullfill : 当wwjs可以使用时，回调。
+- ready : 当wwjs可用，并且dom ready时，回调。
+ * @method wwjs
+ * @param {string} id 字符串形式的模块id。也就是url形式。
+ * @param {function} cb 模块加载成功后的回调函数。传入一个参数mod对象。
+ * @param {function} err 模块加载失败后的回调函数。传入一个参数err对象。
+ * @return {promise|undefined} 如果wwjs模块已就绪，则返回promise对象，否则返回undefined.
+ * @name wwimport
+ **/
+function wwimport (id, suc, err) {
+  if (id === 'fullfill') {
+    if (typeof suc === 'function') {
+      suc(id)
+    }
+  } else if (id === 'ready') {
+    ready(suc)
+  } else {
+    return window.System.import(String(id)).then((mod) => {
+      if (typeof suc === 'function') {
+        suc(mod)
+      }
+    }).catch((err) => {
+      if (typeof err === 'function') {
+        err(err)
+      }
+    })
+  }
+}
 
-$(document).ready(function () {
-  console.log('ready!!!')
+// delete window.Promise
+// delete window.MutationObserver
+// delete window.WebKitMutationObserver
+// delete window.fetch
+const polyfills = require('./utils/polyfills')
+
+let readNoitifer = []
+
+// 调用缓冲的ready回调，ready已经发生。err为null表示无错误，否则是一个异常对象。
+function notifyReady (err) {
+  readNoitifer = readNoitifer || []
+  while (readNoitifer.length > 0) {
+    const cb = readNoitifer.shift()
+    if (typeof cb === 'function') {
+      cb(err)
+    }
+  }
+  readNoitifer = undefined
+}
+
+// 0 pending,1:suc,2: failed
+const READY_PEDING = 0
+const READY_SUC = 1
+let readyState = READY_PEDING
+polyfills.install(() => {
+  // basic environment ready. 开始处理缓冲的加载请求。
+  // 现在开始等待dom ready事件，并开始处理。
+  let tasks = []
+  if (typeof window.wwimcache === 'object') {
+    let i
+    for (i in window.wwimcache) {
+      const item = window.wwimcache[i]
+      tasks.push(wwimport(item.id, item.suc, item.err))
+    }
+  }
+  window.wwimport = wwimport
+  window.Promise.all(tasks).then(() => {
+    $(document).ready(function () {
+      console.log('ready!!!')
+      readyState = READY_SUC
+      notifyReady(null)
+    })
+  }).catch((err) => {
+    console.err(`ready之前发生错误，忽略这一错误，并继续处理，这可能会发生其它问题。错误内容:${err}`)
+    readyState = err
+    notifyReady(err)
+  })
 })
 
-module.exports = (() => {
-  const editors = []
-  const defaultConfig = {
-    // If true renders editor on init
-    autorender: 1,
+/**
+   @module wwjs
+   @desc wwjs主模块，负责构建wware在浏览器下的执行环境。wware假定代码都由编译器做完transpiling之后产生。wwjs自身可以执行于ie8+以上的环境。并确保如下功能:
+   - Promise
+   - MutationObserver
+   - ES6 Module Loader
+   */
 
-    // Array of plugins to init
-    plugins: [],
-
-    // Custom options for plugins
-    pluginsOpts: {}
+/**
+当所有内部功能就绪，并且dom ready之后，ready开始回调callback。如果已经就绪，则立即直接回调。
+ * @method wwjs
+ * @param {function} cb 当ready之后调用，如果地一个参数不为空(null)，则意味着ready时发生错误。
+ * @name ready
+ * @return undefined
+ **/
+function ready (cb) {
+  switch (readyState) {
+    case READY_PEDING:
+      readNoitifer = readNoitifer || []
+      readNoitifer.push(cb)
+      break
+    case READY_SUC:
+      if (typeof cb === 'function') {
+        cb(null)
+      }
+      break
+    default:
+      if (typeof cb === 'function') {
+        cb(readyState)
+      }
   }
+}
 
+module.exports = (() => {
   return {
-    loader: loader,
-    utils,
-    $,
+    ready: ready,
 
-    editors,
-
-    // Will be replaced on build
-    version: '<# VERSION #>',
-
-    cfg: require('./test.js'),
-
-    defaultConfig
+    /**
+    当前的wwjs版本号。
+     * @member wwjs
+     * @type {string}
+     * @name version
+     **/
+    version: '<# VERSION #>'
   }
 })()
