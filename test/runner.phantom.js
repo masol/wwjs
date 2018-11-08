@@ -51,7 +51,7 @@ page.onConsoleMessage = function (msg) {
 }
 
 // Run the specs against the latest minified build
-page.open('file:///' + fs.absolute('./' + (system.args[1] || 'test/runner.html?src=dist/wwjs.min.js')), function (status) {
+page.open('file:///' + fs.absolute('./' + (system.args[1] || 'test/runner.html')), function (status) {
   if (status !== 'success') {
     console.log('无法加载测试文件')
     phantom.exit()

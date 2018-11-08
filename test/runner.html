@@ -21,10 +21,7 @@
 <body>
   <div> 其它关联测试：
     <ul>
-      <li><a href="test/compatible.html">兼容性测试</a></li>
-    </ul>
-    <ul>
-      <li><a href="test/runner.html">特性测试</a></li>
+      <li><a href="compatible.html">兼容性测试</a></li>
     </ul>
   </div>
   <div id="mocha"></div>
@@ -35,13 +32,12 @@
   </script>
 
   <!-- wwjs spec -->
-  <script src="test/spec/bootstrap.js"></script>
+  <script src="spec/bootstrap.js"></script>
   <!--  -->
 
   <script>
     mocha.run();
   </script>
-  <script async src="dist/wwjs.min.js"></script>
-</body>
-
+  <script src="../dist/wwjs.min.js"></script>
+  </body>
 </html>

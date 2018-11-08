@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset=utf-8>
+  <title>WWJS测试</title>
+  <link rel="stylesheet" href="//libs.wware.org/mocha/5.2.0/mocha.css">
+  <script src="//libs.wware.org/mocha/5.2.0/mocha.js"></script>
+  <script src="//libs.wware.org/chai/4.2.0/chai.js"></script>
+  <script>
+    mocha.setup('bdd')
+  </script>
+
+  <script>
+    window.wwimport = function(mod, callback, errcb) {
+      window.wwimcache = window.wwimcache || [];
+      window.wwimcache.push({
+        id: mod,
+        suc: callback,
+        err: errcb
+      });
+    }
+  </script>
+
+  <!-- 测试 -->
+  <!--  -->
+</head>
+
+<body>
+  <div id="mocha"></div>
+  <script>
+    mocha.run();
+  </script>
+  <script async src="../dist/wwjs.min.js"></script>
+  </body>
+</html>

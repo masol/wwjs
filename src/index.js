@@ -33,7 +33,7 @@ window.$ = window.jQuery = $
 <script>
 window.wwimport = function(mod,callback,errcb){
   window.wwimcache = window.wwimcache || [];
-  window.wwimcache.push({id : id,suc : callback,err : errcb});
+  window.wwimcache.push({id : mod,suc : callback,err : errcb});
 }
 </script>
 ```
