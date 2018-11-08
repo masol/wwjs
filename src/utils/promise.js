@@ -23,6 +23,7 @@ module.exports = (function initModule () {
   @method pipe
   @desc 将array中给定的值顺序执行，每个输出作为下一个函数的输入。
   @param {Array<any>} array  array必须是一个array|array like(需要reduce)的对象。如果值不是一个函数，则直接当作下一个的输入。
+  @param {any} [initvar] 初始值，传给地一个promise函数的参数。
   @return {Promise} 最终解析为最后一个函数的返回值。
   */
   function pipe (array, initvar) {

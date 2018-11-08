@@ -4,10 +4,14 @@ describe('Bootstrap', function () {
   before(function () {
   })
 
-  if (!window.wwj) {
+  // 在初始化本测试脚本时，如果已经ready,则忽略本测试。
+  if (!window.wwjs) {
     it('bootstrap时,Ready是异步调用', function (done) {
       let test = 1
-      let bootted = !!window.wwj
+      let bootted = false
+      if ((typeof window.wwjs === 'object') && window.wwjs.isReady()) {
+        bootted = true
+      }
       wwimport('ready', () => {
         if (bootted) {
           chai.expect(test).to.equal(1)
@@ -28,7 +32,7 @@ describe('Bootstrap', function () {
     })
     chai.expect(test).to.equal(2)
   })
-  it('bootstrap之后,Promise工作正常', function () {
+  it('bootstrap之后,Promise可以new', function () {
     let test = 1
     const pro = new Promise(function (resolve, reject) {
       setTimeout(function () {

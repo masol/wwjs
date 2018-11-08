@@ -104,7 +104,6 @@ polyfills.install(() => {
   window.wwimport = wwimport
   window.Promise.all(tasks).then(() => {
     $(document).ready(function () {
-      console.log('ready!!!')
       readyState = READY_SUC
       notifyReady(null)
     })
@@ -151,7 +150,13 @@ function ready (cb) {
 module.exports = (() => {
   return {
     ready: ready,
-
+    /**
+    同步检查当前是否已经ready.
+     * @method wwjs
+     * @name isReady
+     * @return {Boolean} 返回当前是否已经ready。如果发生错误，也算作ready状态。
+     **/
+    isReady: () => { return readyState !== READY_PEDING },
     /**
     当前的wwjs版本号。
      * @member wwjs
