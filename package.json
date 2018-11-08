@@ -15,6 +15,7 @@
     "start:dev": "webpack-dev-server --open --progress --colors",
     "start": "webpack-dev-server --open --progress --colors --env=prod",
     "fetch:lib": "echo fetch std lib from wware.org",
+    "test:phantom": "node test/runner.node.js -- -phantom",
     "test": "node test/runner.node.js"
   },
   "babel": {
@@ -98,6 +99,7 @@
     "lint-staged": "^8.0.4",
     "opn": "^5.4.0",
     "promise-polyfill": "^8.1.0",
+    "shelljs": "^0.8.2",
     "string-replace-loader": "^2.1.1",
     "webpack": "^4.23.1",
     "webpack-cli": "^3.1.2",

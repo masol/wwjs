@@ -1,6 +1,16 @@
+'use strict'
 
-var system = require('system')
-var fs = require('fs')
+// const httpServer = require('http-server')
+//
+// var server = httpServer.createServer({
+//   robots: true,
+//   root: '../',
+//   headers: {
+//     'Access-Control-Allow-Origin': '*',
+//     'Access-Control-Allow-Credentials': 'true'
+//   }
+// })
+// server.listen(9999)
 
 /* eslint-disable */
 /**
@@ -16,8 +26,8 @@ var fs = require('fs')
  * @param timeOutMillis the max amount of time to wait. If not specified, 3 sec is used.
  */
 function waitFor (testFx, onReady, onTimeout, timeOutMillis) {
-  var maxtimeOutMillis = timeOutMillis || 3001
-  // < Default Max Timeout is 3s
+  var maxtimeOutMillis = timeOutMillis || 10001
+  // < Default Max Timeout is 10s
 
   var start = new Date().getTime()
 
@@ -50,17 +60,23 @@ page.onConsoleMessage = function (msg) {
   console.log(msg)
 }
 
+const defaultURL = 'http://localhost:9999/test/runner.html';
+console.log(123123)
+// Opens the url in the phantom browser
 // Run the specs against the latest minified build
-page.open('file:///' + fs.absolute('./' + (system.args[1] || 'test/runner.html')), function (status) {
+page.open(defaultURL, function (status) {
   if (status !== 'success') {
     console.log('无法加载测试文件')
     phantom.exit()
   } else {
+    console.log(1)
     waitFor(function () {
       return page.evaluate(function () {
-        return document.body.querySelector('.symbolSummary .pending') === null
+        console.log(3)
+        return document.body.querySelector('#test_finished') === null
       })
     }, function () {
+      console.log(2)
       var exitCode = page.evaluate(function () {
         var list = document.body.querySelectorAll('.results > #details > .specDetail.failed')
         if (list && list.length > 0) {
