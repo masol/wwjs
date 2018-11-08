@@ -31,37 +31,36 @@ window.$ = window.jQuery = $
 回调风格的模块加载。通常需要在html的head部分，写下容错代码，这在wwjs就绪之前，缓冲模块加载请求，并在就绪之后，异步并行加载。
 ```
 <script>
-window.wwimport = function(mod,callback,errcb){
+window.wwimport = function(mod,callback){
   window.wwimcache = window.wwimcache || [];
-  window.wwimcache.push({id : mod,suc : callback,err : errcb});
+  window.wwimcache.push({id : mod,cb : callback});
 }
 </script>
 ```
 部分特殊的id被预约，以在内部特定事件发生时，得到通知：
 - fullfill : 当wwjs可以使用时，回调。
 - ready : 当wwjs可用，并且dom ready时，回调。
- * @method wwjs
+ * @method wwimport
  * @param {string} id 字符串形式的模块id。也就是url形式。
- * @param {function} cb 模块加载成功后的回调函数。传入一个参数mod对象。
- * @param {function} err 模块加载失败后的回调函数。传入一个参数err对象。
+ * @param {function} cb 模块加载成功后的回调函数。接受两个参数，第一个为err对象(null表示无错误)，第二个为mod对象。
  * @return {promise|undefined} 如果wwjs模块已就绪，则返回promise对象，否则返回undefined.
  * @name wwimport
  **/
-function wwimport (id, suc, err) {
+function wwimport (id, cb) {
   if (id === 'fullfill') {
     if (typeof suc === 'function') {
-      suc(id)
+      cb(null)
     }
   } else if (id === 'ready') {
-    ready(suc)
+    ready(cb)
   } else {
     return window.System.import(String(id)).then((mod) => {
       if (typeof suc === 'function') {
-        suc(mod)
+        cb(null, mod)
       }
     }).catch((err) => {
       if (typeof err === 'function') {
-        err(err)
+        cb(err)
       }
     })
   }
@@ -99,7 +98,7 @@ polyfills.install(() => {
     let i
     for (i in window.wwimcache) {
       const item = window.wwimcache[i]
-      tasks.push(wwimport(item.id, item.suc, item.err))
+      tasks.push(wwimport(item.id, item.cb))
     }
   }
   window.wwimport = wwimport

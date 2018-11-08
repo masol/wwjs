@@ -23,8 +23,9 @@ function install (callback) {
     //   console.log('loadover')
     // })
     window.Promise = require('promise-polyfill').default
-    console.log('window.Promise=', window.Promise)
+    // console.log('window.Promise=', window.Promise)
   }
+  require('./promise')
 
   // if (typeof fetch === 'undefined') {
   //   window.System.import('//libs.wware.org/whatwg-fetch/latest/fetch.umd.js').then(function (arg1, arg2, arg3) {
