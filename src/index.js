@@ -47,21 +47,21 @@ window.wwimport = function(mod,callback){
  * @name wwimport
  **/
 function wwimport (id, cb) {
-  if (id === 'fullfill') {
-    if (typeof suc === 'function') {
-      cb(null)
+  if (!$.isFunction(cb)) {
+    if (window._debug) {
+      console.error(`wwimport的第二个参数必须是一个函数,而不是"${String(cb)}"！忽略本次wwimport调用`)
     }
+    return
+  }
+  if (id === 'fullfill') {
+    cb(null)
   } else if (id === 'ready') {
     ready(cb)
   } else {
     return window.System.import(String(id)).then((mod) => {
-      if (typeof suc === 'function') {
-        cb(null, mod)
-      }
+      cb(null, mod)
     }).catch((err) => {
-      if (typeof err === 'function') {
-        cb(err)
-      }
+      cb(err)
     })
   }
 }
@@ -79,10 +79,11 @@ function notifyReady (err) {
   readNoitifer = readNoitifer || []
   while (readNoitifer.length > 0) {
     const cb = readNoitifer.shift()
-    if (typeof cb === 'function') {
-      cb(err)
-    }
+    // 已经在wwimport中检查了，确保是一个函数。
+    cb(err)
   }
+  console.log(require('./checker'))
+  require('./checker')()
   readNoitifer = undefined
 }
 
@@ -120,6 +121,16 @@ polyfills.install(() => {
    - Promise
    - MutationObserver
    - ES6 Module Loader
+
+配置wwjs的方式是，在引入wwjs之前，定义部分全局变量：
+   - window._debug : 如果被定义为true，则启用调试模式，在console输出更多信息。
+   - window._libbase : 如果被定义一个字符串(空字符串表示引用本地服务器地址)，则用来做外部引入库的根路径。默认是"//libs.wware.org" : 注意服务器的CORS设置。
+   @example
+<script>
+  window._debug = true
+  window._libbase = "//libs.mydomain.com/someprefix"
+</script>
+<script async src="//libs.wware.org/wwjs/2.0.0/wwjs.min.js"></script>
    */
 
 /**
@@ -130,20 +141,22 @@ polyfills.install(() => {
  * @return undefined
  **/
 function ready (cb) {
+  if (!$.isFunction(cb)) {
+    if (window._debug) {
+      console.error(`ready参数必须是一个函数,而不是"${String(cb)}"！忽略本次ready调用`)
+    }
+    return
+  }
   switch (readyState) {
     case READY_PEDING:
       readNoitifer = readNoitifer || []
       readNoitifer.push(cb)
       break
     case READY_SUC:
-      if (typeof cb === 'function') {
-        cb(null)
-      }
+      cb(null)
       break
     default:
-      if (typeof cb === 'function') {
-        cb(readyState)
-      }
+      cb(readyState)
   }
 }
 
