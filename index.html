@@ -6,12 +6,11 @@
   <title>WWJS测试</title>
   <link rel="stylesheet" href="//libs.wware.org/mocha/5.2.0/mocha.css">
   <script>
-    window.wwimport = function(mod, callback, errcb) {
+    window.wwimport = function(mod, callback) {
       window.wwimcache = window.wwimcache || [];
       window.wwimcache.push({
         id: mod,
-        suc: callback,
-        err: errcb
+        cb: callback
       });
     }
   </script>
@@ -36,6 +35,7 @@
 
   <!-- wwjs spec -->
   <script src="test/spec/bootstrap.js"></script>
+  <script src="test/spec/promise.js"></script>
   <!--  -->
 
   <script>

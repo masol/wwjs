@@ -26,7 +26,7 @@ module.exports = (function initModule () {
   @return {Promise} 最终解析为最后一个函数的返回值。
   */
   function pipe (array, initvar) {
-    return Array.prototype.redcue.call(array, (result, task) => {
+    return Array.prototype.reduce.call(array, (result, task) => {
       return Promise.resolve(result).then((param) => {
         return (window.$.isFunction(task) ? task(param) : task)
       }).then(result => {
@@ -39,21 +39,22 @@ module.exports = (function initModule () {
   @exports utils/promise
   @method whiledo
   @desc  根据条件不断重复action，类似同步的`while(predicate){action};`语句。
-  @param {Function} predicate 判定条件，函数可以返回promise或普通值。
-  @param {Function} action 执行函数，函数可以返回promise或普通值。
+  @param {Function} predicate 判定条件，传入上次action的返回值(首次传入initval),函数可以返回promise<Boolean>或普通Boolean值。
+  @param {Function} action 执行函数，传入上次action的返回值(首次传入initval),函数可以返回promise或普通值。
+  @param {Any} [initval] 传入给第一次调用的初始值。
   @return {promise} 返回一个promise,解析为最后一次调用action的返回值。
   @see https://gist.github.com/victorquinn/8030190
   **/
-  function whiledo (predicate, action) {
+  function whiledo (predicate, action, initval) {
     function loop (preret) {
-      return Promise.resolve(predicate()).then((cond) => {
+      return Promise.resolve(predicate(preret)).then((cond) => {
         if (!cond) {
           return preret
         }
-        return Promise.resolve(action()).then(loop)
+        return Promise.resolve(action(preret)).then(loop)
       })
     }
-    return Promise.resolve().then(loop)
+    return Promise.resolve(initval).then(loop)
   }
 
   /**
@@ -78,7 +79,7 @@ module.exports = (function initModule () {
     })
   }
 
-  window.Promise.prototype.pipe = pipe
-  window.Promise.prototype.whiledo = whiledo
-  window.Promise.prototype.delay = delay
+  window.Promise.pipe = pipe
+  window.Promise.whiledo = whiledo
+  window.Promise.delay = delay
 }())
