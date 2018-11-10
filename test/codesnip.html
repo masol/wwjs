@@ -1,0 +1,145 @@
+<!-- 无依赖加载进度条 -->
+<style>
+  .wwjspgb {
+    position: absolute;
+    height: 2px;
+    display: block;
+    width: 100%;
+    background-color: white;
+    border-radius: 2px;
+    background-clip: padding-box;
+    /*margin: 0.5rem 0 1rem 0;*/
+    overflow: hidden;
+    /**
+     * For IE 6/7 only
+     * Include this rule to trigger hasLayout and contain floats.
+     */
+    *zoom: 1;
+  }
+
+  .wwjspgb:before,
+  .wwjspgb:after {
+    content: " ";
+    /* 1 */
+    display: table;
+    /* 2 */
+  }
+
+  .wwjspgb:after {
+    clear: both;
+  }
+
+  .wwjspgb .indeterminate {
+    background-color: black;
+  }
+
+  .wwjspgb .indeterminate:before {
+    content: '';
+    position: absolute;
+    background-color: #2C67B1;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    will-change: left, right;
+    -webkit-animation: indeterminate 2.1s cubic-bezier(0.65, 0.815, 0.735, 0.395) infinite;
+    animation: indeterminate 2.1s cubic-bezier(0.65, 0.815, 0.735, 0.395) infinite;
+  }
+
+  .wwjspgb .indeterminate:after {
+    content: '';
+    position: absolute;
+    background-color: #2C67B1;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    will-change: left, right;
+    -webkit-animation: indeterminate-short 2.1s cubic-bezier(0.165, 0.84, 0.44, 1) infinite;
+    animation: indeterminate-short 2.1s cubic-bezier(0.165, 0.84, 0.44, 1) infinite;
+    -webkit-animation-delay: 1.15s;
+    animation-delay: 1.15s;
+  }
+
+  @-webkit-keyframes indeterminate {
+    0% {
+      left: -35%;
+      right: 100%;
+    }
+
+    60% {
+      left: 100%;
+      right: -90%;
+    }
+
+    100% {
+      left: 100%;
+      right: -90%;
+    }
+  }
+
+  @keyframes indeterminate {
+    0% {
+      left: -35%;
+      right: 100%;
+    }
+
+    60% {
+      left: 100%;
+      right: -90%;
+    }
+
+    100% {
+      left: 100%;
+      right: -90%;
+    }
+  }
+
+  @-webkit-keyframes indeterminate-short {
+    0% {
+      left: -200%;
+      right: 100%;
+    }
+
+    60% {
+      left: 107%;
+      right: -8%;
+    }
+
+    100% {
+      left: 107%;
+      right: -8%;
+    }
+  }
+
+  @keyframes indeterminate-short {
+    0% {
+      left: -200%;
+      right: 100%;
+    }
+
+    60% {
+      left: 107%;
+      right: -8%;
+    }
+
+    100% {
+      left: 107%;
+      right: -8%;
+    }
+  }
+</style>
+<body>
+  <div class="wwjspgb" id="PreLoaderBar">
+    <div class="indeterminate"></div>
+  </div>
+</body>
+
+<!-- 加载缓冲及策略 -->
+<script>
+  // Check that service workers are registered
+  if ('serviceWorker' in navigator) {
+    // Use the window load event to keep the page load performant
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js');
+    });
+  }
+</script>
