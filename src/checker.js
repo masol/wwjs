@@ -14,7 +14,7 @@
 
 function install () {
   require('./ko/index')
-  document.getElementById('PreLoaderBar').style.display = 'none'
+  // document.getElementById('PreLoaderBar').style.display = 'none'
 }
 
 module.exports = install

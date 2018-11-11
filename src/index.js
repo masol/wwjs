@@ -20,6 +20,10 @@ if (process.env.NODE_ENV === 'development') {
   window._debug = true
 }
 
+if (typeof window.wwcfg === 'object') {
+  window._debug = window.wwcfg.debug || false
+}
+
 /**
 内建的jQuery支持。注意，这不是原生jQuery,而是[cash-dom](https://github.com/kenwheeler/cash)，并被绑定到window.jQuery以及window.$
  * @type {jQuery}
@@ -123,12 +127,16 @@ polyfills.install(() => {
    - ES6 Module Loader
 
 配置wwjs的方式是，在引入wwjs之前，定义部分全局变量：
-   - window._debug : 如果被定义为true，则启用调试模式，在console输出更多信息。
-   - window._libbase : 如果被定义一个字符串(空字符串表示引用本地服务器地址)，则用来做外部引入库的根路径。默认是"//libs.wware.org" : 注意服务器的CORS设置。
+   - window.wwcfg = {
+      debug : true , //如果被定义为true，则启用调试模式，在console输出更多信息。
+      libbase : "//libs.YOURDOMAIN.COM" , //如果被定义一个字符串(空字符串表示引用本地服务器地址)，则用来做外部引入库的根路径。默认是"//libs.wware.org" : 注意服务器的CORS设置。
+    }
    @example
 <script>
-  window._debug = true
-  window._libbase = "//libs.mydomain.com/someprefix"
+window.wwcfg  = {
+  debug : true,
+  libbase : "//libs.mydomain.com/someprefix"
+}
 </script>
 <script async src="//libs.wware.org/wwjs/2.0.0/wwjs.min.js"></script>
    */
