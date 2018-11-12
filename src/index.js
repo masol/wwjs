@@ -15,6 +15,8 @@
 import $ from 'jquery'
 import 'systemjs/dist/s'
 import 'systemjs/dist/extras/amd'
+// 不再使用诸如barba.js,navigo,page.js之类的History API管理工具。而是内建由view来自行调用History API来自行处理。
+// import router from './utils/router'
 
 if (process.env.NODE_ENV === 'development') {
   window._debug = true

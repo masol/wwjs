@@ -16,7 +16,7 @@ if ((typeof window.wwcfg === 'object') && window.$.isString(window.wwcfg.libbase
 }
 
 /**
-***本函数只是内部使用，这里只是为了说明安装了哪些polyfill，方便检索。我们目标支持版本为ie10+(ie9只是基础支持，确保可以运行，部分特效可能缺失——例如css动画)**
+***本函数只是内部使用，这里只是为了说明安装了哪些polyfill，方便检索。我们目标支持版本为ie10+(ie9只是基础支持，确保可以运行，部分特效可能缺失——例如css动画)。<font color="red">预取机制不会早于polyfill执行：如果需要安装polyfill,则预取机制会在polyfill加载后开始工作,表现就是旧版IE加载速度略低，这是正常的</font>**
 
 本函数检查浏览器环境，如果缺少依赖特性，按照下面对特性的定义，从网络下载polyfill并安装。执行完毕之后，在window下安装了对象window.Modernizr，可以使用这个对象来检查浏览器支持。
 
@@ -24,8 +24,10 @@ if ((typeof window.wwcfg === 'object') && window.$.isString(window.wwcfg.libbase
 - [es6-promise](https://caniuse.com/#search=promise)由于system.js依赖，为解决自举依赖，这个polyfill被内置到wwjs包中，无论是否需要。使用了[promise-polyfill](https://github.com/taylorhakes/promise-polyfill,注意：没有使用[es6-promise](https://github.com/stefanpenner/es6-promise)的原因是尺寸，由于es6-promise从rsvp中抽取，尺寸过大。
 - [Notification](https://caniuse.com/#search=Notification),如果不支持，自动安装[HTML5-Desktop-Notifications](https://github.com/ttsvetko/HTML5-Desktop-Notifications).
 - [CSS3 object-fit/object-position](https://caniuse.com/#search=CSS3%20object-fit%2Fobject-position),如果不支持，自动安装[object-fit-images](https://github.com/bfred-it/object-fit-images)，图形布局中使用了本特性。
-- [requestAnimationFrame](https://caniuse.com/#search=requestAnimationFrame)，目标浏览器只有ie9不被支持，如果未支持，自动调用内建的[polyfill](https://gist.github.com/paulirish/1579671).
+- [requestAnimationFrame](https://caniuse.com/#search=requestAnimationFrame)，目标浏览器只有ie9不被支持，由于这个特性不支持会导致wwjs无法运行，如果未支持，自动调用内建的[polyfill](https://gist.github.com/paulirish/1579671).
 - [URL API](https://caniuse.com/#search=URL%20API),如果不被支持，自动安装[URL](https://github.com/webcomponents/URL)
+- [Session history management](https://caniuse.com/#search=Session%20history%20management),目标浏览器下，只有ie9不被支持，由于这个特性不支持会导致wwjs无法运行，因此自动打补丁[html5-history-api](https://github.com/devote/HTML5-History-API)
+- [ES6 String](https://caniuse.com/#search=ES6),如果不支持，自动补丁[string-polyfills](https://github.com/Sylvain59650/string-polyfills),注意只是String,不是全部class规范，没有使用[es6-shim](https://github.com/paulmillr/es6-shim)
 
 提供了检查，但是没有安装polyfill的特性如下，需要自行调用wwimport确认安装。
 - [Custom Elements](https://caniuse.com/#search=Custom%20Elements),提供了检查，但是polyfill没有安装，在使用webcomponents前自动加载polyfill.
@@ -57,9 +59,11 @@ Modernizr的一个值组合(chrome Version 70.0.3538.77 (Official Build) snap (6
 {
 beacon: true
 customelements: true
+es6string: true
 fetch: true
 jpeg2000: false
 jpegxr: false
+history: true
 mutationobserver: true
 notification: true
 object-fit: true
@@ -85,14 +89,16 @@ webp: Boolean{
 */
 function install (callback) {
   let feattested = {
-    mutationobserver: false,
+    es6string: false,
     fetch: false,
+    history: false,
+    mutationobserver: false,
     objectfit: false,
     urlparser: false
   }
   let failedPF = []
 
-  console.log(window.Modernizr)
+  // console.log(window.Modernizr)
 
   const polyfillReady = () => {
     let i
@@ -142,10 +148,12 @@ function install (callback) {
   }
   require('./promise')
 
+  checkFeature('es6string', '/string-polyfills/0.9.1/String.min.js')
   checkFeature('fetch', '/whatwg-fetch/3.0.0/fetch.umd.js')
   checkFeature('mutationobserver', '/mutationobserver-shim/0.3.2/mutationobserver.min.js')
   checkFeature('urlparser', '/%40webcomponents/url/0.7.1/url.js')
   checkFeature('objectfit', '/object-fit-images/3.2.4/ofi.min.js')
+  checkFeature('history', '/html5-history-api/4.2.10/history.min.js')
 
   // 如果没有equestanimationframe(只有ie9,按照[这里](https://gist.github.com/paulirish/1579671)的方案polyfill)
   if (!Modernizr.equestanimationframe) {
