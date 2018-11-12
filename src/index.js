@@ -44,8 +44,8 @@ id可以使用如下格式，以在内部特定事件发生时，得到通知：
 - ready : 当wwjs可用，并且dom ready时，回调。
 - [@]URL : 如果不带@前缀，则默认从本地服务器加载。如果带有@前缀，则从libs服务器下加载。如果给出全路径，则忽略@前缀。当前支持的前缀(区分大小写)如下:
   - json! : json格式
-  - css! : 通过在head中设置<link>标签来加载，如果已有相同的url,则fullfill.
-  - amd! : 当作amd module来加载。
+  - css! : 通过在head中设置<link>标签来加载，如果已有相同url被加载,则fullfill(一个url只加载一次).
+  - ~~amd! : 当作amd module来加载。~~如果需要加载amd模块，请使用`window.define`函数。
   - 无前缀时被当作es6模块(CommonJS) : 当作es6 module来加载。
 - [!][*viewSelector]URL[#!!modelpath!!#] 调用URL,并更新view及model。此格式下的URL被解析到本地地址。
   - !或*必须有一个。通常在主页面只加载model，因此会形如：“!URL”
