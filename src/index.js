@@ -13,10 +13,11 @@
 'use strict'
 
 import $ from 'jquery'
-import 'systemjs/dist/s'
-import 'systemjs/dist/extras/amd'
+import './utils/systemjs'
 // 不再使用诸如barba.js,navigo,page.js之类的History API管理工具。而是内建由view来自行调用History API来自行处理。
 // import router from './utils/router'
+
+// console.log(System)
 
 if (process.env.NODE_ENV === 'development') {
   window._debug = true
@@ -37,34 +38,51 @@ window.$ = window.jQuery = $
 回调风格的模块加载。通常需要在html的head部分，写下容错代码，这在wwjs就绪之前，缓冲模块加载请求，并在就绪之后，异步并行加载。
 ```
 <script>
-window.wwimport = function(mod,callback){
+window.wwimport = window.wwimport || function(mod,callback){
   window.wwimcache = window.wwimcache || [];
   window.wwimcache.push({id : mod,cb : callback});
 }
 </script>
 ```
-部分特殊的id被预约，以在内部特定事件发生时，得到通知：
+id可以使用如下格式，以在内部特定事件发生时，得到通知：
 - fullfill : 当wwjs可以使用时，回调。
 - ready : 当wwjs可用，并且dom ready时，回调。
+- [@]URL : 如果不带@前缀，则默认从本地服务器加载。如果带有@前缀，则从libs服务器下加载。如果给出全路径，则忽略@前缀。当前支持的后缀(区分大小写)如下:
+  - .json : json格式
+  - .css : 通过在head中设置<link>标签来加载，如果已有相同的url,则fullfill.
+  - 其它后缀被当作.js : 当作es6 module来加载。
+- [!][*viewSelector]URL[#!!modelpath!!#] 调用URL,并更新view及model。此格式下的URL被解析到本地地址。
+  - !或*必须有一个。通常在主页面只加载model，因此会形如：“!URL”
+  - 如果要求加载一对,URL给出的是view的url，而model的url会把view的后缀(建议采用.html)改为.json加载。
+  - 当加载模型时，可以通过指定modelpath后缀来指明更新model的路径，如果未加载模型，modelpath从字符串中删除。如果没有给出modelPath,则默认从根路径下开始更新。服务器回应如果指定路径，优先级低于这里指定的modelPath
  * @method wwimport
- * @param {string} id 字符串形式的模块id。也就是url形式。
- * @param {function} cb 模块加载成功后的回调函数。接受两个参数，第一个为err对象(null表示无错误)，第二个为mod对象。
+ * @param {string|array} id 字符串形式的模块id。也就是url形式。
+ * @param {function} [cb] 模块加载成功后的回调函数。接受两个参数，第一个为err对象(null表示无错误)，第二个为mod对象。
  * @return {promise|undefined} 如果wwjs模块已就绪，则返回promise对象，否则返回undefined.
  * @name wwimport
  **/
 function wwimport (id, cb) {
-  if (!$.isFunction(cb)) {
-    if (window._debug) {
-      console.error(`wwimport的第二个参数必须是一个函数,而不是"${String(cb)}"！忽略本次wwimport调用`)
+  if ($.isArray(id)) {
+    for (let i = 0; i < id.length; i++) {
+      wwimport(id[i], cb)
     }
     return
+  }
+  if (!$.isString(id)) {
+    return
+  }
+  if (!$.isFunction(cb)) {
+    cb = () => {}
+    // if (window._debug) {
+    //   console.error(`wwimport的第二个参数必须是一个函数,而不是"${String(cb)}"！忽略本次wwimport调用`)
+    // }
   }
   if (id === 'fullfill') {
     cb(null)
   } else if (id === 'ready') {
     ready(cb)
   } else {
-    return window.System.import(String(id)).then((mod) => {
+    return window.System.import(id).then((mod) => {
       cb(null, mod)
     }).catch((err) => {
       cb(err)

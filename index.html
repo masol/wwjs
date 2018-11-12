@@ -6,7 +6,7 @@
   <title>WWJS测试</title>
   <link rel="stylesheet" href="//libs.wware.org/mocha/5.2.0/mocha.css">
   <script>
-    window.wwimport = function(mod, callback) {
+    window.wwimport = window.wwimport || function(mod, callback) {
       window.wwimcache = window.wwimcache || [];
       window.wwimcache.push({
         id: mod,
