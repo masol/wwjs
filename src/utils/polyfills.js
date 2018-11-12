@@ -1,6 +1,7 @@
 'use strict'
 
 import './modernizr'
+import cfg from './cfg'
 
 const Modernizr = window.Modernizr
 
@@ -8,12 +9,6 @@ const Modernizr = window.Modernizr
 @module utils/polifills
 @desc 检查浏览器环境，并安装polyfill.
 */
-
-let libbase = '//libs.wware.org'
-if ((typeof window.wwcfg === 'object') && window.$.isString(window.wwcfg.libbase)) {
-  libbase = (window.wwcfg.libbase[window.wwcfg.libbase.length - 1] === '/')
-    ? window.wwcfg.libbase.substr(0, libbase.length - 1) : window.wwcfg.libbase
-}
 
 /**
 ***本函数只是内部使用，这里只是为了说明安装了哪些polyfill，方便检索。我们目标支持版本为ie10+(ie9只是基础支持，确保可以运行，部分特效可能缺失——例如css动画)。<font color="red">预取机制不会早于polyfill执行：如果需要安装polyfill,则预取机制会在polyfill加载后开始工作,表现就是旧版IE加载速度略低，这是正常的</font>**
@@ -107,7 +102,7 @@ function install (callback) {
         return
       }
     }
-    if (window._debug && typeof callback !== 'function') {
+    if (cfg.debug && typeof callback !== 'function') {
       console.error(`传入polyfill::install参数callback不是一个有效函数`)
     }
     callback(failedPF)
@@ -117,7 +112,7 @@ function install (callback) {
     feattested[featName] = true
     if (err) {
       failedPF.push('fetch')
-      if (window._debug) {
+      if (cfg.debug) {
         window.alert(`当前浏览器不支持${featName},并且无法加载polyfill文件,错误信息：${err}`)
       }
     }
@@ -126,7 +121,7 @@ function install (callback) {
 
   let checkFeature = (featName, polyfillURL) => {
     if (!Modernizr[featName]) {
-      window.System.import(`${libbase}${polyfillURL}`).then(() => {
+      window.System.import(`${cfg.libbase}${polyfillURL}`).then(() => {
         polyfillFinish(featName)
       }).catch(function (err) {
         polyfillFinish(featName, err)

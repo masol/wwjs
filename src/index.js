@@ -14,18 +14,13 @@
 
 import $ from 'jquery'
 import './utils/systemjs'
+import cfg from './utils/cfg'
+
+console.log(cfg)
 // 不再使用诸如barba.js,navigo,page.js之类的History API管理工具。而是内建由view来自行调用History API来自行处理。
 // import router from './utils/router'
 
 // console.log(System)
-
-if (process.env.NODE_ENV === 'development') {
-  window._debug = true
-}
-
-if (typeof window.wwcfg === 'object') {
-  window._debug = window.wwcfg.debug || false
-}
 
 /**
 内建的jQuery支持。注意，这不是原生jQuery,而是[cash-dom](https://github.com/kenwheeler/cash)，并被绑定到window.jQuery以及window.$
@@ -47,10 +42,11 @@ window.wwimport = window.wwimport || function(mod,callback){
 id可以使用如下格式，以在内部特定事件发生时，得到通知：
 - fullfill : 当wwjs可以使用时，回调。
 - ready : 当wwjs可用，并且dom ready时，回调。
-- [@]URL : 如果不带@前缀，则默认从本地服务器加载。如果带有@前缀，则从libs服务器下加载。如果给出全路径，则忽略@前缀。当前支持的后缀(区分大小写)如下:
-  - .json : json格式
-  - .css : 通过在head中设置<link>标签来加载，如果已有相同的url,则fullfill.
-  - 其它后缀被当作.js : 当作es6 module来加载。
+- [@]URL : 如果不带@前缀，则默认从本地服务器加载。如果带有@前缀，则从libs服务器下加载。如果给出全路径，则忽略@前缀。当前支持的前缀(区分大小写)如下:
+  - json! : json格式
+  - css! : 通过在head中设置<link>标签来加载，如果已有相同的url,则fullfill.
+  - amd! : 当作amd module来加载。
+  - 无前缀时被当作es6模块(CommonJS) : 当作es6 module来加载。
 - [!][*viewSelector]URL[#!!modelpath!!#] 调用URL,并更新view及model。此格式下的URL被解析到本地地址。
   - !或*必须有一个。通常在主页面只加载model，因此会形如：“!URL”
   - 如果要求加载一对,URL给出的是view的url，而model的url会把view的后缀(建议采用.html)改为.json加载。
@@ -68,14 +64,12 @@ function wwimport (id, cb) {
     }
     return
   }
-  if (!$.isString(id)) {
+  if (!$.isString(id) || id.length === 0) {
     return
   }
   if (!$.isFunction(cb)) {
+    // 允许不传入回调，用于加载后不管的情况。
     cb = () => {}
-    // if (window._debug) {
-    //   console.error(`wwimport的第二个参数必须是一个函数,而不是"${String(cb)}"！忽略本次wwimport调用`)
-    // }
   }
   if (id === 'fullfill') {
     cb(null)
@@ -170,7 +164,7 @@ window.wwcfg  = {
  **/
 function ready (cb) {
   if (!$.isFunction(cb)) {
-    if (window._debug) {
+    if (cfg.debug) {
       console.error(`ready参数必须是一个函数,而不是"${String(cb)}"！忽略本次ready调用`)
     }
     return
@@ -198,6 +192,13 @@ module.exports = (() => {
      * @return {Boolean} 返回当前是否已经ready。如果发生错误，也算作ready状态。
      **/
     isReady: () => { return readyState !== READY_PEDING },
+    /**
+    当前的wwjs的配置。注意这里的属性是只读的，修改之后无效。
+     * @member wwjs
+     * @type {object}
+     * @name config
+    **/
+    config: cfg,
     /**
     当前的wwjs版本号。
      * @member wwjs

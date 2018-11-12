@@ -14,11 +14,13 @@
 
 import 'systemjs/dist/s'
 import 'systemjs/dist/extras/amd'
+import cfg from './cfg'
 
 const System = window.System
 
 const systemJSPrototype = System.constructor.prototype
 const instantiate = systemJSPrototype.instantiate
+const resolve = systemJSPrototype.resolve
 
 /* 添加json @see https://github.com/Jamaks/systemjs2-json-plugin/blob/master/index.js */
 function loadJson (url, parent, loader) {
@@ -145,31 +147,70 @@ function systemJS2LoadCss (url, parent, loader) {
   return loadCSS(url, links)
 }
 
+const prefixes = [
+  'css!',
+  'json!'
+]
+
 systemJSPrototype.instantiate = function (url, parent) {
   const loader = this
-  if (url.slice(-5) === '.json') {
-    return loadJson(url, parent, loader)
-  } else if (url.slice(-4) === '.css') {
-    return systemJS2LoadCss(url, parent, loader)
-      .then(function (source) {
-        return loader.transform.call(this, url, source)
-      })
-      .then(function (source) {
-        return [[], function (_export) {
-          return {
-            setters: [],
-            execute: function () {
-              _export({ id: url })
+  // console.log('url =', url)
+
+  let type = ''
+  for (let i = 0; i < prefixes.length; i++) {
+    const pre = prefixes[i]
+    if (String(url).startsWith(pre)) {
+      type = pre
+      url = String(url).substr(pre.length)
+    }
+  }
+
+  if (cfg.debug) {
+    console.log(`import类型${type},并且最终URL为${url}`)
+  }
+  switch (type) {
+    case 'json!':
+      return loadJson(url, parent, loader)
+    case 'css!':
+      return systemJS2LoadCss(url, parent, loader)
+        .then(function (source) {
+          return loader.transform.call(this, url, source)
+        })
+        .then(function (source) {
+          return [[], function (_export) {
+            return {
+              setters: [],
+              execute: function () {
+                _export({ id: url })
+              }
             }
-          }
-        }]
-      })
+          }]
+        })
   }
   return instantiate.call(this, url, parent)
 }
 // Hookable transform function!
 systemJSPrototype.transform = function (_id, source) {
   return source
+}
+
+systemJSPrototype.resolve = function (_id, source) {
+  let url = String(_id)
+  let prefix = ''
+  for (let i = 0; i < prefixes.length; i++) {
+    const pre = prefixes[i]
+    if (url.startsWith(pre)) {
+      prefix = pre
+      url = String(url).substr(pre.length)
+    }
+  }
+
+  if (url.length > 0 && url[0] === '@') {
+    url = cfg.libbase + url.substr(1)
+  }
+  // console.log('url =', url)
+
+  return prefix + resolve.call(this, url, source)
 }
 
 // console.log(System)
