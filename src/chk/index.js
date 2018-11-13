@@ -51,7 +51,7 @@ function rafProc (nodelist, evtName) {
 }
 
 /**
-本函数首先初始化内建的chker,依次调用下列模块的setup:
+本函数首先初始化内建的chker,依次调用下列checker模块的setup:
 - ko
 - view
 - module
