@@ -25,6 +25,7 @@ const Modernizr = window.Modernizr
 - [ES6 String](https://caniuse.com/#search=ES6),如果不支持，自动补丁[string-polyfills](https://github.com/Sylvain59650/string-polyfills),注意只是String,不是全部class规范，没有使用[es6-shim](https://github.com/paulmillr/es6-shim)
 
 提供了检查，但是没有安装polyfill的特性如下，需要自行调用wwimport确认安装。
+- [ServiceWorker API](https://caniuse.com/#search=Service%20Workers),提供了检查，并且如果被支持，则加载[workbox](https://developers.google.com/web/tools/workbox/),默认是//libs.wware.org/wwsw/latest/wwsw.js(可以通过配置来配置本地址)，提供了全部图片、视频、html资源的本地静态化缓冲，这同时允许了离线模式。
 - [Custom Elements](https://caniuse.com/#search=Custom%20Elements),提供了检查，但是polyfill没有安装，在使用webcomponents前自动加载polyfill.
 - [WebRTC Peer-to-peer connections](https://caniuse.com/#search=WebRTC%20Peer-to-peer%20connections)
 - [Beacon API](https://caniuse.com/#search=Beacon%20API),用于在页面结束前有机会向服务器发送消息，而忽略其回应。
@@ -67,6 +68,7 @@ peerconnection: true
 promises: true
 raf: true
 requestanimationframe: true
+serviceworker: true
 urlparser: true
 webaudio: true
 webgl: true

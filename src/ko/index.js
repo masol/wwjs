@@ -26,14 +26,12 @@ console.log(ko)
 console.log(mapping)
 
 /**
+ko模块的初始化代码，负责建立事件监听，以监听新节点的插入，并处理新加入的节点。
 @exports ko
-@method check
-@desc 在指定目录下查找指定正则(可选)的文件.
-@param pattern 需要搜索的文件表达式.
-@return promise,解析为文件集合的数组.
-@see https://github.com/isaacs/node-glob#readme
+@method setup
+@return undefined
 */
-function check () {
+function setup () {
 }
 
-module.exports = check
+export default setup

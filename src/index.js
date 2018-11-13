@@ -15,8 +15,11 @@
 import $ from 'jquery'
 import './utils/systemjs'
 import cfg from './utils/cfg'
+import chkSetup from './chk'
+import EE from './utils/evt'
 
-console.log(cfg)
+console.log(chkSetup)
+
 // 不再使用诸如barba.js,navigo,page.js之类的History API管理工具。而是内建由view来自行调用History API来自行处理。
 // import router from './utils/router'
 
@@ -100,8 +103,7 @@ function notifyReady (err) {
     // 已经在wwimport中检查了，确保是一个函数。
     cb(err)
   }
-  console.log(require('./checker'))
-  require('./checker')()
+  chkSetup()
   readNoitifer = undefined
 }
 
@@ -135,16 +137,18 @@ polyfills.install(() => {
 
 /**
    @module wwjs
-   @desc wwjs主模块，负责构建wware在浏览器下的执行环境。wware假定代码都由编译器做完transpiling之后产生。wwjs自身可以执行于ie8+以上的环境。并确保如下功能:
+   @desc wwjs主模块，负责构建wware在浏览器下的执行环境。wware假定代码都由编译器做完transpiling之后产生。wwjs只是提供一个抽象的浏览器虚拟机(<font color="red">所有可以提供相同API的虚拟机都可以被WWARE transpiling所支持</font>)，其自身可以执行于ie8+以上的环境。并确保如下功能:
    - Promise
    - MutationObserver
    - ES6 Module Loader
 
 配置wwjs的方式是，在引入wwjs之前，定义部分全局变量：
-   - window.wwcfg = {
+```
+   window.wwcfg = {
       debug : true , //如果被定义为true，则启用调试模式，在console输出更多信息。
       libbase : "//libs.YOURDOMAIN.COM" , //如果被定义一个字符串(空字符串表示引用本地服务器地址)，则用来做外部引入库的根路径。默认是"//libs.wware.org" : 注意服务器的CORS设置。
     }
+```
    @example
 <script>
 window.wwcfg  = {
@@ -184,7 +188,22 @@ function ready (cb) {
 
 module.exports = (() => {
   return {
-    ready: ready,
+    /**
+    当前的wwjs的配置。注意这里的属性是只读的，修改之后无效。
+     * @member wwjs
+     * @readonly
+     * @type {object}
+     * @name config
+    **/
+    config: cfg,
+    /**
+    默认的事件中心,可以通过window.EE访问本变量。
+     * @member wwjs
+     * @constant
+     * @type {object}
+     * @name EE
+    **/
+    EE: EE,
     /**
     同步检查当前是否已经ready.
      * @method wwjs
@@ -192,16 +211,11 @@ module.exports = (() => {
      * @return {Boolean} 返回当前是否已经ready。如果发生错误，也算作ready状态。
      **/
     isReady: () => { return readyState !== READY_PEDING },
-    /**
-    当前的wwjs的配置。注意这里的属性是只读的，修改之后无效。
-     * @member wwjs
-     * @type {object}
-     * @name config
-    **/
-    config: cfg,
+    ready: ready,
     /**
     当前的wwjs版本号。
      * @member wwjs
+     * @readonly
      * @type {string}
      * @name version
      **/

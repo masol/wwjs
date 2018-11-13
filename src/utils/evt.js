@@ -1,4 +1,4 @@
-/// ///////////////////////////////////////////////////////////////////////////
+// ////////////////////////////////////////////////////////////////////////////
 //  Copyright (C) 2013 by sanpolo CO.LTD                                    //
 //                                                                          //
 //  This file is part of WIDE                                               //
@@ -7,14 +7,14 @@
 //  program.  If not, see <http://www.wware.org/wide/license.html>.         //
 //                                                                          //
 //  WIDE website: http://www.wware.org/                                     //
-/// ///////////////////////////////////////////////////////////////////////////
-// Created At : 2018-11-08T17:04:41.932Z by masol (masol.li@gmail.com)
+// ////////////////////////////////////////////////////////////////////////////
+// Created At : 2018-11-13T07:13:47.688Z by masol (masol.li@gmail.com)
 
 'use strict'
 
-function install () {
-  require('./ko/index')
-  // document.getElementById('PreLoaderBar').style.display = 'none'
-}
+import EventEmitter from 'eventemitter3'
 
-module.exports = install
+const EE = new EventEmitter()
+window.EE = EE
+
+export default EE
