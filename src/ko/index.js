@@ -19,11 +19,16 @@
 
 import ko from 'knockout'
 import mapping from './mapping'
+import EE from '../utils/evt'
 
 ko.mapping = mapping
 window.ko = ko
 console.log(ko)
 console.log(mapping)
+
+EE.on('nodeAdd', function (nodeArray) {
+  // console.log('nodeAdded:', nodeArray)
+})
 
 /**
 ko模块的初始化代码，负责建立事件监听，以监听新节点的插入，并处理新加入的节点。

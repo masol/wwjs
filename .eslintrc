@@ -26,6 +26,10 @@
   "globals": {
     "document": true,
     "navigator": true,
+    "$" : true,
+    "wwjs" : true,
+    "EE" : true,
+    "ko" : true,
     "window": true
   },
 

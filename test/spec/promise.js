@@ -7,7 +7,7 @@ describe('Promise', function () {
     }, (err) => { done(err) })
   })
 
-  it('Promise.pipe', function () {
+  it('Promise.pipe确保顺序工作，并且后一函数正确收到前一函数的返回值', function () {
     let t0 = performance.now()
     let t1
     return Promise.pipe([
@@ -40,12 +40,12 @@ describe('Promise', function () {
       }
     ], 1).then(function (val) {
       t1 = performance.now()
-      chai.expect(Math.abs(t1 - t0)).to.be.within(50, 60, 'setTimeout误差过大？')
+      chai.expect(Math.abs(t1 - t0)).to.be.within(50, 100, 'setTimeout误差过大？')
       chai.expect(val).to.equal(4)
     })
   })
 
-  it('Promise.whiledo', function () {
+  it('Promise.whiledo确保顺序循环，并且后一次调用正确收到前一次执行的返回值', function () {
     let total = 0
     let t0 = performance.now()
     let t1
@@ -61,13 +61,13 @@ describe('Promise', function () {
       })
     }, 0).then(function (val) {
       t1 = performance.now()
-      chai.expect(Math.abs(t1 - t0)).to.be.within(500, 580, 'setTimeout误差过大？')
+      chai.expect(Math.abs(t1 - t0)).to.be.within(500, 750, 'setTimeout误差过大？')
       chai.expect(val).to.equal(50)
       chai.expect(total).to.equal(50)
     })
   })
 
-  it('Promise.delay', function () {
+  it('Promise.delay确保延时存在', function () {
     let t0 = performance.now()
     let t1, t2, t3
     return Promise.all([
@@ -83,11 +83,11 @@ describe('Promise', function () {
 
       Promise.delay(20, 132).then(function (val) {
         t2 = performance.now()
-        chai.expect(Math.abs(t2 - t0)).to.be.within(20, 30, 'setTimeout误差过大？')
+        chai.expect(Math.abs(t2 - t0)).to.be.within(18, 50, 'setTimeout误差过大？')
         chai.expect(val).to.equal(132)
       }).then(function () {
         t3 = performance.now()
-        chai.expect(Math.abs(t3 - t0)).to.be.within(20, 30, 'setTimeout误差过大？')
+        chai.expect(Math.abs(t3 - t0)).to.be.within(18, 50, 'setTimeout误差过大？')
       })
     ])
   })
