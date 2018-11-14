@@ -16,8 +16,6 @@ import EE from '../utils/evt'
 import kosetup from '../ko'
 import cfg from '../utils/cfg'
 
-console.log('KO', kosetup)
-
 /**
 chk模块提供了在html代码插入时，检查插入的Node,并加以处理的能力。这一检查是在Node第一次被绘制时调用的(requestAnimationFrame)，因此，需要自行处理好平滑过程。
 @module chk
@@ -29,6 +27,7 @@ function frameProc (evtName/*, timeStamp */) {
   // console.log('enter frameProc:', arguments)
   let raf = evtRaf[evtName]
   evtRaf[evtName] = undefined
+  cancelAnimationFrame(raf.id)
   EE.emit(evtName, raf.nl)
   // console.log('in framePro', evtName, raf)
 }
@@ -56,17 +55,17 @@ function rafProc (nodelist, evtName) {
 - view
 - module
 
-然后，本函数安装MutationObserve(如果有wwrootContainer则选择，否则选择body)，并将事件处理为:
+然后，本函数安装MutationObserve(如果有wwrootContainer则选择，否则选择body)，过滤元素类型(Nodetype===1)并转发如下消息:<font color="red">如果没有额外需求，应该响应"nodeAdd"及"nodeRm"事件，大多数涉及元素的场合都是不绘制不影响</font>
 - 在节点被加入时，调用EE.emit("nodeBeforeAdd",NodeList) : 收到事件立即发出
-- 在节点被加入时，并且延迟到第一次被绘制时调用的(requestAnimationFrame),调用EE.emit("nodeAdd",NodeList)
+- 在节点被加入时，并且延迟到下一次被绘制时(通过requestAnimationFrame),调用EE.emit("nodeAdd",NodeList)
 - 在节点被移除时，调用EE.emit("nodeBeforeRm",NodeList)
-- 在节点被移除时，并且延迟到第一次被绘制时调用的(requestAnimationFrame),调用EE.emit("nodeRm",NodeList)
+- 在节点被移除时，并且延迟到第一次被绘制时(通过requestAnimationFrame),调用EE.emit("nodeRm",NodeList)
 
-最后，由于本函数在Dom Ready之后调用，将容器对象作为第一个事件发送出去。
+最后，由于本函数在Dom Ready之后调用，将容器对象作为第一个加入事件的参数，发送一个伪造的元素加入事件(nodeBeforeAdd以及nodeAdd)。
 @exports chk
 @access private
 @method setup
-@return {promise|undefined} 如果安装工作可以同步完成，返回undefined,否则返回一个promise(需要异步加载chker的情况),其被解析时意味着安装工作结束。
+@return {undefined}
 */
 function setup () {
   kosetup()
@@ -79,15 +78,19 @@ function setup () {
     return
   }
 
+  function acceptNode (element) {
+    return element.nodeType === 1
+  }
+
   function check (mutations) {
     let rmNodes = []
     let addNodes = []
     mutations.forEach(function (mutation) {
       if (mutation.removedNodes && mutation.removedNodes.length > 0) {
-        rmNodes = rmNodes.concat(Array.prototype.slice.call(mutation.removedNodes, 0))
+        rmNodes = rmNodes.concat(Array.prototype.filter.call(mutation.removedNodes, acceptNode))
       }
       if (mutation.addedNodes && mutation.addedNodes.length > 0) {
-        addNodes = addNodes.concat(Array.prototype.slice.call(mutation.addedNodes, 0))
+        addNodes = addNodes.concat(Array.prototype.filter.call(mutation.addedNodes, acceptNode))
         // console.log(mutation.addedNodes);
       }
       // console.log(mutation);
@@ -104,9 +107,12 @@ function setup () {
     }
   }
 
-  var $container = $('body div.container,body div.container-fluid').first()
+  let $container = $('body > div.container,body > div.container-fluid').first()
   if ($container.length === 0) {
-    $container = $('body')
+    $container = $('body div.container,body div.container-fluid').first()
+    if ($container.length === 0) {
+      $container = $('body')
+    }
   }
   if ($container.length > 0) {
     containerObserver = new MutationObserver(check)
@@ -121,7 +127,9 @@ function setup () {
     containerObserver.observe($container[0], config)
     // 发出第一次的元素加入事件。
     EE.emit('nodeBeforeAdd', [$container[0]])
-    rafProc([$container[0]], 'nodeAdd')
+    // 伪造事件不需要等待下一次绘制(RequestAnimationFrame)
+    EE.emit('nodeAdd', [$container[0]])
+    // rafProc([$container[0]], 'nodeAdd')
   }
 
   // document.getElementById('PreLoaderBar').style.display = 'none'

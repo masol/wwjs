@@ -18,7 +18,7 @@ import cfg from './utils/cfg'
 import chkSetup from './chk'
 import EE from './utils/evt'
 
-console.log(chkSetup)
+// console.log(chkSetup)
 
 // 不再使用诸如barba.js,navigo,page.js之类的History API管理工具。而是内建由view来自行调用History API来自行处理。
 // import router from './utils/router'

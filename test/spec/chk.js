@@ -23,12 +23,8 @@ describe('chk', function () {
           j++
           hasTestNode = true
         }
-        // '[data-wwtest]').addBack('[data-wwtest]')
       })
       if (hasTestNode) baCount++
-      // console.log('sbu=', sub)
-      // j += sub.length
-      // console.log(nodeArray, $(nodeArray))
     })
     EE.on('nodeAdd', function (nodeArray) {
       let hasTestNode = false
@@ -39,7 +35,6 @@ describe('chk', function () {
         }
       })
       if (hasTestNode) naCount++
-      // console.log('in nodeAdd nodeArray=', nodeArray)
       if (k >= maxDiv && !timeid) {
         let t1 = performance.now()
         timeid = setTimeout(() => {
@@ -52,7 +47,7 @@ describe('chk', function () {
     })
     for (i = 0; i < maxDiv; i++) {
       setTimeout(() => {
-        $('body').append(`<div id="wwtest${i}" data-wwtest="true"></div>`)
+        $('body .container').append(`<div id="wwtest${i}" data-wwtest="true"></div>`)
         t0 = performance.now()
       }, 0)
     }
@@ -72,12 +67,8 @@ describe('chk', function () {
           j++
           hasTestNode = true
         }
-        // '[data-wwtest]').addBack('[data-wwtest]')
       })
       if (hasTestNode) baCount++
-      // console.log('sbu=', sub)
-      // j += sub.length
-      // console.log(nodeArray, $(nodeArray))
     })
     EE.on('nodeRm', function (nodeArray) {
       let hasTestNode = false
@@ -88,7 +79,6 @@ describe('chk', function () {
         }
       })
       if (hasTestNode) naCount++
-      // console.log('in nodeAdd nodeArray=', nodeArray)
       if (k >= maxDiv && !timeid) {
         let t1 = performance.now()
         timeid = setTimeout(() => {
@@ -107,5 +97,88 @@ describe('chk', function () {
         t0 = performance.now()
       }, 0)
     }
+  })
+
+  const addedItem = 2
+  it('加入事件中，Nodetype不为1的元素被忽略，而其它元素正常', function (done) {
+    let j, k, timeid
+    j = 0
+    k = 0
+    naCount = baCount = 0
+    timeid = false
+    EE.on('nodeBeforeAdd', function (nodeArray) {
+      let hasTestNode = false
+      $(nodeArray).each((idx, ele) => {
+        chai.expect(ele.nodeType).to.be.equal(1, `收到了非元素类的加入事件,元素类型${ele.nodeType}`)
+        if ($(ele).is('[data-wwtest]')) {
+          j++
+          hasTestNode = true
+        }
+      })
+      if (hasTestNode) baCount++
+    })
+    EE.on('nodeAdd', function (nodeArray) {
+      let hasTestNode = false
+      $(nodeArray).each((idx, ele) => {
+        chai.expect(ele.nodeType).to.be.equal(1, `收到了非元素类的加入事件,元素类型${ele.nodeType}`)
+        if ($(ele).is('[data-wwtest]')) {
+          k++
+          hasTestNode = true
+        }
+      })
+      if (hasTestNode) naCount++
+      if (k >= addedItem && !timeid) {
+        timeid = setTimeout(() => {
+          chai.expect(j).to.be.equal(addedItem, `nodeBeforeAdd收到的元素通知不等于${addedItem}`)
+          chai.expect(k).to.be.equal(addedItem, `nodeAdd收到的元素事件不等于${addedItem}`)
+          done()
+        }, 100)
+      }
+    })
+
+    $('body .container').append(`<!-- 被过滤的元素 -->`)
+    $('body .container').append(`<div id="wwtest1" data-wwtest="true"></div>`)
+    $('body .container').append(`<div id="wwtest2" style="display:none" data-wwtest="true"></div>`)
+    $('#wwtest2').text('test code')
+  })
+
+  it('删除事件中，Nodetype不为1的元素被忽略，而其它元素正常', function (done) {
+    let j, k, timeid
+    j = 0
+    k = 0
+    naCount = baCount = 0
+    timeid = false
+    EE.on('nodeBeforeRm', function (nodeArray) {
+      let hasTestNode = false
+      $(nodeArray).each((idx, ele) => {
+        chai.expect(ele.nodeType).to.be.equal(1, `收到了非元素类的删除事件,元素类型${ele.nodeType}`)
+        if ($(ele).is('[data-wwtest]')) {
+          j++
+          hasTestNode = true
+        }
+      })
+      if (hasTestNode) baCount++
+    })
+    EE.on('nodeRm', function (nodeArray) {
+      let hasTestNode = false
+      $(nodeArray).each((idx, ele) => {
+        chai.expect(ele.nodeType).to.be.equal(1, `收到了非元素类的删除事件,元素类型${ele.nodeType}`)
+        if ($(ele).is('[data-wwtest]')) {
+          k++
+          hasTestNode = true
+        }
+      })
+      if (hasTestNode) naCount++
+      if (k >= addedItem && !timeid) {
+        timeid = setTimeout(() => {
+          chai.expect(j).to.be.equal(addedItem, `nodeBeforeRm收到的元素通知不等于${addedItem}`)
+          chai.expect(k).to.be.equal(addedItem, `nodeRm收到的元素事件不等于${addedItem}`)
+          done()
+        }, 100)
+      }
+    })
+
+    // 删除刚加入的三个元素
+    $('body .container').html('')
   })
 })
