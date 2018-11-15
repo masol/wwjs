@@ -17,6 +17,9 @@ import './utils/systemjs'
 import cfg from './utils/cfg'
 import chkSetup from './chk'
 import EE from './utils/evt'
+import ns from './ko/ns'
+import json from './utils/json'
+import polyfillSetup from './utils/polyfills'
 
 // console.log(chkSetup)
 
@@ -31,6 +34,32 @@ import EE from './utils/evt'
  * @name $
  **/
 window.$ = window.jQuery = $
+
+/**
+暴露在window.wwjs全局名称空间的[wwjs](module-wwjs.html)模块对象。
+ * @type {object}
+ * @name wwjs
+ **/
+
+/**
+ 暴露在window.EE全局名称空间的事件中心，API文档参考[Nodejs官方文档](https://nodejs.org/api/events.html)
+  * @type {object}
+  * @name EE
+**/
+
+/**
+ 暴露在window.ko全局名称空间的Knockoutjs
+- API文档参考[Knockoutjs官方文档](https://github.com/knockout/knockout/wiki/API-Reference)
+- 额外增加了[mapping插件](https://knockoutjs.com/documentation/plugins-mapping.html)，通过`ko.mapping`来访问。
+  * @type {object}
+  * @name ko
+**/
+
+/**
+ 暴露在window.Modernizr全局名称空间的特性检查，提供了当前浏览器对各特性支持情况的信息。详情参考[polyfills模块](module-utils_polifills.html)文档。
+  * @type {object}
+  * @name Modernizr
+**/
 
 /**
 回调风格的模块加载。通常需要在html的head部分，写下容错代码，这在wwjs就绪之前，缓冲模块加载请求，并在就绪之后，异步并行加载。
@@ -91,7 +120,6 @@ function wwimport (id, cb) {
 // delete window.MutationObserver
 // delete window.WebKitMutationObserver
 // delete window.fetch
-const polyfills = require('./utils/polyfills')
 
 let readNoitifer = []
 
@@ -111,7 +139,7 @@ function notifyReady (err) {
 const READY_PEDING = 0
 const READY_SUC = 1
 let readyState = READY_PEDING
-polyfills.install(() => {
+polyfillSetup(() => {
   // basic environment ready. 开始处理缓冲的加载请求。
   // 现在开始等待dom ready事件，并开始处理。
   let tasks = []
@@ -142,22 +170,8 @@ polyfills.install(() => {
    - MutationObserver
    - ES6 Module Loader
 
-配置wwjs的方式是，在引入wwjs之前，定义部分全局变量：
-```
-   window.wwcfg = {
-      debug : true , //如果被定义为true，则启用调试模式，在console输出更多信息。
-      libbase : "//libs.YOURDOMAIN.COM" , //如果被定义一个字符串(空字符串表示引用本地服务器地址)，则用来做外部引入库的根路径。默认是"//libs.wware.org" : 注意服务器的CORS设置。
-    }
-```
-   @example
-<script>
-window.wwcfg  = {
-  debug : true,
-  libbase : "//libs.mydomain.com/someprefix"
-}
-</script>
-<script async src="//libs.wware.org/wwjs/2.0.0/wwjs.min.js"></script>
-   */
+wwjs做为主模块，被安装到`window.wwjs`名称空间下。可以直接访问`wwjs`来访问本模块的功能。为了配置wwjs，需要在引入wwjs之前定义配置变量，详情参考[utils/cfg模块](module-utils_cfg.html)
+*/
 
 /**
 当所有内部功能就绪，并且dom ready之后，ready开始回调callback。如果已经就绪，则立即直接回调。
@@ -186,39 +200,53 @@ function ready (cb) {
   }
 }
 
-module.exports = (() => {
-  return {
-    /**
-    当前的wwjs的配置。注意这里的属性是只读的，修改之后无效。
-     * @member wwjs
-     * @readonly
-     * @type {object}
-     * @name config
-    **/
-    config: cfg,
-    /**
-    默认的事件中心,可以通过window.EE访问本变量。
-     * @member wwjs
-     * @constant
-     * @type {object}
-     * @name EE
-    **/
-    EE: EE,
-    /**
-    同步检查当前是否已经ready.
-     * @method wwjs
-     * @name isReady
-     * @return {Boolean} 返回当前是否已经ready。如果发生错误，也算作ready状态。
-     **/
-    isReady: () => { return readyState !== READY_PEDING },
-    ready: ready,
-    /**
-    当前的wwjs版本号。
-     * @member wwjs
-     * @readonly
-     * @type {string}
-     * @name version
-     **/
-    version: '<# VERSION #>'
-  }
-})()
+module.exports = {
+  /**
+  当前的wwjs的配置。注意这里的属性是只读的，修改之后无效。API文档参考[utils/cfg模块](module-utils_cfg.html)
+   * @member wwjs
+   * @readonly
+   * @type {object}
+   * @name config
+  **/
+  config: cfg,
+  /**
+  默认的事件中心,可以通过window.EE访问本变量。API文档参考[Nodejs官方文档](https://nodejs.org/api/events.html),注意V8.4之后引入的方法无效。
+   * @member wwjs
+   * @constant
+   * @type {object}
+   * @name EE
+  **/
+  EE: EE,
+  /**
+  同步检查当前是否已经ready.
+   * @method wwjs
+   * @name isReady
+   * @return {Boolean} 返回当前是否已经ready。如果发生错误，也算作ready状态。
+   **/
+  isReady: () => { return readyState !== READY_PEDING },
+  /**
+  JSON辅助函数对象，详细API查看[utils/json模块](module-utils_json.html)
+   * @member wwjs
+   * @constant
+   * @type {object}
+   * @name JSON
+  **/
+  JSON: json,
+  /**
+  名称空间子模块，通过wwjs暴露到全局空间。详细文档查看[ko/ns模块](module-ko_ns.html)
+   * @member wwjs
+   * @constant
+   * @type {object}
+   * @name ns
+  **/
+  ns: ns,
+  ready: ready,
+  /**
+  当前的wwjs版本号。
+   * @member wwjs
+   * @readonly
+   * @type {string}
+   * @name version
+   **/
+  version: '<# VERSION #>'
+}

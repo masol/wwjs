@@ -13,8 +13,8 @@
 'use strict'
 
 /**
+ko模块利用[knockoutjs](https://knockoutjs.com/)来分离元素及数据逻辑。
 @module ko
-@desc ko检查模块
 */
 
 import ko from 'knockout'
@@ -53,28 +53,37 @@ ko.options.deferUpdates = true
 
 window.ko = ko
 
-EE.on('nodeAdd', function (nodeArray) {
-  // console.log('nodeAdded:', nodeArray, 'ko.options=', ko.options)
-  let i = nodeArray.length
-  for (i = 0; i < nodeArray.length; i++) {
-    let item = nodeArray[i]
-    // if (item.nodeType !== 1) { continue }
-    let $item = $(item)
-    // console.log($item)
-    if ($item.is('[data-bind]') || $item.find('[data-bind]').length > 0) {
-      // console.log(VM, nodeArray[i])
-      ko.applyBindings(VM, nodeArray[i])
-    }
-  }
-})
-
 /**
-ko模块的初始化代码，负责建立事件监听，以监听新节点的插入，并处理新加入的节点。
+ko模块的初始化代码，在DomReady之后，由chk模块调用。负责建立事件监听，以监听新节点的插入，并处理新加入的节点。处理过程:
+- 在进行KO处理之前，对每个加入的节点，发出同步事件(koprepare)，如果事件有监听，则监听代码负责预处理节点，如下响应会被加载，以更新attr,更新viewmodel...
+  - 检查data-ns,如果有，更新viewmodel,加入对象，并更新元素,加入with绑定。
+  - 检查data-bindvar,如果有，使用data-bindvar属性对viewmodel做初始化更新。(符合namespace)
+  - 检查script[type="text/wwjs"],执行之
+- 对含有data-bind的元素,执行applyBindings
 @exports ko
+@access private
 @method setup
 @return undefined
 */
 function setup () {
+  EE.on('nodeAdd', function (nodeArray) {
+    // console.log('nodeAdded:', nodeArray, 'ko.options=', ko.options)
+    let i, j
+    let Notifiers = EE.eventNames('koprepare')
+    for (i = 0; i < nodeArray.length; i++) {
+      let item = nodeArray[i]
+      // if (item.nodeType !== 1) { continue }  //不再需要，已经被chk实现。
+      let $item = $(item)
+      for (j = 0; j < Notifiers; j++) {
+        Notifiers[j]($item)
+      }
+      // console.log($item)
+      if ($item.is('[data-bind]') || $item.find('[data-bind]').length > 0) {
+        // console.log(VM, nodeArray[i])
+        ko.applyBindings(VM.get(), nodeArray[i])
+      }
+    }
+  })
 }
 
 export default setup

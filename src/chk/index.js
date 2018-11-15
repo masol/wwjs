@@ -15,6 +15,7 @@
 import EE from '../utils/evt'
 import kosetup from '../ko'
 import cfg from '../utils/cfg'
+import './script'
 
 /**
 chk模块提供了在html代码插入时，检查插入的Node,并加以处理的能力。这一检查是在Node第一次被绘制时调用的(requestAnimationFrame)，因此，需要自行处理好平滑过程。

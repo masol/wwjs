@@ -27,7 +27,7 @@ const Modernizr = window.Modernizr
 提供了检查，但是没有安装polyfill的特性如下，需要自行调用wwimport确认安装。
 - [ServiceWorker API](https://caniuse.com/#search=Service%20Workers),提供了检查，并且如果被支持，则加载[workbox](https://developers.google.com/web/tools/workbox/),默认是//libs.wware.org/wwsw/latest/wwsw.js(可以通过配置来配置本地址)，提供了全部图片、视频、html资源的本地静态化缓冲，这同时允许了离线模式。
 - [Custom Elements](https://caniuse.com/#search=Custom%20Elements),提供了检查，但是polyfill没有安装，在使用webcomponents前自动加载polyfill.
-- [WebRTC Peer-to-peer connections](https://caniuse.com/#search=WebRTC%20Peer-to-peer%20connections)
+- [WebRTC Peer-to-peer connections](https://caniuse.com/#search=WebRTC%20Peer-to-peer%20connections),如果不支持，需要自行安装[AdapterJS](https://github.com/Temasys/AdapterJS)
 - [Beacon API](https://caniuse.com/#search=Beacon%20API),用于在页面结束前有机会向服务器发送消息，而忽略其回应。
 - [webgl](https://caniuse.com/#search=webgl),如果不支持(只有ie9和ie10不被支持)，可以安装[cwebgl](https://github.com/cimaron/cwebgl)
 - [Web Audio API](https://caniuse.com/#search=Web%20Audio%20API),如果不支持，自行安装[audiolib.js](https://github.com/jussi-kalliokoski/audiolib.js).
@@ -50,6 +50,9 @@ const Modernizr = window.Modernizr
 - [Application Cache](https://caniuse.com/#search=Application%20Cache),目标列表中，只有ie9不被支持。
 - [Blob constructor](https://caniuse.com/#search=Blob%20constructor)，目标列表中，只有ie9不被支持。
 
+额外提供的特性检查(Modernizr未提供，额外提供):
+- [WebAssembly](https://caniuse.com/#search=WebAssembly)，在需要使用Java/C/C++/Go等其它语言书写的库时使用。如不支持，需要自行安装[polyfill](https://webassembly.js.org/)。安装完毕之后，通过System.import可以自动导入。
+
 Modernizr的一个值组合(chrome Version 70.0.3538.77 (Official Build) snap (64-bit)):
 @example
 {
@@ -70,6 +73,7 @@ raf: true
 requestanimationframe: true
 serviceworker: true
 urlparser: true
+wasm: true
 webaudio: true
 webgl: true
 webp: Boolean{
@@ -80,11 +84,11 @@ webp: Boolean{
 }
 @exports utils/polifills
 @access private
-@method install
+@method setup
 @param {function} callback  回调函数，当polyfill都已经安装完毕之后，回调——注意，polyfill安装失败只是给出警告，也当作调用正常。回调参数是一个数组，给出安装失败的polyfill。
 @return {undefined} 如果没有polyfill需要安装，在返回前调用回调函数。
 */
-function install (callback) {
+function setup (callback) {
   let feattested = {
     es6string: false,
     fetch: false,
@@ -132,6 +136,8 @@ function install (callback) {
       feattested[featName] = true
     }
   }
+
+  Modernizr.wasm = (typeof WebAssembly === 'object' && $.isFunction(WebAssembly.instantiate))
 
   // 同步方式为Promise做polyfill.
   if (!Modernizr.promises) {
@@ -182,4 +188,4 @@ function install (callback) {
   polyfillReady()
 }
 
-module.exports.install = install
+export default setup

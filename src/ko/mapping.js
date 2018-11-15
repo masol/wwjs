@@ -1,3 +1,5 @@
+// This file is copy from https://github.com/SteveSanderson/knockout.mapping
+
 /* eslint-disable */
 (function (factory) {
   // Module systems magic dance.
