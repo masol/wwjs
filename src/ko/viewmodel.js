@@ -15,14 +15,14 @@
 import ko from 'knockout'
 import EE from '../utils/evt'
 import json from '../utils/json'
+import cfg from '../utils/cfg'
 
 /**
 与ko配合的全局数据模型对象。
 @module ko/viewmodel
 */
 
-let viewModel = {
-}
+let viewModel
 
 function parsingRootPath (path) {
   let fenge = []
@@ -107,6 +107,16 @@ function getVmFromPath (path) {
 }
 
 /**
+将viewModel重置为初始状态。如果已有绑定，这些绑定会被固化(也就是不再响应数据变动)，重置之后的vm只影响新加入的元素。这个函数在ko就绪时会被调用一次。
+@exports ko/viewmodel
+@method reset
+@return {undefined}
+*/
+function reset () {
+  viewModel = ko.mapping.fromJS({})
+}
+
+/**
 按照条件获取对应的数据模型。之所以命名为viewModel是为了强调这个模型主要用于控制UI——其数据更新的周期默认依赖绘制(RequestAnimationFrame)。
 @exports ko/viewmodel
 @method get
@@ -134,22 +144,49 @@ function get (pathOrele, format) {
 }
 
 /**
-在给定模型上更新数据
+在指定的路径(元素代表的路径)更新数据。对于数字/时间/字符串等基础类型，相同的值不会触发界面更新。对于数组内元素，如果元素的`key`属性相同，会被视为相同元素更新，否则会被删除重新加入。
 @exports ko/viewmodel
 @method set
 @param {object} value 需要设置的数据。
-@param {object} [$data=get()] 更新的根对象，默认从根路径下开始更新。
+@param {object} [$data=null] 更新的对象，默认从根路径(全局viewmodel对象)下开始更新。这个对象可以通过元素的`dataFor(ele)`来获取。
 @param {Boolean} [overwritten=false] 如果目标属性已经存在，是否覆盖？
 @return {Boolean} 如果成功更新，则返回true.
 */
 function set (value, $data, overwritten) {
   $data = $data || get()
+  // console.log('$data=', $data)
   if (overwritten) {
-    ko.mapping.fromJS(value, $data)
+    try {
+      ko.mapping.fromJS(value, $data)
+    } catch (ex) {
+      if (cfg.vmtypecvt && ex instanceof TypeError) {
+        // 类型不同时，重新设置为新类型.
+        let models = ko.mapping.fromJS(value)
+        // console.log('models=', models, 'exceptions = ', ex)
+        let key
+        for (key in models) {
+          // if (key === '__ko_mapping__') {
+          //   continue
+          // }
+          let v = models[key]
+          // console.log('key=', key, 'v=', v)
+          // console.log('before assign 1')
+          if ($.isFunction($data[key])) {
+            $data[key](v)
+          } else {
+            $data[key] = v
+          }
+          // console.log('after assign 2')
+        }
+      } else {
+        EE.emit('error', 'vm.typeerror', ex)
+      }
+    }
   } else {
     let models = ko.mapping.fromJS(value)
     $.each(models, (key, value) => {
       if (!$data.hasOwnProperty(key)) {
+        // @TODO bug? 不是，因为只用于初始化
         $data[key] = value
       }
     })
@@ -176,5 +213,6 @@ EE.on('koprepare', ($ele) => {
 
 export default {
   get: get,
-  set: set
+  set: set,
+  reset: reset
 }

@@ -3,182 +3,61 @@
 describe('UI数据绑定', function () {
   before(function (done) {
     wwimport('ready', () => {
+      wwjs.ui.$container().html('')
+      done()
+    }, (err) => { done(err) })
+  })
+  after(function (done) {
+    wwimport('ready', () => {
+      wwjs.ui.$container().html('')
       done()
     }, (err) => { done(err) })
   })
 
-  const maxDiv = 1426
+  const testValue = 'test中文2#$1'
 
   it('基础绑定正常', function (done) {
-    let i, j, k, timeid, baCount, t0, naCount
+    wwjs.vm.set({
+      'test': testValue
+    }, '', true)
+
+    let t0
     let pThis = this
-    j = 0
-    k = 0
-    naCount = baCount = 0
-    timeid = false
-    EE.on('nodeBeforeAdd', function (nodeArray) {
-      let hasTestNode = false
-      $(nodeArray).each((idx, ele) => {
-        if ($(ele).is('[data-wwtest]')) {
-          j++
-          hasTestNode = true
-        }
-      })
-      if (hasTestNode) baCount++
-    })
-    EE.on('nodeAdd', function (nodeArray) {
-      let hasTestNode = false
-      $(nodeArray).each((idx, ele) => {
-        if ($(ele).is('[data-wwtest]')) {
-          k++
-          hasTestNode = true
-        }
-      })
-      if (hasTestNode) naCount++
-      if (k >= maxDiv && !timeid) {
+    let ivid = setInterval(function () {
+      let text = $('#wwtest1').text()
+      if (text === testValue) {
         let t1 = performance.now()
-        timeid = setTimeout(() => {
-          chai.expect(j).to.be.equal(maxDiv, `nodeBeforeAdd收到的元素通知不等于${maxDiv}`)
-          chai.expect(k).to.be.equal(maxDiv, `nodeAdd收到的元素事件不等于${maxDiv}`)
-          pThis._runnable.title = `异步加入${maxDiv}元素，${baCount}次nodeBeforeAdd回调，${naCount}次nodeAdd回调(100ms+${t1 - t0}ms RAF延时),数量严格匹配`
-          done()
-        }, 100)
+        clearInterval(ivid)
+        pThis._runnable.title = `异步加入文字绑定元素，正确设置文本值。(${t1 - t0}ms延时)`
+        done()
       }
-    })
-    for (i = 0; i < maxDiv; i++) {
-      setTimeout(() => {
-        $('body .container').append(`<div id="wwtest${i}" data-wwtest="true"></div>`)
-        t0 = performance.now()
-      }, 0)
-    }
+    }, 1)
+    setTimeout(() => {
+      wwjs.ui.$container().append(`<div id="wwtest1" data-bind="text : test"></div>`)
+      t0 = performance.now()
+    }, 0)
   })
 
-  it('异步删除多个元素，多次nodeBeforeRm回调，一次nodeRm回调(100ms+RAF延时)', function (done) {
-    let i, j, k, timeid, baCount, t0, naCount
-    let pThis = this
-    j = 0
-    k = 0
-    naCount = baCount = 0
-    timeid = false
-    EE.on('nodeBeforeRm', function (nodeArray) {
-      let hasTestNode = false
-      $(nodeArray).each((idx, ele) => {
-        if ($(ele).is('[data-wwtest]')) {
-          j++
-          hasTestNode = true
-        }
-      })
-      if (hasTestNode) baCount++
-    })
-    EE.on('nodeRm', function (nodeArray) {
-      let hasTestNode = false
-      $(nodeArray).each((idx, ele) => {
-        if ($(ele).is('[data-wwtest]')) {
-          k++
-          hasTestNode = true
-        }
-      })
-      if (hasTestNode) naCount++
-      if (k >= maxDiv && !timeid) {
-        let t1 = performance.now()
-        timeid = setTimeout(() => {
-          chai.expect(j).to.be.equal(maxDiv, `nodeBeforeRm收到的元素通知不等于${maxDiv}`)
-          chai.expect(k).to.be.equal(maxDiv, `nodeRm收到的元素事件不等于${maxDiv}`)
-          pThis._runnable.title = `异步删除${maxDiv}元素，${baCount}次nodeBeforeRm回调，${naCount}次nodeRm回调(100ms+${t1 - t0}ms RAF延时),数量严格匹配`
-          done()
-        }, 100)
-      }
-    })
-    for (i = 0; i < maxDiv; i++) {
-      setTimeout(() => {
-        let tmp = $('[data-wwtest]')
-        chai.expect(tmp).to.have.lengthOf.above(0, `要删除的元素不存在了？`)
-        $(tmp[0]).remove()
-        t0 = performance.now()
-      }, 0)
-    }
-  })
-
-  const addedItem = 2
-  it('加入事件中，Nodetype不为1的元素被忽略，而其它元素正常', function (done) {
-    let j, k, timeid
-    j = 0
-    k = 0
-    naCount = baCount = 0
-    timeid = false
-    EE.on('nodeBeforeAdd', function (nodeArray) {
-      let hasTestNode = false
-      $(nodeArray).each((idx, ele) => {
-        chai.expect(ele.nodeType).to.be.equal(1, `收到了非元素类的加入事件,元素类型${ele.nodeType}`)
-        if ($(ele).is('[data-wwtest]')) {
-          j++
-          hasTestNode = true
-        }
-      })
-      if (hasTestNode) baCount++
-    })
-    EE.on('nodeAdd', function (nodeArray) {
-      let hasTestNode = false
-      $(nodeArray).each((idx, ele) => {
-        chai.expect(ele.nodeType).to.be.equal(1, `收到了非元素类的加入事件,元素类型${ele.nodeType}`)
-        if ($(ele).is('[data-wwtest]')) {
-          k++
-          hasTestNode = true
-        }
-      })
-      if (hasTestNode) naCount++
-      if (k >= addedItem && !timeid) {
-        timeid = setTimeout(() => {
-          chai.expect(j).to.be.equal(addedItem, `nodeBeforeAdd收到的元素通知不等于${addedItem}`)
-          chai.expect(k).to.be.equal(addedItem, `nodeAdd收到的元素事件不等于${addedItem}`)
-          done()
-        }, 100)
-      }
-    })
-
-    $('body .container').append(`<!-- 被过滤的元素 -->`)
-    $('body .container').append(`<div id="wwtest1" data-wwtest="true"></div>`)
-    $('body .container').append(`<div id="wwtest2" style="display:none" data-wwtest="true"></div>`)
-    $('#wwtest2').text('test code')
-  })
-
-  it('删除事件中，Nodetype不为1的元素被忽略，而其它元素正常', function (done) {
-    let j, k, timeid
-    j = 0
-    k = 0
-    naCount = baCount = 0
-    timeid = false
-    EE.on('nodeBeforeRm', function (nodeArray) {
-      let hasTestNode = false
-      $(nodeArray).each((idx, ele) => {
-        chai.expect(ele.nodeType).to.be.equal(1, `收到了非元素类的删除事件,元素类型${ele.nodeType}`)
-        if ($(ele).is('[data-wwtest]')) {
-          j++
-          hasTestNode = true
-        }
-      })
-      if (hasTestNode) baCount++
-    })
-    EE.on('nodeRm', function (nodeArray) {
-      let hasTestNode = false
-      $(nodeArray).each((idx, ele) => {
-        chai.expect(ele.nodeType).to.be.equal(1, `收到了非元素类的删除事件,元素类型${ele.nodeType}`)
-        if ($(ele).is('[data-wwtest]')) {
-          k++
-          hasTestNode = true
-        }
-      })
-      if (hasTestNode) naCount++
-      if (k >= addedItem && !timeid) {
-        timeid = setTimeout(() => {
-          chai.expect(j).to.be.equal(addedItem, `nodeBeforeRm收到的元素通知不等于${addedItem}`)
-          chai.expect(k).to.be.equal(addedItem, `nodeRm收到的元素事件不等于${addedItem}`)
-          done()
-        }, 100)
-      }
-    })
-
-    // 删除刚加入的三个元素
-    $('body .container').html('')
+  it('viewModel设置值和得到值一致,非覆盖设置不会改变值，覆盖设置会改变，类型可以自动转化', function (done) {
+    wwjs.vm.set({
+      'test': testValue
+    }, '', true)
+    chai.expect(wwjs.vm.get('', 'json').test).to.be.equal(testValue, `vm.set之后立即获取到的值不一致`)
+    const testValue2 = 'testValue2'
+    const testValue3 = { 'test': 'abcd' }
+    wwjs.vm.set({
+      'test': testValue2
+    }, '', false)
+    chai.expect(wwjs.vm.get('', 'json').test).to.be.equal(testValue, `vm.set非覆盖模式，但是覆盖了？`)
+    wwjs.vm.set({
+      'test': testValue2
+    }, '', true)
+    chai.expect(wwjs.vm.get('', 'json').test).to.be.equal(testValue2, `vm.set覆盖模式，但是没有覆盖？`)
+    wwjs.vm.set({
+      'test': testValue3
+    }, '', true)
+    chai.expect(wwjs.vm.get('', 'json').test).to.deep.equal(testValue3, `vm.set改变类型没有被设置上`)
+    chai.expect(wwjs.vm.get().test().test()).to.be.equal('abcd', `改变类型时没有全部转为Observable`)
+    done()
   })
 })

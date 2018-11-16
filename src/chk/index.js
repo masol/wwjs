@@ -110,7 +110,7 @@ function setup () {
   }
 
   let $container = UI.$container()
-  console.log($container)
+  // console.log($container)
   if ($container.length > 0) {
     containerObserver = new MutationObserver(check)
     var config = {

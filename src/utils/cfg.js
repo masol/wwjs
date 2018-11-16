@@ -20,6 +20,7 @@
 - libbase : "//libs.YOURDOMAIN.COM" , 如果被定义一个字符串(空字符串表示引用本地服务器地址)，则用来做外部引入库的根路径。默认是"//libs.wware.org" : 注意服务器的CORS设置。
 - nsprefix : "XXXX"  //如果未定义，默认为`wwns`，详情参考[ko/ns模块](module-ko_ns.html)
 - container : "Selector" //定义第一顺位选择器，详情查看[utils/ui模块](module-utils_ui.html#~$container)
+- vmtypecvt : false //设置给vm某个变量设置值时，当类型不同时，是否允许转换？默认是不允许类型转化的，设置为true可以自动转化。
 @example
 <script>
 window.wwcfg  = {
@@ -38,7 +39,9 @@ let cfg = {}
 cfg.libbase = '//libs.wware.org'
 cfg.debug = false
 if ((typeof window.wwcfg === 'object')) {
-  cfg = $.extend(cfg, window.wwcfg)
+  for (let i in window.wwcfg) {
+    cfg[i] = window.wwcfg[i]
+  }
   if (cfg.libbase[cfg.libbase.length - 1] === '/') {
     cfg.libbase = cfg.libbase.substr(0, cfg.libbase.length - 1)
   }

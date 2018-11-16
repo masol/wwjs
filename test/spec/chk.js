@@ -97,7 +97,7 @@ describe('chk', function () {
         t0 = performance.now()
       }, 0)
     }
-  })
+  }).timeout(5000)
 
   const addedItem = 2
   it('加入事件中，Nodetype不为1的元素被忽略，而其它元素正常', function (done) {

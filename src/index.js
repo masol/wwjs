@@ -21,6 +21,7 @@ import ns from './ko/ns'
 import json from './utils/json'
 import ui from './utils/ui'
 import polyfillSetup from './utils/polyfills'
+import vm from './ko/viewmodel'
 
 // console.log(chkSetup)
 
@@ -251,6 +252,14 @@ module.exports = {
    * @name ui
   **/
   ui: ui,
+  /**
+  ViewModel子模块被暴露到wwjs名称空间中。详情参考[ko/viewmodel模块](module-ko_viewmodel.html)
+   * @member wwjs
+   * @constant
+   * @type {object}
+   * @name ui
+  **/
+  vm: vm,
   /**
   当前的wwjs版本号。
    * @member wwjs

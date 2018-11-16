@@ -53,6 +53,8 @@ ko.options.deferUpdates = true
 
 window.ko = ko
 
+VM.reset()
+
 /**
 ko模块的初始化代码，在DomReady之后，由chk模块调用。负责建立事件监听，以监听新节点的插入，并处理新加入的节点。处理过程:
 - 在进行KO处理之前，对每个加入的节点，发出同步事件(koprepare)，如果事件有监听，则监听代码负责预处理节点，如下响应会被加载，以更新attr,更新viewmodel...
