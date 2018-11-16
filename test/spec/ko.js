@@ -38,7 +38,7 @@ describe('UI数据绑定', function () {
     }, 0)
   })
 
-  it('viewModel设置值和得到值一致,非覆盖设置不会改变值，覆盖设置会改变，类型可以自动转化', function (done) {
+  it('viewModel设置值和得到值一致,非覆盖设置不会改变值，覆盖设置会改变，类型可以自动转化(不推荐使用自动转化)', function (done) {
     wwjs.vm.set({
       'test': testValue
     }, '', true)
