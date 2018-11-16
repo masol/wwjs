@@ -13,6 +13,7 @@
 'use strict'
 
 import EE from '../utils/evt'
+import cfg from '../utils/cfg'
 
 /**
 本模块负责检查`<script type="text/wwjs">XXX</script>`标签。并在wwjs就绪之后调用这些脚本。这些脚本可以是任意javascript，其本质上被封装为一个function形式，并且this为当前元素。
@@ -35,6 +36,9 @@ function procScript () {
   try {
     func.call(this)
   } catch (ex) {
+    if (cfg.debug) {
+      console.error('wwjs类型的脚本执行错误:', ex)
+    }
     EE.emit('error', 'script.wwjs', ex)
   }
 }

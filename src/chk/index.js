@@ -110,6 +110,7 @@ function setup () {
   }
 
   let $container = UI.$container()
+  console.log($container)
   if ($container.length > 0) {
     containerObserver = new MutationObserver(check)
     var config = {
@@ -126,6 +127,11 @@ function setup () {
     // 伪造事件不需要等待下一次绘制(RequestAnimationFrame)
     EE.emit('nodeAdd', [$container[0]])
     // rafProc([$container[0]], 'nodeAdd')
+  } else {
+    if (cfg.debug) {
+      console.error('没有获取到有效的$container节点，无法构建Mutation监听')
+    }
+    EE.emit('error', 'chk.nocontainer')
   }
 
   // document.getElementById('PreLoaderBar').style.display = 'none'

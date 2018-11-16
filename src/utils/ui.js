@@ -26,6 +26,7 @@ let $containerCache
 /**
 获取Mutation负责开始监听的根路径元素。要求所有需要显示的元素都应该是这个根元素的孩子。获取这个根元素的方式按照下列顺序从上往下搜索，第一个满足条件的元素被返回:
 - 按照cfg模块的`$container`给定的selector.first()来确定元素。
+- 搜索`#wwcontainer`.first()
 - 搜索`body > div.container,body > div.container-fluid`.first()
 - 搜索`body div.container,body div.container-fluid`.first()
 - 使用'body'.first()
@@ -42,11 +43,11 @@ function $container () {
     $ele = $(cfg.$container).first()
   }
   if (!isEleValid($ele)) {
-    $ele = $('body > div.container,body > div.container-fluid').first()
+    $ele = $('#wwcontainer').first()
     if (!isEleValid($ele)) {
-      $('body div.container,body div.container-fluid').first()
+      $ele = $('body > div.container,body > div.container-fluid').first()
       if (!isEleValid($ele)) {
-        $ele = $('body')
+        $('body div.container,body div.container-fluid').first()
       }
     }
   }

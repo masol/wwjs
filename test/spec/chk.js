@@ -47,7 +47,7 @@ describe('chk', function () {
     })
     for (i = 0; i < maxDiv; i++) {
       setTimeout(() => {
-        $('body .container').append(`<div id="wwtest${i}" data-wwtest="true"></div>`)
+        wwjs.ui.$container().append(`<div id="wwtest${i}" data-wwtest="true"></div>`)
         t0 = performance.now()
       }, 0)
     }
@@ -136,9 +136,9 @@ describe('chk', function () {
       }
     })
 
-    $('body .container').append(`<!-- 被过滤的元素 -->`)
-    $('body .container').append(`<div id="wwtest1" data-wwtest="true"></div>`)
-    $('body .container').append(`<div id="wwtest2" style="display:none" data-wwtest="true"></div>`)
+    wwjs.ui.$container().append(`<!-- 被过滤的元素 -->`)
+    wwjs.ui.$container().append(`<div id="wwtest1" data-wwtest="true"></div>`)
+    wwjs.ui.$container().append(`<div id="wwtest2" style="display:none" data-wwtest="true"></div>`)
     $('#wwtest2').text('test code')
   })
 
@@ -179,6 +179,6 @@ describe('chk', function () {
     })
 
     // 删除刚加入的三个元素
-    $('body .container').html('')
+    wwjs.ui.$container().html('')
   })
 })
