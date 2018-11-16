@@ -44,6 +44,7 @@ window.$ = window.jQuery = $
 
 /**
  暴露在window.EE全局名称空间的事件中心，API文档参考[Nodejs官方文档](https://nodejs.org/api/events.html)，事件列表参考[evt模块](module-utils_evt.html)。
+ 全局的`EE`对象存在的目的: 当wwjs自身发生错误时，导致wwjs等机制无法工作，EE依然可以响应。
   * @type {object}
   * @name EE
 **/
@@ -211,7 +212,7 @@ module.exports = {
   **/
   config: cfg,
   /**
-  默认的事件中心,可以通过window.EE访问本变量。API文档参考[Nodejs官方文档](https://nodejs.org/api/events.html),注意V8.4之后引入的方法无效。
+  默认的事件中心,可以通过window.EE访问本变量。API文档参考[Nodejs官方文档](https://nodejs.org/api/events.html),注意V8.4之后引入的方法无效。事件列表参考[evt模块](module-utils_evt.html)。
    * @member wwjs
    * @constant
    * @type {object}
