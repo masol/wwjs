@@ -19,6 +19,7 @@ import chkSetup from './chk'
 import EE from './utils/evt'
 import ns from './ko/ns'
 import json from './utils/json'
+import ui from './utils/ui'
 import polyfillSetup from './utils/polyfills'
 
 // console.log(chkSetup)
@@ -241,6 +242,14 @@ module.exports = {
   **/
   ns: ns,
   ready: ready,
+  /**
+  UI抽象子模块，提供了对HTML布局的一个抽象假设。可以通过[cfg模块](module-utils_cfg.html)来配置。详细文档查看[utils/ui模块](module-utils_ui.html)
+   * @member wwjs
+   * @constant
+   * @type {object}
+   * @name ui
+  **/
+  ui: ui,
   /**
   当前的wwjs版本号。
    * @member wwjs

@@ -15,6 +15,7 @@
 import EE from '../utils/evt'
 import kosetup from '../ko'
 import cfg from '../utils/cfg'
+import UI from '../utils/ui'
 import './script'
 
 /**
@@ -108,13 +109,7 @@ function setup () {
     }
   }
 
-  let $container = $('body > div.container,body > div.container-fluid').first()
-  if ($container.length === 0) {
-    $container = $('body div.container,body div.container-fluid').first()
-    if ($container.length === 0) {
-      $container = $('body')
-    }
-  }
+  let $container = UI.$container()
   if ($container.length > 0) {
     containerObserver = new MutationObserver(check)
     var config = {

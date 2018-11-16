@@ -22,9 +22,6 @@ import json from '../utils/json'
 */
 
 let viewModel = {
-  personName: ko.observable('Bob'),
-  abcd: ko.observable('test'),
-  personAge: ko.observable(123)
 }
 
 function parsingRootPath (path) {
