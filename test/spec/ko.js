@@ -56,8 +56,12 @@ describe('UI数据绑定', function () {
     wwjs.vm.set({
       'test': testValue3
     }, '', true)
-    chai.expect(wwjs.vm.get('', 'json').test).to.deep.equal(testValue3, `vm.set改变类型没有被设置上`)
-    chai.expect(wwjs.vm.get().test().test()).to.be.equal('abcd', `改变类型时没有全部转为Observable`)
+    if (wwjs.config.vmtypecvt) {
+      chai.expect(wwjs.vm.get('', 'json').test).to.deep.equal(testValue3, `vm.set改变类型没有被设置上?`)
+      chai.expect(wwjs.vm.get().test().test()).to.be.equal('abcd', `改变类型时没有全部转为Observable`)
+    } else {
+      chai.expect(wwjs.vm.get('', 'json').test).to.be.equal(testValue2, `vm.set改变类型被设置上了?`)
+    }
     done()
   })
 })
