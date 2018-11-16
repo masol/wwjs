@@ -70,18 +70,18 @@ ko模块的初始化代码，在DomReady之后，由chk模块调用。负责建�
 function setup () {
   EE.on('nodeAdd', function (nodeArray) {
     // console.log('nodeAdded:', nodeArray, 'ko.options=', ko.options)
-    let i, j
-    let Notifiers = EE.eventNames('koprepare')
+    let i, j, item, $item
+    let Notifiers = EE.listeners('koprepare')
+    // console.log('Notifiers=', Notifiers)
     for (i = 0; i < nodeArray.length; i++) {
-      let item = nodeArray[i]
+      item = nodeArray[i]
+      $item = $(item)
       // if (item.nodeType !== 1) { continue }  //不再需要，已经被chk实现。
-      let $item = $(item)
-      for (j = 0; j < Notifiers; j++) {
+      for (j = 0; j < Notifiers.length; j++) {
         Notifiers[j]($item)
       }
-      // console.log($item)
       if ($item.is('[data-bind]') || $item.find('[data-bind]').length > 0) {
-        // console.log(VM, nodeArray[i])
+      // console.log(VM, nodeArray[i])
         ko.applyBindings(VM.get(), nodeArray[i])
       }
     }

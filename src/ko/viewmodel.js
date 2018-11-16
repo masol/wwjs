@@ -143,6 +143,18 @@ function get (pathOrele, format) {
   return vm
 }
 
+// 深度检查value中的值在$data中是否存在，如果不存在，加入到filterValue中. Array类型被忽略，只有一个和有n个都认为被初始化了。
+function deepFilter (filterValue, value, $data) {
+  let key
+  for (key in value) {
+    if (!$data[key]) { // observable value.
+      filterValue[key] = value[key]
+    } else if (typeof value[key] === 'object') {
+      deepFilter(filterValue[key], value[key], $data[key]())
+    }
+  }
+}
+
 /**
 在指定的路径(元素代表的路径)更新数据。对于数字/时间/字符串等基础类型，相同的值不会触发界面更新。对于数组内元素，如果元素的`key`属性相同，会被视为相同元素更新，否则会被删除重新加入。
 @exports ko/viewmodel
@@ -153,56 +165,65 @@ function get (pathOrele, format) {
 @return {Boolean} 如果成功更新，则返回true.
 */
 function set (value, $data, overwritten) {
+  let key, models, v
   $data = $data || get()
   // console.log('$data=', $data)
-  if (overwritten) {
-    try {
-      ko.mapping.fromJS(value, $data)
-    } catch (ex) {
-      if (cfg.vmtypecvt && ex instanceof TypeError) {
-        // 类型不同时，重新设置为新类型.
-        let models = ko.mapping.fromJS(value)
-        // console.log('models=', models, 'exceptions = ', ex)
-        let key
-        for (key in models) {
-          // if (key === '__ko_mapping__') {
-          //   continue
-          // }
-          let v = models[key]
-          // console.log('key=', key, 'v=', v)
-          // console.log('before assign 1')
-          if ($.isFunction($data[key])) {
-            $data[key](v)
-          } else {
-            $data[key] = v
-          }
-          // console.log('after assign 2')
+  // 过滤方式: 完全利用ko.mapping.formJS来工作，以防止ko.mapping.toJS工作不正常。
+  let filterValue = value
+  if (!overwritten) {
+    filterValue = {}
+    deepFilter(filterValue, value, $data)
+  }
+
+  try {
+    ko.mapping.fromJS(filterValue, $data)
+  } catch (ex) {
+    if (cfg.vmtypecvt && ex instanceof TypeError) {
+      // console.log(ex)
+      // @FIXME: 此时,ko.mapping.toJS工作不正常了,需要进入ko.mapping.toJS代码来，打开上面的log来检查细节
+      // 类型不同时，重新设置为新类型.
+      models = ko.mapping.fromJS(filterValue)
+      // console.log('models=', models, 'exceptions = ', ex)
+      for (key in models) {
+        // if (key === '__ko_mapping__') {
+        //   continue
+        // }
+        v = models[key]
+        // console.log('key=', key, 'v=', v)
+        // console.log('before assign 1')
+        if ($.isFunction($data[key])) {
+          $data[key](v)
+        } else {
+          $data[key] = v
         }
-      } else {
-        EE.emit('error', 'vm.typeerror', ex)
+        // console.log('after assign 2')
       }
+    } else {
+      EE.emit('error', 'vm.typeerror', ex)
     }
-  } else {
-    let models = ko.mapping.fromJS(value)
-    $.each(models, (key, value) => {
-      if (!$data.hasOwnProperty(key)) {
-        // @TODO bug? 不是，因为只用于初始化
-        $data[key] = value
-      }
-    })
   }
 }
 
 function procBindvar () {
   let ele = this
+  // console.log('data-bindvar=', ele.getAttribute('data-bindvar'))
   const bindObj = json.parse(ele.getAttribute('data-bindvar'))
+  // console.log('bindObj=', bindObj)
   if (bindObj.value) {
+    // console.log(1, 'get(ele)=', get(ele))
     set(bindObj.value, get(ele), false)
+    // console.log(get(null, 'json'))
+  } else {
+    if (cfg.debug) {
+      console.error(`分析data-bindvar的值时发生错误:${bindObj.error}`)
+    }
+    EE.emit('error', 'bindvar', bindObj.error)
   }
 }
 
 EE.on('koprepare', ($ele) => {
   let nsItems = $ele.find('[data-bindvar]')
+  // console.log('nsItems=', nsItems)
   if (nsItems.length > 0) {
     nsItems.each(procBindvar)
   }

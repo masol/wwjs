@@ -19,7 +19,7 @@ describe('UI数据绑定', function () {
   it('基础绑定正常', function (done) {
     wwjs.vm.set({
       'test': testValue
-    }, '', true)
+    }, null, true)
 
     let t0
     let pThis = this
@@ -64,4 +64,33 @@ describe('UI数据绑定', function () {
     }
     done()
   })
+
+  it('bindvar工作正常，不会覆盖已经定义的值，只会设置未定义的值以用于初始化，并且此时get工作正常', function (done) {
+    wwjs.vm.set({
+      'test': testValue
+    }, '', true)
+    chai.expect(wwjs.vm.get('', 'json').test).to.be.equal(testValue, `vm.set之后立即获取到的值不一致`)
+    let t0
+    let pThis = this
+    let ivid = setInterval(function () {
+      let $wwtest2 = $('#wwtest2')
+      if ($wwtest2.length > 0) {
+        let spans = $wwtest2.find('span')
+        if (spans.length === 2 && $(spans[0]).text() === testValue && $(spans[1]).text() === '2') {
+          let t1 = performance.now()
+          clearInterval(ivid)
+          chai.expect(wwjs.vm.get('', 'json')).to.deep.equal({ test: testValue, test2: 2 }, `vm.set之后立即获取到的值不一致`)
+          pThis._runnable.title = `bindvar工作正常，不会覆盖已经定义的值，只会设置未定义的值以用于初始化，并且此时get工作正常。(${t1 - t0}ms延时)`
+          done()
+        }
+      }
+    }, 1)
+    setTimeout(() => {
+      wwjs.ui.$container().append(`<div id="wwtest2"><span data-bind="text : test"></span><span data-bind="text : test2"></span><div data-bindvar={"test":1,"test2":2}></div></div>`)
+      t0 = performance.now()
+    }, 0)
+  })
+
+  // it('bindvar在深度对象的检查上工作正常', function (done) {
+  // })
 })
