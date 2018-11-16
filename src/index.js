@@ -43,7 +43,7 @@ window.$ = window.jQuery = $
  **/
 
 /**
- 暴露在window.EE全局名称空间的事件中心，API文档参考[Nodejs官方文档](https://nodejs.org/api/events.html)
+ 暴露在window.EE全局名称空间的事件中心，API文档参考[Nodejs官方文档](https://nodejs.org/api/events.html)，事件列表参考[evt模块](module-utils_evt.html)。
   * @type {object}
   * @name EE
 **/

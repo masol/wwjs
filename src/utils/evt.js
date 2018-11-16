@@ -20,9 +20,16 @@ window.EE = EE
 /**
 事件中心模块提供了全局的内部事件中心，可以独立于Dom执行。
 
-系统所有的错误机制，可以监听`调用EE.on("error",function(desc,exobj){})`的方式来拦截，提供了如下错误类型(地一个参数):
+系统所有的错误机制，可以监听`调用EE.on("error",function(desc,exobj){})`的方式来拦截，提供了如下错误类型(事件响应代码的第一个参数):
 - `script.wwjs` : wwjs类型的脚本执行错误。此时第２个参数是一个`Error`对象。
 - `chk.nocontainer` : chk模块尝试获取container,但是失败了。此时第２个参数为undefined.
+
+还提供了如下事件:
+- `nodeBeforeAdd` : 第一个参数是新加入的元素(只通知根元素).参考[chk模块](module-chk.html)
+- `nodeAdd` : 第一个参数是新加入的元素(只通知根元素).参考[chk模块](module-chk.html)
+- `nodeBeforeRm` : 第一个参数是删除的元素(只通知根元素).参考[chk模块](module-chk.html)
+- `nodeRm` : 第一个参数是删除的元素(只通知根元素).参考[chk模块](module-chk.html)
+- `koprepare` : 第一个参数是检查的元素(只通知根元素)，这是一个同步事件，用于在数据绑定前做处理。参考[ko模块](module-ko.html)
 
 @example
 <script type="script/wwjs">
