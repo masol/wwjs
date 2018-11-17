@@ -21,6 +21,7 @@ import ko from 'knockout'
 import mapping from './mapping'
 import EE from '../utils/evt'
 import VM from './viewmodel'
+import ns from './ns'
 
 ko.mapping = mapping
 // @see https://knockoutjs.com/documentation/deferred-updates.html
@@ -77,9 +78,12 @@ function setup () {
       item = nodeArray[i]
       $item = $(item)
       // if (item.nodeType !== 1) { continue }  //不再需要，已经被chk实现。
+      // 为确保执行顺序，首先调用ns.procElem
+      ns.procElem($item)
       for (j = 0; j < Notifiers.length; j++) {
         Notifiers[j]($item)
       }
+      // console.log(VM.get('', 'json'))
       if ($item.is('[data-bind]') || $item.find('[data-bind]').length > 0) {
       // console.log(VM, nodeArray[i])
         ko.applyBindings(VM.get(), nodeArray[i])

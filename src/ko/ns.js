@@ -12,7 +12,6 @@
 
 'use strict'
 
-import EE from '../utils/evt'
 import VM from './viewmodel'
 import cfg from '../utils/cfg'
 
@@ -24,16 +23,11 @@ ko/ns模块维护了名称空间。他允许任意元素开启一个新的名称
 /**
 本函数在给定名称空间下寻找`selector`限定的元素。如果nested允许，子名称空间内的元素也被选择，否则只有当前名称空间的元素被返回。
 @exports ko/ns
-@method find
-@param {String} selector jQuery Selector Format.
-@param {String|Element} [ns=""] 如果是String,则给出名称空间，否则是一个元素，按照其所处的名称空间中查找。如果未给出本参数，默认为全局名称空间("")
-@param {Boolean} [nested=false] 是否递归查找子名称空间中的元素，默认是false。
-@return {jQueryCollection<Elements>} 返回符合条件的元素数组。
+@method getNs
+@param {String|Element} nsOrEle 如果是String,则给出名称空间，否则是一个元素。
+@return {Element} 返回此NameSpace根节点
 */
-function find (selector, ns, nested) {
-}
-
-function getById (id, ns, nested) {
+function getNs (nsOrEle) {
 }
 
 let nssuffix = 0
@@ -42,6 +36,7 @@ let nssuffix = 0
 function procNS () {
   let ele = this
   let nsName = ele.getAttribute('data-ns')
+  // console.log('nsName=', nsName)
   if (nsName === 'foreach') { // 已经使用了foreach作为名称空间构建，不再处理。
     return
   }
@@ -50,35 +45,45 @@ function procNS () {
     nssuffix++
     ele.setAttribute('data-ns', nsName)
   }
+  // console.log('after autosuffix,nsName=', nsName)
   let json = { }
   json[nsName] = {}
-  VM.set(json, VM.get(ele), false)
+  VM.set(json, VM.get(ele.parentNode), false)
   let bindStr = ele.getAttribute('data-bind') || ''
-  if (!bindStr) {
+  if (bindStr) {
     bindStr += ';'
   }
   bindStr += `with:${nsName}`
   ele.setAttribute('data-bind', bindStr)
 }
 
-/* 处理过程:
+/** 由于ns的处理必须在bindvar以及script之前。为确保顺序，这里暴露一个内部函数，而不是响应'koprepare'。处理过程:
 - 首先检查是否有data-ns名称空间。如果有，调用procNS执行如下处理:
   - 如果有，获取其名称(如果是unique，则自动换算为全局唯一名称`wwjs${suffix}`)
   - 获取元素当前的ko context,进一步获取到$data.
   - 在$data下初始化方式更新namespace对象。
   - 在$item上增加with的data-bind.
+@exports ko/ns
+@access private
+@method procElem
+@param {$Element} $item 要处理的Item.
+@return {undefined}
 */
-EE.on('koprepare', ($item) => {
+
+function procElem ($item) {
+  // console.log('data-ns')
+  if ($item.is('[data-ns]')) {
+    procNS.call($item[0])
+  }
   let nsItems = $item.find('[data-ns]')
   if (nsItems.length > 0) {
     nsItems.each(procNS)
   }
-  if ($item.is('[data-ns]')) {
-    procNS.call($item[0])
-  }
-})
+}
 
 export default {
-  find: find,
-  getById: getById
+  pub: {
+    getNs: getNs
+  },
+  procElem: procElem
 }

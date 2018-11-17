@@ -15,9 +15,9 @@
 import $ from 'jquery'
 import './utils/systemjs'
 import cfg from './utils/cfg'
+import ns from './ko/ns'
 import chkSetup from './chk'
 import EE from './utils/evt'
-import ns from './ko/ns'
 import json from './utils/json'
 import ui from './utils/ui'
 import polyfillSetup from './utils/polyfills'
@@ -242,7 +242,7 @@ module.exports = {
    * @type {object}
    * @name ns
   **/
-  ns: ns,
+  ns: ns.pub,
   ready: ready,
   /**
   UI抽象子模块，提供了对HTML布局的一个抽象假设。可以通过[cfg模块](module-utils_cfg.html)来配置。详细文档查看[utils/ui模块](module-utils_ui.html)

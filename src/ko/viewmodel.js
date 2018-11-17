@@ -118,6 +118,7 @@ function reset () {
 
 /**
 按照条件获取对应的数据模型。之所以命名为viewModel是为了强调这个模型主要用于控制UI——其数据更新的周期默认依赖绘制(RequestAnimationFrame)。
+注意，获取时未考虑未初始化的foreach绑定带来的名称空间计算。如有需要，再加入此特性支持。
 @exports ko/viewmodel
 @method get
 @param {String|Element} [pathOrele] 需要获取的路径，可以传入一个元素，用于获取其对应的ViewModel。默认从根路径下开始获取。
@@ -128,10 +129,40 @@ function get (pathOrele, format) {
   let vm
   if (pathOrele) {
     if (pathOrele instanceof Element) {
-      let $ctx = ko.dataFor(pathOrele)
-      if ($ctx) {
-        vm = $ctx.$data
+      // 元素可能尚未初始化，寻找包含自身在内的地一个包含data-ns元素的父，未考虑未初始化的foreach
+      let elem = pathOrele
+      let $data, nsName, $ctx
+      let path = []
+      for (; elem && elem !== document; elem = elem.parentNode) {
+        $ctx = ko.dataFor(elem)
+        if ($ctx) {
+          $data = $ctx.$data
+        }
+        nsName = elem.getAttribute('data-ns')
+        if (nsName) {
+          path.push(nsName)
+        }
+        if ($data) {
+          break
+        }
       }
+      $data = $data || viewModel
+      let i = path.length - 1
+      for (; i >= 0; i--) {
+        let $dp = $data[path[i]]
+        if (typeof $dp === 'object') {
+          $data = $dp
+        } else if ($.isFunction($dp)) {
+          $data = $dp()
+        } else {
+          $data = undefined
+        }
+        if (!$data) {
+          EE.emit('error', 'vm.get.invalidPath', pathOrele)
+          break
+        }
+      }
+      vm = $data
     } else if ($.isString(pathOrele)) {
       vm = getVmFromPath(pathOrele)
     }
@@ -176,7 +207,8 @@ function set (value, $data, overwritten) {
   }
 
   try {
-    ko.mapping.fromJS(filterValue, $data)
+    // 输入三个参数,第二个是mapping option，以确保将$data当作target,而不是判定其是否包含`__ko_mapping__`属性。
+    ko.mapping.fromJS(filterValue, {}, $data)
   } catch (ex) {
     if (cfg.vmtypecvt && ex instanceof TypeError) {
       // console.log(ex)
@@ -222,13 +254,13 @@ function procBindvar () {
 }
 
 EE.on('koprepare', ($ele) => {
+  if ($ele.is('[data-bindvar]')) {
+    procBindvar.call($ele[0])
+  }
   let nsItems = $ele.find('[data-bindvar]')
   // console.log('nsItems=', nsItems)
   if (nsItems.length > 0) {
     nsItems.each(procBindvar)
-  }
-  if ($ele.is('[data-ns]')) {
-    procBindvar.call($ele[0])
   }
 })
 

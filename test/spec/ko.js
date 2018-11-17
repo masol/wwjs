@@ -91,6 +91,41 @@ describe('UI数据绑定', function () {
     }, 0)
   })
 
+  it('data-ns元素的子data-bindvar自动归入此名称下，并且一次事件中可以嵌套加入NS', function (done) {
+    let t0
+    let pThis = this
+    let ivid = setInterval(function () {
+      let $wwtest3 = $('#wwtest3')
+      if ($wwtest3.length > 0) {
+        let spans = $wwtest3.children('span')
+        if (spans.length === 2 && $(spans[0]).text() === '33' && $(spans[1]).text() === '44') {
+          let $wwtest4 = $('#wwtest4')
+          if ($wwtest4.length > 0) {
+            let spans = $wwtest4.children('span')
+            if (spans.length === 2 && $(spans[0]).text() === '55' && $(spans[1]).text() === '66') {
+              let t1 = performance.now()
+              clearInterval(ivid)
+              let $wwtest3Json = wwjs.vm.get($wwtest3[0], 'json')
+              chai.expect($wwtest3Json.test).to.be.equal(33, `匿名名称空间下的test值不正确`)
+              chai.expect($wwtest3Json.test2).to.be.equal(44, `匿名名称空间下的test2值不正确`)
+              chai.expect($wwtest3Json).to.deep.equal({ test: 33, test2: 44, CUSTOMNAME: { test: 55, test2: 66 } }, `vm.set之后立即获取到的值不一致`)
+              chai.expect(wwjs.vm.get($wwtest4[0], 'json')).to.deep.equal({ test: 55, test2: 66 }, `vm.set之后立即获取到的值不一致`)
+              pThis._runnable.title = `data-ns元素的子data-bindvar自动归入此名称下，并且一次事件中可以嵌套加入NS。(${t1 - t0}ms延时)`
+              done()
+            }
+          }
+        }
+      }
+    }, 1)
+
+    setTimeout(() => {
+      wwjs.ui.$container().append(`<div id="wwtest3" data-ns><span data-bind="text : test"></span><span data-bind="text : test2"></span><div data-bindvar={"test":33,"test2":44}></div>
+      <div id="wwtest4" data-ns="CUSTOMNAME"><span data-bind="text : test"></span><span data-bind="text : test2"></span><div data-bindvar={"test":55,"test2":66}></div></div></div>`)
+      // wwjs.ui.$container().append(``)
+      t0 = performance.now()
+    }, 0)
+  })
+
   // it('bindvar在深度对象的检查上工作正常', function (done) {
   // })
 })

@@ -32,6 +32,7 @@ window.EE = EE
 - `nodeBeforeRm` : 第一个参数是删除的元素(只通知根元素).参考[chk模块](module-chk.html)
 - `nodeRm` : 第一个参数是删除的元素(只通知根元素).参考[chk模块](module-chk.html)
 - `koprepare` : 第一个参数是检查的元素(只通知根元素)，这是一个同步事件，用于在数据绑定前做处理。参考[ko模块](module-ko.html)
+- `vm.get.invalidPath` : 第一个参数是`pathOrele`。参考[viewModel::get](module-ko_viewmodel.html#~get)
 
 @example
 <script type="script/wwjs">
