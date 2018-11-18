@@ -22,6 +22,7 @@ import json from './utils/json'
 import ui from './utils/ui'
 import polyfillSetup from './utils/polyfills'
 import vm from './ko/viewmodel'
+import wwclass from './wwclass'
 
 // console.log(chkSetup)
 
@@ -235,6 +236,14 @@ module.exports = {
    * @name JSON
   **/
   JSON: json,
+  /**
+  lit-html暴露到wwjs名称空间下。详细文档查看[wwclass模块](module-wwclass.html)
+   * @member wwjs
+   * @constant
+   * @type {object}
+   * @name lit
+  **/
+  lit: wwclass.lit,
   /**
   名称空间子模块，通过wwjs暴露到全局空间。详细文档查看[ko/ns模块](module-ko_ns.html)
    * @member wwjs
