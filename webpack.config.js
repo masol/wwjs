@@ -48,7 +48,7 @@ module.exports = env => {
     devtool: isProd ? 'source-map' : (!env ? 'cheap-module-eval-source-map' : false),
     devServer: { headers: { 'Access-Control-Allow-Origin': '*' } },
     module: {
-      rules: [ { parser: { system: false } }, {
+      rules: [ {
         test: /\/index\.js$/,
         loader: 'string-replace-loader',
         query: {

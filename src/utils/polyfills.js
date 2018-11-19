@@ -2,6 +2,7 @@
 
 import './modernizr'
 import cfg from './cfg'
+import loadjs from './loadjs'
 
 const Modernizr = window.Modernizr
 
@@ -16,7 +17,7 @@ const Modernizr = window.Modernizr
 本函数检查浏览器环境，如果缺少依赖特性，按照下面对特性的定义，从网络下载polyfill并安装。执行完毕之后，在window下安装了对象window.Modernizr，可以使用这个对象来检查浏览器支持。
 
 检查并安装polyfill的特性:
-- [es6-promise](https://caniuse.com/#search=promise)由于system.js依赖，为解决自举依赖，这个polyfill被内置到wwjs包中，无论是否需要。使用了[promise-polyfill](https://github.com/taylorhakes/promise-polyfill,注意：没有使用[es6-promise](https://github.com/stefanpenner/es6-promise)的原因是尺寸，由于es6-promise从rsvp中抽取，尺寸过大。
+- [es6-promise](https://caniuse.com/#search=promise)。由于不再使用[systemjs](https://github.com/systemjs/systemjs)做loader,不再依赖此特性，当不被支持时，自动安装[promise-polyfill](https://github.com/taylorhakes/promise-polyfill,注意：没有使用[es6-promise](https://github.com/stefanpenner/es6-promise)的原因是尺寸，由于es6-promise从rsvp中抽取，尺寸过大。
 - [Notification](https://caniuse.com/#search=Notification),如果不支持，自动安装[HTML5-Desktop-Notifications](https://github.com/ttsvetko/HTML5-Desktop-Notifications).
 - [CSS3 object-fit/object-position](https://caniuse.com/#search=CSS3%20object-fit%2Fobject-position),如果不支持，自动安装[object-fit-images](https://github.com/bfred-it/object-fit-images)，图形布局中使用了本特性。
 - [requestAnimationFrame](https://caniuse.com/#search=requestAnimationFrame)，目标浏览器只有ie9不被支持，由于这个特性不支持会导致wwjs无法运行，如果未支持，自动调用内建的[polyfill](https://gist.github.com/paulirish/1579671).
@@ -114,43 +115,57 @@ function setup (callback) {
     callback(failedPF)
   }
 
-  let polyfillFinish = (err, featName) => {
+  let polyfillFinish = (featName, errPath) => {
     feattested[featName] = true
-    if (err) {
-      failedPF.push('fetch')
+    if (errPath) {
+      failedPF.push(featName)
       if (cfg.debug) {
-        window.alert(`当前浏览器不支持${featName},并且无法加载polyfill文件,错误信息：${err}`)
+        window.alert(`当前浏览器不支持${featName},并且无法加载polyfill文件,错误文件：${errPath}`)
       }
     }
     polyfillReady()
   }
 
-  let checkFeature = (featName, polyfillURL) => {
+  let noop = () => {}
+  let checkFeature = (featName, polyfillURL, done) => {
+    done = done || noop
     if (!Modernizr[featName]) {
-      window.System.import(`${cfg.libbase}${polyfillURL}`).then(() => {
-        polyfillFinish(featName)
-      }).catch(function (err) {
-        polyfillFinish(featName, err)
-      })
+      let bundleName = `_wwpf_${featName}`
+      if (!loadjs.isDefined(bundleName)) {
+        loadjs(polyfillURL, bundleName, {
+          success: function () {
+            polyfillFinish(featName)
+            done()
+          },
+          error: function (errPath) {
+            polyfillFinish(featName, errPath)
+            done()
+          }
+        })
+      }
     } else {
       feattested[featName] = true
+      done()
     }
   }
 
   Modernizr.wasm = (typeof WebAssembly === 'object' && typeof (WebAssembly.instantiate) === 'function')
 
-  // 同步方式为Promise做polyfill.
-  if (!Modernizr.promises) {
-    // 这里不能使用webpack split code引入promise-polyfill.因为运行库依赖于promise!!
-    // import(/* webpackChunkName: "promise-polyfill" */'promise-polyfill').then(function () {
-    //   console.log(arguments)
-    //   console.log('loadover')
-    // })
-    window.Promise = require('promise-polyfill').default
-    // console.log('window.Promise=', window.Promise)
-  }
-  require('./promise')
+  // // 同步方式为Promise做polyfill.
+  // if (!Modernizr.promises) {
+  //   // 这里不能使用webpack split code引入promise-polyfill.因为运行库依赖于promise!!
+  //   // import(/* webpackChunkName: "promise-polyfill" */'promise-polyfill').then(function () {
+  //   //   console.log(arguments)
+  //   //   console.log('loadover')
+  //   // })
+  //   window.Promise = require('promise-polyfill').default
+  //   // console.log('window.Promise=', window.Promise)
+  // }
+  // require('./promise')
 
+  checkFeature('promises', '/promise-polyfill/8.1.0/polyfill.min.js', () => {
+    require('./promise')
+  })
   checkFeature('es6string', '/string-polyfills/0.9.1/String.min.js')
   checkFeature('fetch', '/whatwg-fetch/3.0.0/fetch.umd.js')
   checkFeature('mutationobserver', '/mutationobserver-shim/0.3.2/mutationobserver.min.js')

@@ -31,7 +31,8 @@
  - 执行命令`npm publish`来将发行包更新到npm.wware.org。注意，你的npm registry必须指向npm.wware.org。详情参考wwpkg项目的README.md。
 
 # 3. 内建环境
- - 加载器选择，我们首先需要一个轻量级加载器，然后是es6 module规范兼容的加载器。最后选择了[systemjs](https://github.com/systemjs/systemjs)。基于如下原因：
+ - 加载器选择，我们首先需要一个轻量级加载器，然后是es6 module规范兼容的加载器。最后选择了[loadjs](https://github.com/muicss/loadjs)。基于如下原因：
+    - [systemjs](https://github.com/systemjs/systemjs)支持的ES6 Module规范，很多库尚未完全测试，会引发库的支持问题，需要等待库更新完毕再行切换？
     - 相对于[johnnydepp](https://github.com/muicss/johnnydepp),[LoadJS](https://github.com/muicss/loadjs)，对es6规范支持好，并且支持AMD(通过extra)。通过[polyfill](https://www.npmjs.com/package/promise-polyfill)可以支持到ie8+。(PS:如果选择johnnydepp，我们可以减少18k的尺寸——除了systemjs的尺寸，还有必须内建的promise polyfill)
     - 相对于[requirejs](https://requirejs.org/)更轻量，并兼容es6规范。
     - 相对于[webpack-dynamic-import](https://babeljs.io/docs/en/babel-plugin-syntax-dynamic-import)，支持全局包管理，这对于wwpkg这样的全局包管理十分高效。

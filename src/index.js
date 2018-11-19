@@ -13,7 +13,7 @@
 'use strict'
 
 import $ from 'jquery'
-import './utils/systemjs'
+import loadjs from './utils/loadjs'
 import cfg from './utils/cfg'
 import ns from './ko/ns'
 import chkSetup from './chk'
@@ -24,13 +24,15 @@ import polyfillSetup from './utils/polyfills'
 import vm from './ko/viewmodel'
 import wwcls from './elems'
 
-console.log('$=', $)
+// console.log(loadjs)
+
 /**
 内建的jQuery支持。注意，这不是原生jQuery,而是[cash-dom](https://github.com/kenwheeler/cash)，并被绑定到window.jQuery以及window.$
  * @type {jQuery}
  * @name $
  **/
 window.$ = window.jQuery = $
+// 为了更多兼容
 $.fn.jquery = '3.0.0'
 $.fn.support = ''
 
@@ -82,11 +84,11 @@ id可以使用如下格式，以在内部特定事件发生时，得到通知：
 - fullfill : 当wwjs可以使用时，回调。
 - ready : 当wwjs可用，并且dom ready时，回调。
 - [@]URL : 如果不带@前缀，则默认从本地服务器加载。如果带有@前缀，则从libs服务器下加载。如果给出全路径，则忽略@前缀。当前支持的前缀(区分大小写)如下:
-  - json! : json格式
+  - img! : img格式
+  - js! : javascript模块格式
   - css! : 通过在head中设置<link>标签来加载，如果已有相同url被加载,则fullfill(一个url只加载一次).
-  - ~~amd! : 当作amd module来加载。~~如果需要加载amd模块，请使用`window.define`函数。
-  - 无前缀时被当作es6模块(CommonJS) : 当作es6 module来加载。
-- URLArray : 这是对Systemjs的一个扩展，可以传入上一段规定的URL语法加载多个,`['URL1',['URL2','URL3'],'URL4']`的形式，会分两层加载，第一层加载`['URL2','URL3']`，然后是`'URL1','URL4'`。最后返回`[MOD1,[MOD2,MOD3],MOD4]`的形式。本扩展对System.import有效。
+  - 无前缀时被当作amd模块(LoadJS)对待
+- URLArray : 这是标准的loadjs bundle Array，如有多重依赖，提前使用`loadjs(...)`来定义好依赖关系。
 - [!][*viewSelector]URL[#!!modelpath!!#] 调用URL,并更新view及model。此格式下的URL被解析到本地地址。
   - !或*必须有一个。通常在主页面只加载model，因此会形如：“!URL”
   - 如果要求加载一对,URL给出的是view的url，而model的url会把view的后缀(建议采用.html)改为.json加载。
@@ -116,10 +118,15 @@ function wwimport (id, cb) {
   } else if (id === 'ready') {
     ready(cb)
   } else {
-    return window.System.import(id).then((mod) => {
-      cb(null, mod)
-    }).catch((err) => {
-      cb(err)
+    return loadjs(id, {
+      success: function () {
+        let args = Array.prototype.slice(arguments, 0)
+        args.unshift(null)
+        cb.apply(this, args)
+      },
+      error: function (err) {
+        cb(err)
+      }
     })
   }
 }
@@ -248,7 +255,14 @@ module.exports = {
    * @name lit
   **/
   lit: wwcls.lit,
-  loadjs: require('loadjs'),
+  /**
+  [loadjs](https://github.com/muicss/loadjs)暴露到wwjs名称空间下。详细文档查看[loadjs模块](module-utils_loadjs.html)
+   * @member wwjs
+   * @constant
+   * @type {object}
+   * @name loadjs
+  **/
+  loadjs: loadjs,
   /**
   名称空间子模块，通过wwjs暴露到全局空间。详细文档查看[ko/ns模块](module-ko_ns.html)
    * @member wwjs
