@@ -29,7 +29,7 @@ module.exports = (function initModule () {
   function pipe (array, initvar) {
     return Array.prototype.reduce.call(array, (result, task) => {
       return Promise.resolve(result).then((param) => {
-        return (window.$.isFunction(task) ? task(param) : task)
+        return ((typeof (task) === 'function') ? task(param) : task)
       }).then(result => {
         return result
       })
@@ -70,7 +70,7 @@ module.exports = (function initModule () {
     return new Promise((resolve) => {
       setTimeout(() => {
         Promise.resolve(value).then((finalValue) => {
-          if (window.$.isFunction(finalValue)) {
+          if (typeof (finalValue) === 'function') {
             resolve(finalValue())
           } else {
             resolve(finalValue)

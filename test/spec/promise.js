@@ -73,11 +73,11 @@ describe('Promise', function () {
     return Promise.all([
       Promise.delay(10, function () {
         t1 = performance.now()
-        chai.expect(Math.abs(t1 - t0)).to.be.within(10, 20, '函数没有在delay结束时调用')
+        chai.expect(Math.abs(t1 - t0)).to.be.within(10, 50, '函数没有在delay结束时调用')
         return 121
       }).then(function (val) {
         t1 = performance.now()
-        chai.expect(Math.abs(t1 - t0)).to.be.within(10, 20, 'setTimeout误差过大？')
+        chai.expect(Math.abs(t1 - t0)).to.be.within(10, 50, 'setTimeout误差过大？')
         chai.expect(val).to.equal(121)
       }),
 

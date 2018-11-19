@@ -39,7 +39,7 @@ function $container () {
     return $containerCache
   }
   let $ele
-  if ($.isString(cfg.$container)) {
+  if (typeof (cfg.$container) !== 'string') {
     $ele = $(cfg.$container).first()
   }
   if (!isEleValid($ele)) {

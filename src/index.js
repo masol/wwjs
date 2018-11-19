@@ -22,7 +22,17 @@ import json from './utils/json'
 import ui from './utils/ui'
 import polyfillSetup from './utils/polyfills'
 import vm from './ko/viewmodel'
-import wwclass from './wwclass'
+import wwcls from './elems'
+
+console.log('$=', $)
+/**
+内建的jQuery支持。注意，这不是原生jQuery,而是[cash-dom](https://github.com/kenwheeler/cash)，并被绑定到window.jQuery以及window.$
+ * @type {jQuery}
+ * @name $
+ **/
+window.$ = window.jQuery = $
+$.fn.jquery = '3.0.0'
+$.fn.support = ''
 
 // console.log(chkSetup)
 
@@ -30,13 +40,6 @@ import wwclass from './wwclass'
 // import router from './utils/router'
 
 // console.log(System)
-
-/**
-内建的jQuery支持。注意，这不是原生jQuery,而是[cash-dom](https://github.com/kenwheeler/cash)，并被绑定到window.jQuery以及window.$
- * @type {jQuery}
- * @name $
- **/
-window.$ = window.jQuery = $
 
 /**
 暴露在window.wwjs全局名称空间的[wwjs](module-wwjs.html)模块对象。
@@ -83,6 +86,7 @@ id可以使用如下格式，以在内部特定事件发生时，得到通知：
   - css! : 通过在head中设置<link>标签来加载，如果已有相同url被加载,则fullfill(一个url只加载一次).
   - ~~amd! : 当作amd module来加载。~~如果需要加载amd模块，请使用`window.define`函数。
   - 无前缀时被当作es6模块(CommonJS) : 当作es6 module来加载。
+- URLArray : 这是对Systemjs的一个扩展，可以传入上一段规定的URL语法加载多个,`['URL1',['URL2','URL3'],'URL4']`的形式，会分两层加载，第一层加载`['URL2','URL3']`，然后是`'URL1','URL4'`。最后返回`[MOD1,[MOD2,MOD3],MOD4]`的形式。本扩展对System.import有效。
 - [!][*viewSelector]URL[#!!modelpath!!#] 调用URL,并更新view及model。此格式下的URL被解析到本地地址。
   - !或*必须有一个。通常在主页面只加载model，因此会形如：“!URL”
   - 如果要求加载一对,URL给出的是view的url，而model的url会把view的后缀(建议采用.html)改为.json加载。
@@ -100,10 +104,10 @@ function wwimport (id, cb) {
     }
     return
   }
-  if (!$.isString(id) || id.length === 0) {
+  if (typeof (id) !== 'string' || id.length === 0) {
     return
   }
-  if (!$.isFunction(cb)) {
+  if (typeof (cb) !== 'function') {
     // 允许不传入回调，用于加载后不管的情况。
     cb = () => {}
   }
@@ -185,7 +189,7 @@ wwjs做为主模块，被安装到`window.wwjs`名称空间下。可以直接访
  * @return undefined
  **/
 function ready (cb) {
-  if (!$.isFunction(cb)) {
+  if (typeof (cb) !== 'function') {
     if (cfg.debug) {
       console.error(`ready参数必须是一个函数,而不是"${String(cb)}"！忽略本次ready调用`)
     }
@@ -243,7 +247,8 @@ module.exports = {
    * @type {object}
    * @name lit
   **/
-  lit: wwclass.lit,
+  lit: wwcls.lit,
+  loadjs: require('loadjs'),
   /**
   名称空间子模块，通过wwjs暴露到全局空间。详细文档查看[ko/ns模块](module-ko_ns.html)
    * @member wwjs
@@ -276,5 +281,13 @@ module.exports = {
    * @type {string}
    * @name version
    **/
-  version: '<# VERSION #>'
+  version: '<# VERSION #>',
+  /**
+  wwclass基类[ko/viewmodel模块](module-ko_viewmodel.html)
+   * @member wwjs
+   * @constant
+   * @type {object}
+   * @name wwclass
+  **/
+  wwclass: wwcls.wwclass
 }

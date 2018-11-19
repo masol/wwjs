@@ -31,7 +31,9 @@
     ],
     "plugins": [
       "transform-object-rest-spread",
-      "@babel/plugin-syntax-dynamic-import"
+      "@babel/plugin-syntax-dynamic-import",
+      ["@babel/plugin-proposal-decorators", { "legacy": true }],
+      ["@babel/plugin-proposal-class-properties", { "loose" : true }]
     ]
   },
   "lint-staged": {
@@ -67,7 +69,6 @@
   },
   "alternatives": {
     "precommit": "lint-staged",
-    "loadjs": "^3.5.4",
     "requirejs": "^2.3.6",
     "johnnydepp": "0.0.3",
     "chai": "^4.2.0",
@@ -85,6 +86,9 @@
   "homepage": "https://www.wware.org",
   "devDependencies": {
     "@babel/core": "^7.1.2",
+    "loadjs": "^3.5.4",
+    "@babel/plugin-proposal-class-properties": "^7.1.0",
+    "@babel/plugin-proposal-decorators": "^7.1.6",
     "@babel/plugin-syntax-dynamic-import": "^7.0.0",
     "@babel/preset-env": "^7.1.0",
     "babel-loader": "^8.0.4",

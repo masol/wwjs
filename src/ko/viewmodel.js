@@ -152,7 +152,7 @@ function get (pathOrele, format) {
         let $dp = $data[path[i]]
         if (typeof $dp === 'object') {
           $data = $dp
-        } else if ($.isFunction($dp)) {
+        } else if (typeof ($dp) === 'function') {
           $data = $dp()
         } else {
           $data = undefined
@@ -163,7 +163,7 @@ function get (pathOrele, format) {
         }
       }
       vm = $data
-    } else if ($.isString(pathOrele)) {
+    } else if (typeof (pathOrele) !== 'string') {
       vm = getVmFromPath(pathOrele)
     }
   }
@@ -223,7 +223,7 @@ function set (value, $data, overwritten) {
         v = models[key]
         // console.log('key=', key, 'v=', v)
         // console.log('before assign 1')
-        if ($.isFunction($data[key])) {
+        if (typeof ($data[key]) === 'function') {
           $data[key](v)
         } else {
           $data[key] = v

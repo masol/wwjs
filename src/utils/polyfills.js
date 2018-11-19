@@ -137,7 +137,7 @@ function setup (callback) {
     }
   }
 
-  Modernizr.wasm = (typeof WebAssembly === 'object' && $.isFunction(WebAssembly.instantiate))
+  Modernizr.wasm = (typeof WebAssembly === 'object' && typeof (WebAssembly.instantiate) === 'function')
 
   // 同步方式为Promise做polyfill.
   if (!Modernizr.promises) {

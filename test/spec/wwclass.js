@@ -1,0 +1,132 @@
+/* eslint no-undef: 0 */
+
+describe('UI数据绑定', function () {
+  before(function (done) {
+    wwimport('ready', () => {
+      wwjs.ui.$container().html('')
+      done()
+    }, (err) => { done(err) })
+  })
+  after(function (done) {
+    wwimport('ready', () => {
+      wwjs.ui.$container().html('')
+      done()
+    }, (err) => { done(err) })
+  })
+
+  const testValue = 'test中文2#$1'
+
+  it('类定义中，依赖检查失败可以回调类方法', function (done) {
+    let sig = 0
+    class Test extends wwjs.wwclass {
+      @wwjs.wwclass.dep(['@/bootstrap/4.1.3/js/bootstrap.bundle２.min.js'], 'deperr')
+      test () {
+        return 1100
+      }
+      deperr (err) {
+        if (err instanceof Error) {
+          sig = 1
+          chai.expect(sig).to.be.equal(1, `依赖错误函数执行顺序有误？`)
+          done()
+        }
+      }
+    }
+    wwjs.wwclass.reg('Test', Test)
+
+    setTimeout(() => {
+      wwjs.ui.$container().append(`<div id="wwtest1" data-wwclass="Test"></div>`)
+      t0 = performance.now()
+    }, 0)
+  })
+
+  it('viewModel设置值和得到值一致,非覆盖设置不会改变值，覆盖设置会改变，类型可以自动转化(不推荐使用自动转化)', function (done) {
+    wwjs.vm.set({
+      'test': testValue
+    }, '', true)
+    chai.expect(wwjs.vm.get('', 'json').test).to.be.equal(testValue, `vm.set之后立即获取到的值不一致`)
+    const testValue2 = 'testValue2'
+    const testValue3 = { 'test': 'abcd' }
+    wwjs.vm.set({
+      'test': testValue2
+    }, '', false)
+    chai.expect(wwjs.vm.get('', 'json').test).to.be.equal(testValue, `vm.set非覆盖模式，但是覆盖了？`)
+    wwjs.vm.set({
+      'test': testValue2
+    }, '', true)
+    chai.expect(wwjs.vm.get('', 'json').test).to.be.equal(testValue2, `vm.set覆盖模式，但是没有覆盖？`)
+    wwjs.vm.set({
+      'test': testValue3
+    }, '', true)
+    if (wwjs.config.vmtypecvt) {
+      chai.expect(wwjs.vm.get('', 'json').test).to.deep.equal(testValue3, `vm.set改变类型没有被设置上?`)
+      chai.expect(wwjs.vm.get().test().test()).to.be.equal('abcd', `改变类型时没有全部转为Observable`)
+    } else {
+      chai.expect(wwjs.vm.get('', 'json').test).to.be.equal(testValue2, `vm.set改变类型被设置上了?`)
+    }
+    done()
+  })
+
+  it('bindvar工作正常，不会覆盖已经定义的值，只会设置未定义的值以用于初始化，并且此时get工作正常', function (done) {
+    wwjs.vm.set({
+      'test': testValue
+    }, '', true)
+    chai.expect(wwjs.vm.get('', 'json').test).to.be.equal(testValue, `vm.set之后立即获取到的值不一致`)
+    let t0
+    let pThis = this
+    let ivid = setInterval(function () {
+      let $wwtest2 = $('#wwtest2')
+      if ($wwtest2.length > 0) {
+        let spans = $wwtest2.find('span')
+        if (spans.length === 2 && $(spans[0]).text() === testValue && $(spans[1]).text() === '2') {
+          let t1 = performance.now()
+          clearInterval(ivid)
+          chai.expect(wwjs.vm.get('', 'json')).to.deep.equal({ test: testValue, test2: 2 }, `vm.set之后立即获取到的值不一致`)
+          pThis._runnable.title = `bindvar工作正常，不会覆盖已经定义的值，只会设置未定义的值以用于初始化，并且此时get工作正常。(${t1 - t0}ms延时)`
+          done()
+        }
+      }
+    }, 1)
+    setTimeout(() => {
+      wwjs.ui.$container().append(`<div id="wwtest2"><span data-bind="text : test"></span><span data-bind="text : test2"></span><div data-bindvar={"test":1,"test2":2}></div></div>`)
+      t0 = performance.now()
+    }, 0)
+  })
+
+  it('data-ns元素的子data-bindvar自动归入此名称下，并且一次事件中可以嵌套加入NS', function (done) {
+    let t0
+    let pThis = this
+    let ivid = setInterval(function () {
+      let $wwtest3 = $('#wwtest3')
+      if ($wwtest3.length > 0) {
+        let spans = $wwtest3.children('span')
+        if (spans.length === 2 && $(spans[0]).text() === '33' && $(spans[1]).text() === '44') {
+          let $wwtest4 = $('#wwtest4')
+          if ($wwtest4.length > 0) {
+            let spans = $wwtest4.children('span')
+            if (spans.length === 2 && $(spans[0]).text() === '55' && $(spans[1]).text() === '66') {
+              let t1 = performance.now()
+              clearInterval(ivid)
+              let $wwtest3Json = wwjs.vm.get($wwtest3[0], 'json')
+              chai.expect($wwtest3Json.test).to.be.equal(33, `匿名名称空间下的test值不正确`)
+              chai.expect($wwtest3Json.test2).to.be.equal(44, `匿名名称空间下的test2值不正确`)
+              chai.expect($wwtest3Json).to.deep.equal({ test: 33, test2: 44, CUSTOMNAME: { test: 55, test2: 66 } }, `vm.set之后立即获取到的值不一致`)
+              chai.expect(wwjs.vm.get($wwtest4[0], 'json')).to.deep.equal({ test: 55, test2: 66 }, `vm.set之后立即获取到的值不一致`)
+              pThis._runnable.title = `data-ns元素的子data-bindvar自动归入此名称下，并且一次事件中可以嵌套加入NS。(${t1 - t0}ms延时)`
+              done()
+            }
+          }
+        }
+      }
+    }, 1)
+
+    setTimeout(() => {
+      wwjs.ui.$container().append(`<div id="wwtest3" data-ns><span data-bind="text : test"></span><span data-bind="text : test2"></span><div data-bindvar={"test":33,"test2":44}></div>
+      <div id="wwtest4" data-ns="CUSTOMNAME"><span data-bind="text : test"></span><span data-bind="text : test2"></span><div data-bindvar={"test":55,"test2":66}></div></div></div>`)
+      // wwjs.ui.$container().append(``)
+      t0 = performance.now()
+    }, 0)
+  })
+
+  // it('bindvar在深度对象的检查上工作正常', function (done) {
+  // })
+})

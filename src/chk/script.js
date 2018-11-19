@@ -45,11 +45,11 @@ function procScript () {
 
 EE.on('koprepare', function ($item) {
   const selector = 'script[type="text/wwjs"]'
+  if ($item.is(selector)) {
+    procScript.call($item[0])
+  }
   let nsItems = $item.find(selector)
   if (nsItems.length > 0) {
     nsItems.each(procScript)
-  }
-  if ($item.is(selector)) {
-    procScript.call($item[0])
   }
 })

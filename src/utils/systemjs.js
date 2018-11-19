@@ -15,12 +15,15 @@
 import 'systemjs/dist/s'
 import 'systemjs/dist/extras/amd'
 import cfg from './cfg'
+// import 'systemjs/dist/extras/named-register'
+import $ from 'jquery'
 
 const System = window.System
 
 const systemJSPrototype = System.constructor.prototype
 const instantiate = systemJSPrototype.instantiate
 const resolve = systemJSPrototype.resolve
+const origImport = systemJSPrototype.import
 
 /* 添加json @see https://github.com/Jamaks/systemjs2-json-plugin/blob/master/index.js */
 function loadJson (url, parent, loader) {
@@ -156,6 +159,17 @@ systemJSPrototype.instantiate = function (url, parent) {
   const loader = this
   // console.log('url =', url)
 
+  if (url === 'jquery') {
+    return [[], function (_export) {
+      return {
+        setters: [],
+        execute: function () {
+          _export({ $: window.$, jQuery: window.$ })
+        }
+      }
+    }]
+  }
+
   let type = ''
   for (let i = 0; i < prefixes.length; i++) {
     const pre = prefixes[i]
@@ -195,6 +209,10 @@ systemJSPrototype.transform = function (_id, source) {
 }
 
 systemJSPrototype.resolve = function (_id, source) {
+  switch (_id) {
+    case 'jquery':
+      return _id
+  }
   let url = String(_id)
   let prefix = ''
   for (let i = 0; i < prefixes.length; i++) {
@@ -211,6 +229,43 @@ systemJSPrototype.resolve = function (_id, source) {
   // console.log('url =', url)
 
   return prefix + resolve.call(this, url, source)
+}
+
+// 为System添加load函数，以load数组形式的多个依赖。
+function load (depArray) {
+  if ($.isArray(depArray)) {
+    let i, deps
+    deps = []
+    for (i = 0; i < depArray.length; i++) {
+      let id = depArray[i]
+      if ($.isArray[id]) {
+        deps.push(System.load(id))
+      } else {
+        deps.push(id)
+      }
+    }
+    return Promise.all(deps).then((deps) => {
+      let curs = []
+      for (i = 0; i < deps.length; i++) {
+        let id = deps[i]
+        if ($.isArray[id]) {
+          curs.push(id)
+        } else {
+          curs.push(System.import(id))
+        }
+      }
+      return Promise.all(curs)
+    })
+  } else if (typeof (depArray) !== 'string') {
+    return System.import(depArray)
+  }
+}
+
+systemJSPrototype.import = function (id, parent) {
+  if ($.isArray(id)) {
+    return load(id)
+  }
+  return origImport.apply(this, arguments)
 }
 
 // console.log(System)
