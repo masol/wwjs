@@ -46,6 +46,7 @@ build/
 node_modules/
 /node_modules
 /dist
+/test/dist
 /docs
 /libs
 message.po

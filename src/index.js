@@ -27,14 +27,16 @@ import wwcls from './elems'
 // console.log(loadjs)
 
 /**
-内建的jQuery支持。注意，这不是原生jQuery,而是[cash-dom](https://github.com/kenwheeler/cash)，并被绑定到window.jQuery以及window.$
+内建的jQuery支持。这是[jQuery 3.3.1](https://jquery.com/)，并被绑定到window.jQuery以及window.$
  * @type {jQuery}
  * @name $
  **/
-window.$ = window.jQuery = $
+if (!window.$) {
+  window.$ = window.jQuery = $
+}
 // 为了更多兼容
-$.fn.jquery = '3.0.0'
-$.fn.support = ''
+// $.fn.jquery = '3.0.0'
+// $.fn.support = ''
 
 // console.log(chkSetup)
 
@@ -248,13 +250,13 @@ module.exports = {
   **/
   JSON: json,
   /**
-  lit-html暴露到wwjs名称空间下。详细文档查看[wwclass模块](module-wwclass.html)
+  hyperHtml暴露到wwjs名称空间下。详细文档查看[wwclass模块](module-wwclass.html)
    * @member wwjs
    * @constant
    * @type {object}
-   * @name lit
+   * @name hyper
   **/
-  lit: wwcls.lit,
+  hyper: wwcls.hyper,
   /**
   [loadjs](https://github.com/muicss/loadjs)暴露到wwjs名称空间下。详细文档查看[loadjs模块](module-utils_loadjs.html)
    * @member wwjs

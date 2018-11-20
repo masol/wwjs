@@ -3,16 +3,9 @@
 
 <head>
   <meta charset=utf-8>
-  <title>WWJS测试</title>
-  <link rel="stylesheet" href="//libs.wware.org/mocha/5.2.0/mocha.css">
-  <script src="//libs.wware.org/mocha/5.2.0/mocha.js"></script>
-  <script src="//libs.wware.org/chai/4.2.0/chai.js"></script>
+  <title>WWJS兼容性测试</title>
   <script>
-    mocha.setup('bdd')
-  </script>
-
-  <script>
-    window.wwimport = function(mod, callback) {
+    window.wwimport = window.wwimport || function(mod, callback) {
       window.wwimcache = window.wwimcache || [];
       window.wwimcache.push({
         id: mod,
@@ -26,12 +19,17 @@
 </head>
 
 <body>
-  <div id="mocha"></div>
+  <div id="wwcontainer"><p id="waitfinish">请等待本句消失，长时间不消失，说明基础环境未构建，请打开console查看详情...</p></div>
   <script>
-    //mocha.checkLeaks();
-    mocha.run(function() {
+    wwimport("ready",function(){
+      window.alert('基础兼容性通过测试，请检查console.log了解详情!')
       $('body').append('<div id="test_finished" style="display:none"></div>')
-    });
+      $('#waitfinish').remove()
+      $('body').append('<p>看到此句，说明基础兼容性通过测试，请检查console.log是否有输出!</p>')
+    })
+    // //mocha.checkLeaks();
+    // mocha.run(function() {
+    // });
   </script>
   <script async src="../dist/wwjs.min.js"></script>
 </body>

@@ -9,7 +9,7 @@ describe('Bootstrap', function () {
     it('bootstrap时,Ready是异步调用', function (done) {
       let test = 1
       let bootted = false
-      if ((typeof window.wwjs === 'object') && window.wwjs.isReady()) {
+      if ((typeof window.wwjs === 'object') && (typeof window.wwjs.isReady === 'function') && window.wwjs.isReady()) {
         bootted = true
       }
       wwimport('ready', () => {

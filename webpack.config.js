@@ -6,6 +6,10 @@ const CompressionPlugin = require('compression-webpack-plugin')
 const fs = require('fs')
 let plugins = []
 
+function resolve () {
+  return path.join.bind(this, __dirname).apply(this, arguments)
+}
+
 module.exports = env => {
   const name = pkg.name
   const isProd = env === 'prod'
@@ -40,13 +44,15 @@ module.exports = env => {
 
   return {
     entry: {
-      wwjs: './src/index.js'
+      wwjs: './src/index.js',
+      wwclass: './test/spec/wwclass.js'
     },
     output: output,
     plugins: plugins,
     mode: isProd ? 'production' : 'development',
     devtool: isProd ? 'source-map' : (!env ? 'cheap-module-eval-source-map' : false),
     devServer: { headers: { 'Access-Control-Allow-Origin': '*' } },
+    // target: 'web',
     module: {
       rules: [ {
         test: /\/index\.js$/,
@@ -58,13 +64,18 @@ module.exports = env => {
       }, {
         test: /\.js$/,
         loader: 'babel-loader',
-        include: /src/
+        include: [
+          resolve('src'),
+          require.resolve('hyperhtml/cjs'),
+          resolve('test', 'spec')
+        ]
       }]
     },
     resolve: {
-      modules: [path.resolve(__dirname, 'src'), 'node_modules'],
+      // symlinks: false,
+      modules: [resolve('src'), resolve('node_modules')],
       alias: {
-        jquery: 'cash-dom'
+        // jquery: 'cash-dom'
       }
     }
   }
