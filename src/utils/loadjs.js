@@ -1,4 +1,4 @@
-/// //////////////////////////////////////////////////////////////////////////
+// / //////////////////////////////////////////////////////////////////////////
 //  Copyright (C) 2013 by sanpolo CO.LTD                                    //
 //                                                                          //
 //  This file is part of WIDE                                               //
@@ -7,7 +7,7 @@
 //  program.  If not, see <http://www.wware.org/wide/license.html>.         //
 //                                                                          //
 //  WIDE website: http://www.wware.org/                                     //
-/// //////////////////////////////////////////////////////////////////////////
+// / //////////////////////////////////////////////////////////////////////////
 // Created At : 2018-11-19T12:08:32.567Z by masol (masol.li@gmail.com)
 
 'use strict'
@@ -22,7 +22,14 @@ import cfg from './cfg'
 @module utils/loadjs
 */
 
-function replaceLibs (deps) {
+/**
+检查依赖库变量，是否有以`@`开头的URL,如果有，按照`cfg.libbase`中定义的路径替换。
+@exports utils/loadjs
+@method resolve
+@param {string|array} deps bundle依赖库。
+@return {string|array} 使用`cfg.libbase`替换以`@`开头的库地址之后的字符串或数组(数组内元素已被替换)。
+*/
+function resolve (deps) {
   if (typeof (deps) === 'string') {
     if (deps.length > 0 && deps[0] === '@') {
       return cfg.libbase + deps.substr(1)
@@ -30,11 +37,32 @@ function replaceLibs (deps) {
   } else if ($.isArray(deps)) {
     let i = 0
     for (i; i < deps.length; i++) {
-      deps[i] = replaceLibs(deps[i])
+      deps[i] = resolve(deps[i])
     }
   }
   return deps
 }
+loadjs.resolve = resolve
+
+/**
+依次对所有依赖的字符串元素调用`loadjs.done`
+@exports utils/loadjs
+@method alldone
+@param {string|array} bundles bundleName或者url描述的依赖库。
+@return {undefined}
+*/
+function alldone (deps) {
+  if (typeof (deps) === 'string') {
+    loadjs.done(deps)
+  } else if ($.isArray(deps)) {
+    let i = 0
+    for (i; i < deps.length; i++) {
+      deps[i] = alldone(deps[i])
+    }
+  }
+}
+
+loadjs.depDone = alldone
 
 /**
 请使用`loadjs.load()`而不是`loadjs()`，这会提供如下两个特征:
@@ -48,7 +76,7 @@ function replaceLibs (deps) {
 @return {undefined}
 */
 loadjs.load = function (deps, bundleName, options) {
-  deps = replaceLibs(deps)
+  deps = resolve(deps)
   let opt
   if (typeof (bundleName) === 'object') {
     opt = bundleName
@@ -76,7 +104,7 @@ loadjs.load = function (deps, bundleName, options) {
       scriptEl.crossOrigin = true
     }
   }
-  // console.log('in loadjs.load,arguments=', arguments)
+  console.log('in loadjs.load,arguments=', arguments)
   return loadjs(deps, bundleName, options)
 }
 

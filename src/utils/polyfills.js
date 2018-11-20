@@ -133,22 +133,22 @@ function setup (callback) {
     done = done || noop
     // console.log('Modernizr=', JSON.stringify(Modernizr))
     if (!Modernizr[featName]) {
-      let bundleName = `_wwpf_${featName}`
+      // let bundleName = `_wwpf_${featName}`
       // console.log(`try to load polyfill ${featName} load ok,arguments= `, arguments)
-      if (!loadjs.isDefined(bundleName)) {
-        loadjs.load(polyfillURL, bundleName, {
-          success: function () {
-            // console.log(`polyfill ${featName} load ok,arguments= `, arguments)
-            polyfillFinish(featName)
-            done()
-          },
-          error: function (errPath) {
-            // console.log(`polyfill ${featName} load failed with ${errPath}!!!,arguments= ${arguments}`)
-            polyfillFinish(featName, errPath)
-            done()
-          }
-        })
-      }
+      // if (!loadjs.isDefined(bundleName)) {
+      loadjs(loadjs.resolve(polyfillURL), {
+        success: function () {
+          // console.log(`polyfill ${featName} load ok,arguments= `, arguments)
+          polyfillFinish(featName)
+          done()
+        },
+        error: function (errPath) {
+          // console.log(`polyfill ${featName} load failed with ${errPath}!!!,arguments= ${arguments}`)
+          polyfillFinish(featName, errPath)
+          done()
+        }
+      })
+      // }
     } else {
       feattested[featName] = true
       done()

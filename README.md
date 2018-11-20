@@ -31,16 +31,16 @@
  - 执行命令`npm publish`来将发行包更新到npm.wware.org。注意，你的npm registry必须指向npm.wware.org。详情参考wwpkg项目的README.md。
 
 # 3. 内建环境
- - 加载器选择，我们首先需要一个轻量级加载器，然后是es6 module规范兼容的加载器。最后选择了[loadjs](https://github.com/muicss/loadjs)。基于如下原因：
-    - [systemjs](https://github.com/systemjs/systemjs)支持的ES6 Module规范，很多库尚未完全测试，会引发库的支持问题，需要等待库更新完毕再行切换？
-    - 相对于[johnnydepp](https://github.com/muicss/johnnydepp),[LoadJS](https://github.com/muicss/loadjs)，对es6规范支持好，并且支持AMD(通过extra)。通过[polyfill](https://www.npmjs.com/package/promise-polyfill)可以支持到ie8+。(PS:如果选择johnnydepp，我们可以减少18k的尺寸——除了systemjs的尺寸，还有必须内建的promise polyfill)
-    - 相对于[requirejs](https://requirejs.org/)更轻量，并兼容es6规范。
+ - 加载器选择，我们首先需要一个轻量级加载器，兼容最多的库，然后是最好支持es6 module规范。最后选择了[loadjs](https://github.com/muicss/loadjs)。注意loadjs不是基于模块的，而是基于最基础的`<script>`加载，如果管理不好，可能污染公共名称空间，但是这种方案理论上兼容所有库。基于如下原因：
+    - [systemjs](https://github.com/systemjs/systemjs)是我们原先选定的依赖库，实战发现，它支持的ES6 Module规范，很多库尚未完全测试，会引发库的支持问题，需要等待库更新完毕再行切换？
+    - 相对于[johnnydepp](https://github.com/muicss/johnnydepp)依赖支持不好，但这不是大问题。通过[polyfill](https://www.npmjs.com/package/promise-polyfill)可以支持到ie8+。
+    - 相对于[requirejs](https://requirejs.org/)更轻量。
     - 相对于[webpack-dynamic-import](https://babeljs.io/docs/en/babel-plugin-syntax-dynamic-import)，支持全局包管理，这对于wwpkg这样的全局包管理十分高效。
     - 由于polyfill的存在，自举工作分为两个环节：
        - window.System未就绪，这发生在wwjs的polyfill加载完成之前。为了弥补这一缺陷，请使用window.wwrequire函数。并在main html首页添加如下代码(在System就绪之后，会自动调用所有请求加载模块的缓冲，并替换window.wwimport)：
 ```
 <script>
-window.wwimport = function(mod,callback,errcb){
+window.wwimport = window.wwimport || function(mod,callback,errcb){
   window.wwimcache = window.wwimcache || [];
   window.wwimcache.push({id : id,suc : callback,err : errcb});
 }

@@ -13,6 +13,7 @@
 'use strict'
 
 import wwclass from './wwclass'
+import cfg from '../utils/cfg'
 
 const hyper = require('hyperhtml/umd')
 
@@ -23,12 +24,34 @@ wwjs的元素扩展模块，内建推荐方法是扩展[wwclass](wwclass.html)�
 @module elems
 */
 
+const WWINSTSTR = '_wwinst'
 function construCls (ele, cls) {
-  console.log('ele =', ele, 'cls = ', cls)
+  Promise.resolve(wwclass.get(cls)).then((Cls) => {
+    $(ele).data(WWINSTSTR, new Cls(ele))
+    // console.log('ele =', ele, 'cls = ', cls)
+  })
 }
 
 function finalizeCls (ele, cls) {
-
+  const clsFinalize = (inst, name) => {
+    if (typeof (inst[name]) === 'function') {
+      return inst[name]()
+    }
+  }
+  const inst = $(ele).data(WWINSTSTR)
+  if (typeof (inst) === 'object') {
+    Promise.resolve(clsFinalize(inst, 'finalize')).then(() => {
+      clsFinalize(inst, '_finalize')
+      $(ele).removeData(WWINSTSTR)
+    }).catch((e) => {
+      clsFinalize(inst, '_finalize')
+      $(ele).removeData(WWINSTSTR)
+      if (cfg.debug) {
+        console.error(`元素析构时发生错误:${e}`)
+      }
+      EE.emit('error', 'wwclass.finalize', e)
+    })
+  }
 }
 
 function wwclsssChk (cbFunc, nodeArray) {
