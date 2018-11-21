@@ -16,13 +16,14 @@ import loadjs from '../utils/loadjs'
 import cfg from '../utils/cfg'
 
 // 获取一个函数的名称。inspired from https://gist.github.com/dfkaye/6384439
+// 又是因为IE捣乱，废弃此特性支持．
 function getFnName (fn) {
-  // console.log(typeof fn)
-  let s = (fn.constructor ? fn.constructor.name : fn.name)
-  if (s) return s
-  s = fn.toString().match(/function ([^(]+)/)
-  if (s && s.length > 1) { return s[1] }
-  return 'anonymous'
+  let s
+  s = fn.name || (fn.constructor && fn.constructor.name ? fn.constructor.name : '')
+  return s || '未获取函数名'
+  // s = fn.toString().match(/function ([^(]+)/)
+  // if (s && s.length > 1) { return s[1] }
+  // return 'anonymous'
 }
 
 let wwclsMap = {}
@@ -61,7 +62,7 @@ function wrap (wrapperMethod) {
 
 /**
 @class wwclass
-@classdesc wwclass提供了wwjs元素类的基类，通过扩展wwclass来开发元素。这些元素不依赖[Shadow DOM](https://caniuse.com/#search=Shadow%20DOM%20v0)、[Custom Elements](https://caniuse.com/#search=Custom%20Elements)等当前支持不普遍的特性，而是利用普遍支持的[Mutation Observer](https://caniuse.com/#search=Mutation%20Observer)，结合模板库(当前选择[hyperHTML](https://github.com/WebReflection/hyperHTML))，局部css并不依赖被废弃的[Scoped CSS](https://caniuse.com/#search=Scoped%20CSS)或ShadowDom，而是利用PostCSS或[scope-css](https://github.com/dy/scope-css#readme)自动为元素css添加`[data-wwclass=XXX]`的前缀选择器。
+@classdesc wwclass提供了wwjs元素类的基类，通过扩展wwclass来开发元素。这些元素不依赖[Shadow DOM](https://caniuse.com/#search=Shadow%20DOM%20v0)、[Custom Elements](https://caniuse.com/#search=Custom%20Elements)等当前支持不普遍的特性，而是利用普遍支持的[Mutation Observer](https://caniuse.com/#search=Mutation%20Observer)(性能问题参考[这里](http://stackoverflow.com/questions/31659567/performance-of-mutationobserver-to-detect-nodes-in-entire-dom))，结合模板库(当前选择[hyperHTML](https://github.com/WebReflection/hyperHTML))，局部css并不依赖被废弃的[Scoped CSS](https://caniuse.com/#search=Scoped%20CSS)或ShadowDom，而是利用PostCSS或[scope-css](https://github.com/dy/scope-css#readme)自动为元素css添加`[data-wwclass=XXX]`的前缀选择器。
 
 wwjs元素处于三种状态:
 - 初始状态:此时元素类尚未加载，元素以自己的原始定义被浏览器绘制。
@@ -116,8 +117,8 @@ class Demo extends wwjs.wwclass {
   }
 
   /**
-  <strong><font color="red">decorator</font></strong>:为方法/类定义依赖，这些依赖被resolve之后，会以数组的形式添加到最后一个参数。每条依赖路径的语法与[wwimport](global.html#wwimport)相同。
-  如果对类进行修饰，那么进入构造函数时,类的`_deps`原型属性已经就绪，保存了import的内容。注意：此时如果自行new ClsName，那么得到的是一个Promise对象。
+  <strong><font color="red">decorator</font></strong>:为方法/类定义依赖，这些依赖被resolve之后，才会调用原函数，并返回Promise,解析为原函数返回值。每条依赖路径的语法与[wwimport](global.html#wwimport)相同。
+  如果对类进行修饰，那么进入构造函数时,类的依赖资源已经加载完毕。注意：此时如果自行new ClsName，那么得到的是一个Promise对象。加载没有使用模块机制(AMD,CMD,CommonJS之类)，需要被加载资源自行处理通信机制．如果依赖资源已经加载就绪，调用有依赖的函数/类是同步方式，但是依然返回Promise．
   @function dep
   @memberof wwclass
   @static
@@ -179,20 +180,16 @@ class Demo extends wwjs.wwclass {
   @function reg
   @memberof wwclass
   @static
-  @param {class} clsdef 给出一个从wwclass派生的类，注册进入wwclass处理链条.
-  @param {string} [name] 给出className,如果未给出，与clsdef的名称相同。
+  @param {string} name 给出className,如果未给出，与clsdef的名称相同。
+  @param {class} clsdef 给出一个从wwclass派生的类，如果相同名称，简单覆盖，wwjs不支持多版本元素类共存，在发现多版本请求时，会给出警告。
   @return {boolean} 如果注册成功，返回true。如果同名clsdef已经存在，返回false，需要调用unreg，然后再注册。
   **/
-  static reg (clsdef, name) {
-    if (typeof (clsdef) !== 'function') {
+  static reg (name, clsdef) {
+    if (typeof (clsdef) !== 'function' || typeof (name) !== 'string') {
       return false
     }
-    name = name || getFnName(clsdef)
-    if (!wwclsMap[name]) {
-      wwclsMap[name] = clsdef
-      return true
-    }
-    return false
+    wwclsMap[name] = clsdef
+    return true
   }
 
   /**
@@ -208,39 +205,48 @@ class Demo extends wwjs.wwclass {
   }
 
   /**
-  获取一个元素类，如果没有，则加载并注册。如果给出了url,则从url处开始加载，而不是默认的内部规则。
+  获取一个元素类，如果没有，则加载并注册。如果给出了url,则从url处开始加载，而不是默认的内部规则。name的格式为`NAME[@Version]`.默认的URL规则是`@/@wwclass/${NAME}/${Version||'latest'}/index.min.js`
   @function get
   @memberof wwclass
   @static
   @param {string} name 给出需要加载的元素类的名称。
-  @param {string} [url] 可选的，给出其加载的url地址。
+  @param {string} [url] 可选的，给出其加载的url地址。元素上通过属性`[data-classurl]`来指定．
   @return {Promise<function>} 返回元素类对象。如果发生错误，则reject。
   **/
   static get (name, url) {
+    const nameParts = name.split('@')
+    const version = nameParts[1] || false
+    name = nameParts[0]
+    // console.log('wwclsMap[name]=', wwclsMap[name])
     if (!wwclsMap[name]) {
       if (!url) {
-        const nameParts = name.split('@')
-        let version = 'latest'
-        if (nameParts.length === 2) {
-          version = nameParts[1]
-        }
-        url = `@/@wwclass/${nameParts[0]}/${version}/index.min.js`
+        url = `@/@wwclass/${name}/${version || 'latest'}/index.min.js`
       }
       wwclsMap[name] = new Promise((resolve, reject) => {
+        // const bundleName = `_wwcls_${name}@${version || ''}`
         const bundleName = `_wwcls_${name}`
+        // console.log(bundleName)
         if (!loadjs.isDefined(bundleName)) {
           loadjs(loadjs.resolve(url), bundleName)
         }
         loadjs.ready(bundleName, {
-          'success': function (mod) {
-            wwclass.reg(name, mod)
-            loadjs.done(bundleName)
-            resolve(mod)
+          'success': function () {
+            // 执行到这里，wwclsMap[name]的值应该已经被插件改变．
+            // console.log(1)
+            let item = wwclsMap[name]
+            if (item instanceof Promise) {
+              const urlErr = [url]
+              reject(urlErr)
+            } else {
+              loadjs.done(bundleName)
+              resolve(item)
+            }
           },
           before: (path, scriptEl) => {
             scriptEl.crossOrigin = true
           },
           'error': function (errFiles) {
+            // console.log(2)
             wwclass.unreg(name)
             if (cfg.debug) {
               console.error(`元素类${name}从${errFiles}加载失败。`)
@@ -250,6 +256,8 @@ class Demo extends wwjs.wwclass {
           }
         })
       })
+    } else if (version && !(wwclsMap[name] instanceof Promise) && (version !== wwclsMap[name].version)) { // 请求了指定版本．从缓冲中获取．
+      EE.emit('warn', 'elems.verMismatch', name, version, wwclsMap[name].version)
     }
     return wwclsMap[name]
   }

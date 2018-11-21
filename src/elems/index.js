@@ -26,8 +26,13 @@ wwjs的元素扩展模块，内建推荐方法是扩展[wwclass](wwclass.html)�
 
 const WWINSTSTR = '_wwinst'
 function construCls (ele, cls) {
-  Promise.resolve(wwclass.get(cls)).then((Cls) => {
-    $(ele).data(WWINSTSTR, new Cls(ele))
+  let $ele = $(ele)
+  // console.log(123)
+  Promise.resolve(wwclass.get(cls, $ele.attr('data-classurl'))).then((Cls) => {
+    Promise.resolve(new Cls(ele)).then((inst) => {
+      $ele.data(WWINSTSTR, inst)
+      EE.emit('elems.inst', ele, inst, cls)
+    })
     // console.log('ele =', ele, 'cls = ', cls)
   })
 }
@@ -38,14 +43,15 @@ function finalizeCls (ele, cls) {
       return inst[name]()
     }
   }
-  const inst = $(ele).data(WWINSTSTR)
+  let $ele = $(ele)
+  const inst = $ele.data(WWINSTSTR)
   if (typeof (inst) === 'object') {
     Promise.resolve(clsFinalize(inst, 'finalize')).then(() => {
       clsFinalize(inst, '_finalize')
-      $(ele).removeData(WWINSTSTR)
+      $ele.removeData(WWINSTSTR)
     }).catch((e) => {
       clsFinalize(inst, '_finalize')
-      $(ele).removeData(WWINSTSTR)
+      $ele.removeData(WWINSTSTR)
       if (cfg.debug) {
         console.error(`元素析构时发生错误:${e}`)
       }
