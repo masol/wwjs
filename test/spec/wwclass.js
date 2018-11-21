@@ -127,6 +127,16 @@ describe('wwclass元素机制', function () {
         sig = 2
         return 1100
       }
+      @wwjs.wwclass.dep([existFile2])
+      test2 () {
+        sig = 2
+        return 1200
+      }
+      @wwjs.wwclass.dep([existFile2])
+      test3 () {
+        sig = 2
+        return 1300
+      }
     }
     wwjs.wwclass.reg('Test4', Test4)
 
@@ -153,11 +163,12 @@ describe('wwclass元素机制', function () {
           result.then((value) => {
             chai.expect(sig).to.be.equal(2, '依赖加载时，调用被wrap的函数不是异步了?异步函数没有把值改到２')
             sig = 1
-            inst.test()
+            inst.test3().then((value) => {
+              chai.expect(value).to.be.equal(1300, '有dep的函数返回值错误？')
+              checkFirstEle = true
+              fullfilled()
+            })
             chai.expect(sig).to.be.equal(2, '依赖加载后，调用被wrap的函数还是异步?，应该是同步的')
-            chai.expect(value).to.be.equal(1100, '有dep的函数返回值错误？')
-            checkFirstEle = true
-            fullfilled()
           })
         }
       }

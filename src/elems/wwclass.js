@@ -26,6 +26,49 @@ function getFnName (fn) {
   // return 'anonymous'
 }
 
+function removeDataPrefix (str) {
+  if (String(str).startsWith('data-')) {
+    str = str.substr('data-'.length)
+  }
+  return str
+}
+
+function check (self, mutations) {
+  mutations.forEach(function (mutation) {
+    if (mutation.removedNodes && mutation.removedNodes.length > 0) {
+      // @TODO 实现选择器判定式通知self指定函数.
+    }
+    if (mutation.addedNodes && mutation.addedNodes.length > 0) {
+      // @TODO 实现选择器判定式通知self指定函数.
+    }
+    if (mutation.attributeName) {
+      const attrName = String(mutation.attributeName)
+      if (self.$ele.is(mutation.target)) {
+        const propName = self._mut.attr[attrName]
+        if (propName) {
+          self[propName] = self.$ele.attr(attrName)
+        }
+      }
+    }
+  })
+}
+
+function monitor (self, type) {
+  self._mut = self._mut || {}
+  self._mut.attr = self._mut.attr || {}
+  self._mut.config = self._mut.config || {}
+  // 尚未开始监听此类型．添加监听.
+  if (!self._mut.config[type]) {
+    if (self._mut.observer) {
+      self._mut.observer.disconnect()
+      self._mut.observer = undefined
+    }
+    self._mut.config[type] = true
+    self._mut.observer = new MutationObserver(Function.bind.call(check, self))
+    self._mut.observer.observe(self.$ele[0], self._mut.config)
+  }
+}
+
 let wwclsMap = {}
 
 // inspired by https://github.com/cmartin81/decorator-wrap/blob/master/src/wrap.js
@@ -83,20 +126,57 @@ wwclass类提供了如下修饰符(派生类不可见):
 **/
 class wwclass {
   /**
-  <strong><font color="red">decorator</font></strong>:修饰方法，为方法添加对指定属性的变化监听.
+  <strong><font color="green">modifier</font></strong>:修改方法，通常在构造函数中使用,为实例添加与DOM元素属性及KO的绑定关系
   @function watch
   @memberof wwclass
-  @param {string} attr 要监听的属性名.
-  @param {object} [options={immediate:false}] 要监听的属性名.
-  @static
+  @param {string} attrName 要监听的属性名.
+  @param {object} [options={noSyncEle:false,noSyncKO:false,render: false}] 选项．当前支持如下三个选项:
+   - noSyncEle :  不将值同步到元素属性上．默认是同步的．
+   - noSyncKO : 不将变动更新回KO属性绑定对应的变量(如果有的话)，默认是同步的.
+   - render : 属性变动是否触发render方法．默认是不触发的.
+  @param {string} [propName=RemoveDataPrefix(attrName)] 暴露在对象上的属性名.
+  @param {string} [methodName=`on${propName}Changed`] 属性值发生变化时，自动回调的函数.
   @example
 class Demo extends wwjs.wwclass {
-  //@wwjs.wwclass.watch("data-test",{immediate:true}) //jsdoc当前版本无法输出es7 decorators,请删除开始的注释.
-  propChangeCallback(propname,newValue,oldValue) {
-  }
 }
+wwjs.wwclass.watch('data-prop','propName','onchangeMethod',{noSyncEle:true})
   **/
-  static watch (attr, options) {
+  watch (attrName, propName, methodName, options) {
+    if (!propName) {
+      propName = removeDataPrefix(attrName)
+    }
+    if (!methodName) {
+      methodName = `on${propName}Changed`
+    }
+    options = options || {}
+    let self = this
+    Object.defineProperties(self, propName, {
+      get () { return self.props[propName] },
+      set (newValue) {
+        if (newValue !== self.props[propName]) {
+          let oldValue = self.props[propName]
+          self.props[propName] = newValue
+          if ($.isFunction(self[methodName])) {
+            self[methodName](oldValue, newValue)
+          }
+          if (!options.noSyncEle && self.$ele.attr(attrName) !== newValue) {
+            self.$ele.attr(attrName, newValue)
+          }
+          if (!options.noSyncKO) {
+            let accessor = self.$ele.data(`wwrn-${attrName}`)
+            if (accessor && accessor() !== newValue) {
+              accessor(newValue)
+            }
+          }
+          if (options.render) {
+            self.doRender()
+          }
+        }
+      },
+      enumerable: true
+    })
+    monitor(self)
+    self._mut.attr[attrName] = propName
     console.log(arguments)
   }
   /**
@@ -272,6 +352,7 @@ class Demo extends wwjs.wwclass {
   constructor (ele) {
     // console.log('in constructor:', arguments)
     this.$ele = $(ele)
+    this.props = {}
     // console.log('leave constructor 1', $ele)
     // console.log('leave constructor', this._deps)
     // console.log('leave constructor 2')
@@ -287,6 +368,20 @@ class Demo extends wwjs.wwclass {
   **/
   _finalize () {
     this.$ele = undefined
+    if (this._mut && this._mut.observer) {
+      self._mut.observer.disconnect()
+      self._mut.observer = undefined
+    }
+  }
+
+  /**
+  基类的doRender只是防止派生类没有实现doRender方法，是一个空实现．推荐做法是，在影响渲染的属性变动时，自动调用doRender,派生类实现doRender,然后调用`this.render(...)`来渲染及更新元素模板．
+  @function doRender
+  @access private
+  @inner
+  @memberof wwclass
+  **/
+  doRender () {
   }
 }
 
