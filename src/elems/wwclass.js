@@ -77,7 +77,7 @@ wwclass类提供了如下修饰符(派生类不可见):
 以及如下静态方法(派生类不可见):
 - [wwjs.wwclass.get](#.get)
 - [wwjs.wwclass.reg](#.reg)
-- [wwjs.wwclass.unreg](#.reg)
+- [wwjs.wwclass.unreg](#.unreg)
 
 @hideconstructor
 **/
