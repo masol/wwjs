@@ -21,7 +21,7 @@ describe('wwclass元素机制', function () {
   const existFile = `@${existBase}`
   const existFile2 = `@${existBase2}`
 
-  it('类定义中，依赖成功不回调，失败可以回调类方法', function (done) {
+  it('类定义中，依赖成功不回调失败处理，失败可以回调类方法形式的失败处理', function (done) {
     let sig = 0
     let sig2 = 0
     let fullfillTest = false; let fullFileTest2 = false
