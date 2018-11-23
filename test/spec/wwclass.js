@@ -9,7 +9,7 @@ describe('wwclass元素机制', function () {
   })
   after(function (done) {
     wwimport('ready', () => {
-      // wwjs.ui.$container().html('')
+      wwjs.ui.$container().html('')
       done()
     }, (err) => { done(err) })
   })
