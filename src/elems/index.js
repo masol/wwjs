@@ -12,8 +12,10 @@
 
 'use strict'
 
-import wwclass from './wwclass'
+import wwcls from './wwclass'
 import cfg from '../utils/cfg'
+
+const wwclass = wwcls.wwclass
 
 const hyper = require('hyperhtml/umd')
 
@@ -24,34 +26,55 @@ wwjs的元素扩展模块，内建推荐方法是扩展[wwclass](wwclass.html)�
 @module elems
 */
 
-const WWINSTSTR = '_wwinst'
 function construCls (ele, cls) {
-  let $ele = $(ele)
-  // console.log(123)
-  Promise.resolve(wwclass.get(cls, $ele.attr('data-classurl'))).then((Cls) => {
+  // console.log('in construCls,ele=', ele)
+  Promise.resolve(wwclass.get(cls, ele.getAttribute('data-classurl'))).then((Cls) => {
     Promise.resolve(new Cls(ele)).then((inst) => {
-      $ele.data(WWINSTSTR, inst)
       EE.emit('elems.inst', ele, inst, cls)
     })
     // console.log('ele =', ele, 'cls = ', cls)
   })
 }
 
+/**
+释放由wwclass基类分配的资源．本函数在派生类的`finalize`函数执行之后执行．这是闭包函数，外部无法访问．只由`elems`模块调用．
+@exports elems
+@method finalizeInstance
+@static
+@access private
+**/
+function finalizeInstance (inst) {
+  // console.log('enter finalizeInstance,inst = ', inst)
+  if (inst.$ele && inst.$ele.length > 0) {
+    wwcls.rm(inst.$ele[0])
+    inst.$ele = undefined
+  }
+  if (inst._mut && inst._mut.observer) {
+    // console.log('disconnect mutation')
+    inst._mut.observer.disconnect()
+    inst._mut.observer = undefined
+  }
+  if (inst._rid) {
+    cancelAnimationFrame(inst._rid)
+  }
+  inst._p = undefined
+  inst.props = undefined
+}
+
 function finalizeCls (ele, cls) {
+  // console.log('enter finalizeCls:', arguments)
   const clsFinalize = (inst, name) => {
     if (typeof (inst[name]) === 'function') {
       return inst[name]()
     }
   }
-  let $ele = $(ele)
-  const inst = $ele.data(WWINSTSTR)
+  const inst = wwclass.getInstance(ele)
+  // console.log('inst=', inst)
   if (typeof (inst) === 'object') {
     Promise.resolve(clsFinalize(inst, 'finalize')).then(() => {
-      clsFinalize(inst, '_finalize')
-      $ele.removeData(WWINSTSTR)
+      finalizeInstance(inst)
     }).catch((e) => {
-      clsFinalize(inst, '_finalize')
-      $ele.removeData(WWINSTSTR)
+      finalizeInstance(inst)
       if (cfg.debug) {
         console.error(`元素析构时发生错误:${e}`)
       }

@@ -48,7 +48,7 @@ function rafProc (nodelist, evtName) {
     }
     evtRaf[evtName] = oldRaf
   }
-  oldRaf.id = requestAnimationFrame(frameProc.bind({}, evtName))
+  oldRaf.id = requestAnimationFrame(frameProc.bind(null, evtName))
 }
 
 /**

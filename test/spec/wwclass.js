@@ -43,10 +43,9 @@ describe('wwclass元素机制', function () {
     // 类依赖失败的回调不能调用实例方法，而静态方法类未定义，只能前置定义失败方法。
     @wwjs.wwclass.dep([existFile], deperr)
     class Test extends wwjs.wwclass {
-      constructor () {
-        super()
-        // console.log('arguments=', arguments)
-        // console.log(Test)
+      constructor (ele) {
+        super(ele)
+        chai.expect(ele).to.be.an.instanceof(Element, `构造函数传入错误参数${ele}？`)
         // 这句调用会出发依赖加载，并导致deperr方法被执行。
         this.test()
       }
@@ -66,6 +65,10 @@ describe('wwclass元素机制', function () {
 
     @wwjs.wwclass.dep([notExistFile], deperr)
     class Test2 extends wwjs.wwclass {
+      constructor (ele) {
+        super(ele)
+        chai.expect(ele).to.be.an.instanceof(Element, `构造函数传入错误参数${ele}？`)
+      }
     }
     wwjs.wwclass.reg('Test', Test)
     wwjs.wwclass.reg('Test2', Test2)
@@ -179,9 +182,85 @@ describe('wwclass元素机制', function () {
       // t0 = performance.now()
     }, 0)
   })
-  it('watch可以正确接收属性改变事件，选项触发render', function () {
-  })
-  it('watch只在属性变化时才触发', function () {
+  it('watch有初始值的属性，默认会触发一次,并正确调用了渲染，并且渲染是增量更新', function (done) {
+    let sig = 0
+    let addCount = 0
+    let renderCount = 0
+    let requestCount = 0
+    let pThis = this
+    let intID
+    const testNodeAdded = function (nodeArray) {
+      let i = 0
+      for (i; i < nodeArray.length; i++) {
+        let item = nodeArray[i]
+        if (item.getAttribute('id') === 'pintest4') {
+          addCount++
+          $('#wwTest5').attr('data-test', addCount)
+        }
+      }
+    }
+    EE.on('nodeAdd', testNodeAdded)
+
+    class Test5 extends wwjs.wwclass {
+      static version = '1.2.3'
+      constructor (ele) {
+        super(ele)
+        this.watch('data-test', { render: true })
+      }
+      ontestChanged (oldValue, newValue) {
+        let self = this
+        // console.log(arguments)
+        // console.log('self.props.test=', self.props.test)
+        chai.expect(self.props.test).to.be.equal(newValue, '进入事件回调之后，属性值未修改？')
+        if (oldValue === undefined) {
+          sig = 1
+          chai.expect(newValue).to.be.equal('1234', '默认值没有触发属性变动？')
+          $('#wwTest5').attr('data-test', '5678')
+          // console.log($('#wwTest5'))
+          // console.log(22)
+        } else if (sig === 1) {
+          // chai.expect(sig).to.be.equal(1, '默认值没有调用属性变动函数？')
+          chai.expect(newValue).to.be.equal('5678', '改写Dom元素的属性值没有触发属性变动？')
+          sig = 2
+        } else {
+          let intCount = 0
+          if (!intID) {
+            intID = setInterval(function () {
+              intCount++
+              // console.log(intCount)
+              if (intCount === 200) {
+                clearInterval(intID)
+                chai.expect(addCount).to.be.equal(1, '多次绘制导致元素被新加入了,不是增量更新了？')
+                chai.expect(renderCount).to.be.above(3, '没有引发多次绘制？')
+                chai.expect(requestCount).to.be.equal(201, '请求数不精准？')
+                EE.off('nodeAdd', testNodeAdded)
+                pThis._runnable.title = `watch有初始值的属性，默认会触发一次,并正确调用了渲染，固定请求了${requestCount}次更新，根据设备环境，只增量更新了${renderCount}次`
+                done()
+              }
+              $('#wwTest5').attr('data-test', intCount)
+              chai.expect(addCount).to.be.equal(1, '多次绘制导致元素被新加入了,不是增量更新了？')
+            }, 3)
+          }
+        }
+      }
+      onRequestRender () {
+        requestCount++
+      }
+      doRender () {
+        let self = this
+        renderCount++
+        self.render`<p id='pintest4' data-test="${self.props.test}"><span>${self.props.test}</span></p>`
+      }
+    }
+    wwjs.wwclass.reg('Test5', Test5)
+
+    setTimeout(() => {
+      wwjs.ui.$container().append(`<div id="wwTest5" data-wwclass="Test5" data-test="1234"></div>`)
+      // t0 = performance.now()
+    }, 0)
+  }).timeout(5000)
+
+  it('watch无初始值的属性，没有默认触发，并正确监听了属性变化', function () {
   })
   it('watch可以正确接收子元素加入/删除事件，选项触发render', function () {
   })

@@ -1,4 +1,4 @@
-/// //////////////////////////////////////////////////////////////////////////
+// / //////////////////////////////////////////////////////////////////////////
 //  Copyright (C) 2013 by sanpolo CO.LTD                                    //
 //                                                                          //
 //  This file is part of WIDE                                               //
@@ -7,13 +7,14 @@
 //  program.  If not, see <http://www.wware.org/wide/license.html>.         //
 //                                                                          //
 //  WIDE website: http://www.wware.org/                                     //
-/// //////////////////////////////////////////////////////////////////////////
+// / //////////////////////////////////////////////////////////////////////////
 // Created At : 2018-11-19T05:50:52.931Z by masol (masol.li@gmail.com)
 
 'use strict'
 import $ from 'jquery'
 import loadjs from '../utils/loadjs'
 import cfg from '../utils/cfg'
+const hyper = require('hyperhtml/umd')
 
 // 获取一个函数的名称。inspired from https://gist.github.com/dfkaye/6384439
 // 又是因为IE捣乱，废弃此特性支持．
@@ -33,7 +34,9 @@ function removeDataPrefix (str) {
   return str
 }
 
-function check (self, mutations) {
+function check (mutations) {
+  let self = this
+  // console.log('enter mutation callback')
   mutations.forEach(function (mutation) {
     if (mutation.removedNodes && mutation.removedNodes.length > 0) {
       // @TODO 实现选择器判定式通知self指定函数.
@@ -43,10 +46,12 @@ function check (self, mutations) {
     }
     if (mutation.attributeName) {
       const attrName = String(mutation.attributeName)
+      // console.log('attrName=', attrName)
       if (self.$ele.is(mutation.target)) {
         const propName = self._mut.attr[attrName]
+        // console.log('propName=', propName)
         if (propName) {
-          self[propName] = self.$ele.attr(attrName)
+          self.props[propName] = self.$ele.attr(attrName)
         }
       }
     }
@@ -65,24 +70,40 @@ function monitor (self, type) {
     }
     self._mut.config[type] = true
     self._mut.observer = new MutationObserver(Function.bind.call(check, self))
+    // console.log('self.$ele=', self.$ele, 'config=', self._mut.config)
     self._mut.observer.observe(self.$ele[0], self._mut.config)
   }
 }
 
 let wwclsMap = {}
+let ele2inst
+
+function getE2Iwmap () {
+  if (!ele2inst) {
+    ele2inst = new WeakMap()
+  }
+  return ele2inst
+}
+
+function rm (ele) {
+  getE2Iwmap().delete(ele)
+}
 
 // inspired by https://github.com/cmartin81/decorator-wrap/blob/master/src/wrap.js
 // 增加特性，复制arg到数组，以允许wrapperMethod动态修改参数。
 function wrap (wrapperMethod) {
   return (Target, key, descriptor) => {
     if (typeof (Target) === 'function') {
-      let newTarget = function (...arg) {
+      // @FIXME 如何使用new的时候,可以apply arguments?
+      let newTarget = function (arg) {
         // let args = Array.prototype.slice.call(arg, 0)
         let self = this
+        // console.log('in wrap before ,arg=', arg)
         return (function () {
           let methodCallback = function () {
-            // const ArgsTarget = Function.bind.apply(Target, args)
-            // return new ArgsTarget()
+            // const ArgsTarget = Function.bind.apply(Target, arg)
+            // return new ArgsTarget(arg)
+            // console.log('in wrap,arg=', arg)
             return new Target(arg)
           }
           return wrapperMethod.call(self, methodCallback, arg, Target.name, 'class', Target)
@@ -103,6 +124,43 @@ function wrap (wrapperMethod) {
   }
 }
 
+// wwclass的requestAnimationFrame回调
+function frameProc (/*, timeStamp */) {
+  // console.log('enter frameProc:', arguments)
+  const wwInst = this
+  if (wwInst._rid) {
+    cancelAnimationFrame(wwInst._rid)
+    wwInst._rid = undefined
+    wwInst.doRender()
+  }
+}
+
+// 更新属性，是否需要将本方法公开给派生类使用？
+function updateProp (self, newValue, attrName, propName, methodName, options) {
+  // console.log('enter updateProp', arguments)
+  if (newValue !== self._p[propName]) {
+    let oldValue = self._p[propName]
+    self._p[propName] = newValue
+    // console.log(self.props.test)
+    if (!options.noSyncEle && self.$ele.attr(attrName) !== newValue) {
+      self.$ele.attr(attrName, newValue)
+    }
+    if (!options.noSyncKO) {
+      let accessor = self.$ele.data(`wwrn-${attrName}`)
+      if (accessor && accessor() !== newValue) {
+        accessor(newValue)
+      }
+    }
+    if (options.render) {
+      self.requestRender()
+    }
+    // 必须在最后调用回调，以确保属性更新完毕，否则回调中可能重新更新属性值，如果属性更新放在后面，会导致回调中设置的值被覆盖．
+    if ($.isFunction(self[methodName])) {
+      self[methodName](oldValue, newValue)
+    }
+  }
+}
+
 /**
 @class wwclass
 @classdesc wwclass提供了wwjs元素类的基类，通过扩展wwclass来开发元素。这些元素不依赖[Shadow DOM](https://caniuse.com/#search=Shadow%20DOM%20v0)、[Custom Elements](https://caniuse.com/#search=Custom%20Elements)等当前支持不普遍的特性，而是利用普遍支持的[Mutation Observer](https://caniuse.com/#search=Mutation%20Observer)(性能问题参考[这里](http://stackoverflow.com/questions/31659567/performance-of-mutationobserver-to-detect-nodes-in-entire-dom))，结合模板库(当前选择[hyperHTML](https://github.com/WebReflection/hyperHTML))，局部css并不依赖被废弃的[Scoped CSS](https://caniuse.com/#search=Scoped%20CSS)或ShadowDom，而是利用PostCSS或[scope-css](https://github.com/dy/scope-css#readme)自动为元素css添加`[data-wwclass=XXX]`的前缀选择器。
@@ -115,18 +173,30 @@ wwjs元素处于三种状态:
 wwclass类提供了如下修饰符(派生类不可见):
 - [@wwjs.wwclass.dep](#.dep)
 - [@wwjs.wwclass.readonly](#.readonly)
-- [@wwjs.wwclass.watch](#.watch)
+
+以及如下类修改器(在构造函数中使用)
+- [this.watch(...)](#.watch)
+- [this.watchchild(...)](#.watchchild)
+- [this.watchtree(...)](#.watchtree)
 
 以及如下静态方法(派生类不可见):
 - [wwjs.wwclass.get](#.get)
 - [wwjs.wwclass.reg](#.reg)
 - [wwjs.wwclass.unreg](#.unreg)
 
+wwclass元素只处理客户端展示与逻辑，无需处理任意的数据源．这个概念类似[redux](https://redux.js.org/),不过是应用在整个系统，reducer就是服务器响应某个action的脚本，而action对象就是请求．redux与wwclass元素无关，设计初衷是：所有的数据，都是通过同步机制同步到KO层，再绑定到Dom元素上，从而触发wwclass元素作出反应，任意对服务器的请求就是一次状态变化请求．因此，wwclass没有提供任意与服务器通信的机制(也不需要与服务器通信，除了专门负责通信的元素)，只提供了如下机制:
+- 绘制机制：任意时刻，调用```requestRender()```,在下一帧绘制时自动调用`doRender`,派生类可以重载`doRender`，函数内调用```this.render`Template．．．．````(<font color="red">注意不是函数调用，而是es6文字模板调用，没有括号</font>)即可实现模板动态绘制．这会自动维护增量更新，只需写出全模板即可．
+- 依赖管理：如果依赖任意第三方库，可以通过``` @wwjs.wwclass.dep(...)```来修饰方法或类，从而自动加载依赖．
+- 属性监听,自动更新,自动绘制: 构造函数中调用`this.watch(...)`即可支持.此时，`this.props[propName]`的写入，自动触发配置的同步．函数返回，`this.props[propName]`的值已经有效．并且如果本属性会触发渲染，只要有任意初始值，将会自动触发，无需额外调用．
+- 构造与析构: 添加方法```finalize()```，在析构时自动调用.
+- 版本控制：类定义中添加静态方法```static version : ＇X.X.X.X'```即可得到支持．(本条可以忽略，如果使用标准环境，版本控制是全自动的)
+- 事件机制：并未实现特殊的事件监听机制，请自行使用`this.$ele.on('click',this.handlerFunc.bind(this))`的方式来监听事件－通常在构造函数中使用．
+
 @hideconstructor
 **/
 class wwclass {
   /**
-  <strong><font color="green">modifier</font></strong>:修改方法，通常在构造函数中使用,为实例添加与DOM元素属性及KO的绑定关系
+  <strong><font color="green">modifier</font></strong>: 类修改器,为实例添加与DOM元素属性,KO attr变量之间的绑定关系
   @function watch
   @memberof wwclass
   @param {string} attrName 要监听的属性名.
@@ -135,13 +205,19 @@ class wwclass {
    - noSyncKO : 不将变动更新回KO属性绑定对应的变量(如果有的话)，默认是同步的.
    - render : 属性变动是否触发render方法．默认是不触发的.
   @param {string} [propName=RemoveDataPrefix(attrName)] 暴露在对象上的属性名.
-  @param {string} [methodName=`on${propName}Changed`] 属性值发生变化时，自动回调的函数.
+  @param {string} [methodName=`on${propName}Changed`] 属性值发生变化时，自动回调的函数`(oldValue, newValue)`，进入回调函数之后，`this.prop[propName] === newValue`一定成立．
+  @inner
+  @access private
   @example
 class Demo extends wwjs.wwclass {
+  constructor(ele) {
+    super(ele)
+    this.watch('data-prop', {noSyncEle:true}, 'propName', 'onchangeMethod')
+    this.watch('data-prop2')
+  }
 }
-wwjs.wwclass.watch('data-prop','propName','onchangeMethod',{noSyncEle:true})
   **/
-  watch (attrName, propName, methodName, options) {
+  watch (attrName, options, propName, methodName) {
     if (!propName) {
       propName = removeDataPrefix(attrName)
     }
@@ -150,34 +226,20 @@ wwjs.wwclass.watch('data-prop','propName','onchangeMethod',{noSyncEle:true})
     }
     options = options || {}
     let self = this
-    Object.defineProperties(self, propName, {
-      get () { return self.props[propName] },
+    self._p = self._p || {}
+    Object.defineProperty(self.props, propName, {
+      get () {
+        return self._p[propName]
+      },
       set (newValue) {
-        if (newValue !== self.props[propName]) {
-          let oldValue = self.props[propName]
-          self.props[propName] = newValue
-          if ($.isFunction(self[methodName])) {
-            self[methodName](oldValue, newValue)
-          }
-          if (!options.noSyncEle && self.$ele.attr(attrName) !== newValue) {
-            self.$ele.attr(attrName, newValue)
-          }
-          if (!options.noSyncKO) {
-            let accessor = self.$ele.data(`wwrn-${attrName}`)
-            if (accessor && accessor() !== newValue) {
-              accessor(newValue)
-            }
-          }
-          if (options.render) {
-            self.doRender()
-          }
-        }
+        updateProp(self, newValue, attrName, propName, methodName, options)
       },
       enumerable: true
     })
-    monitor(self)
+    monitor(self, 'attributes')
     self._mut.attr[attrName] = propName
-    console.log(arguments)
+    // 必须在defineProperty后调用．否则回调里访问self.props会出错．先写入初始的attr值.updateProp中会判定新旧值是否一致，因此这里不判定．
+    updateProp(self, self.$ele.attr(attrName), attrName, propName, methodName, options)
   }
   /**
   <strong><font color="red">decorator</font></strong>:防止方法或属性被改变(只读)
@@ -342,73 +404,62 @@ class Demo extends wwjs.wwclass {
     return wwclsMap[name]
   }
 
+  /** 从一个Dom元素获取其对应的instance.
+  **/
+  static getInstance (ele) {
+    return getE2Iwmap().get(ele)
+  }
+
   /**
-  构造函数,需要传入本类需要绑定的元素对象。基类实现提供了`this.$ele`以及在$ele元素上添加`_wwinst` data。派生类应该通过`super(ele)`来调用。
-  @function constructor
+  构造函数,需要传入本类需要绑定的元素对象。基类实现提供了`this.$ele`以及在$ele元素上添加`_wwinst` data。派生类应该在构造函数中通过`super(ele)`来调用。
+  @member constructor
   @access private
+  @param {Element} ele 本实例需要绑定的Dom元素．
   @inner
   @memberof wwclass
   **/
   constructor (ele) {
-    // console.log('in constructor:', arguments)
-    this.$ele = $(ele)
-    this.props = {}
-    // console.log('leave constructor 1', $ele)
-    // console.log('leave constructor', this._deps)
-    // console.log('leave constructor 2')
-    // return hyper.wire`this is only a test`
+    // console.log('in constructor:', arguments, 'ele=', ele)
+    let self = this
+    if (cfg.debug && !(ele instanceof Element)) {
+      console.error('wwclass基类构造函数中，未传入有效的DOM元素对象，派生类忘记调用＂super($ele)？＂')
+      EE.emit('error', 'wwclass.badparameter', self)
+    }
+    self.$ele = $(ele)
+    self.props = {}
+    Object.defineProperty(self, 'render', {
+      get () { // [HyperHTML的实现](https://github.com/WebReflection/hyperHTML/blob/master/index.js)，非常轻量，每次直接调用无问题,无需利用一个变量缓冲．
+        return hyper.bind(self.$ele[0])
+      },
+      enumerable: false
+    })
+    getE2Iwmap().set(ele, self)
   }
 
   /**
-  析构函数,在对象删除时调用，基类实现负责清理`this.$ele`。派生类中不应该重载此函数，而是应该定义`finalize`函数来响应结束事件。
-  @function _finalize
-  @access private
-  @inner
+  请求一次绘制，这会内部调用requestAnimationFrame，并确保一个绘制周期只实际发生一次`doRender`调用．请求一次，只会调用一次doRender．如果期望多次调用，需要再次请求．派生类可以定义`onRequestRender`函数，在每次请求时都得到调用．
+  @function requestRender
   @memberof wwclass
+  @instance
+  @return {undefined}
   **/
-  _finalize () {
-    this.$ele = undefined
-    if (this._mut && this._mut.observer) {
-      self._mut.observer.disconnect()
-      self._mut.observer = undefined
+  requestRender () {
+    if (!this._rid) {
+      this._rid = requestAnimationFrame(frameProc.bind(this))
+    }
+    if (typeof (this.onRequestRender) === 'function') {
+      this.onRequestRender()
     }
   }
 
   /**
-  基类的doRender只是防止派生类没有实现doRender方法，是一个空实现．推荐做法是，在影响渲染的属性变动时，自动调用doRender,派生类实现doRender,然后调用`this.render(...)`来渲染及更新元素模板．
+  基类的doRender只是防止派生类没有实现doRender方法，是一个空实现．推荐做法是，使用`watch`在影响渲染的属性变动时，自动调用doRender,派生类实现doRender,然后调用`this.render(...)`来定义渲染模板，复杂模板可以利用`wwjs.hyper.wire()`来分解．
   @function doRender
-  @access private
-  @inner
+  @instance
   @memberof wwclass
   **/
   doRender () {
   }
 }
 
-// class Test extends wwclass {
-//   constructor (ele) {
-//     super(ele)
-//     console.log('enter test constructor:', this._deps)
-//   }
-//   @wwclass.dep(['@/bootstrap/4.1.3/js/bootstrap.bundle.min.js'], 'deperr')
-//   test () {
-//     console.log('intest:', arguments)
-//     return 1100
-//   }
-//   deperr (err) {
-//     console.log('enter deperr:', err)
-//   }
-// }
-//
-// function test2 () {
-//   Array.prototype.push.call(arguments, 'd')
-//   let t2 = new Test($('<div>'))
-//   let t3 = t2.test()
-//   console.log('t3 immediate result=', t3)
-//   Promise.resolve(t3).then(result => { console.log('result=', result) })
-//   // console.log(arguments)
-// }
-//
-// console.log(test2())
-
-export default wwclass
+export default { wwclass, rm }

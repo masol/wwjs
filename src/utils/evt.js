@@ -32,6 +32,9 @@ window.EE = EE
 系统所有的警告机制，可以通过调用`EE.on("warn",function(desc,exobj){})`的方式来拦截，提供了如下警告:
 - `elems.verMismatch` : 回调(type, name, RequestVer, RegVer)请求实例化元素，但是元素版本与当前注册表中的版本不匹配，这说明当前页面请求了不同版本的相同元素.
 
+只在debug为true时发出的错误事件(这些类型的事件，通常只在开发期才会出现，开发期不出现的话，运行期不会出现):
+- `wwclass.badparameter` : 回调(type,inst) wwclass创建实例时，绑定的ele无效．查阅[wwclass:constructor](wwclass.html#~constructor)
+
 还提供了如下事件:
 - `nodeBeforeAdd` : 第一个参数是新加入的元素(只通知根元素).参考[chk模块](module-chk.html)
 - `nodeAdd` : 第一个参数是新加入的元素(只通知根元素).参考[chk模块](module-chk.html)

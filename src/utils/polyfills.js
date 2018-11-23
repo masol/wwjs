@@ -54,6 +54,7 @@ const Modernizr = window.Modernizr
 额外提供的特性检查(Modernizr未提供，额外提供):
 - wasm : [WebAssembly](https://caniuse.com/#search=WebAssembly)，在需要使用Java/C/C++/Go等其它语言书写的库时使用。如不支持，需要自行安装[polyfill](https://webassembly.js.org/)。安装完毕之后，通过System.import可以自动导入。
 - defprop : [ES5 Object](https://caniuse.com/#search=ECMAScript%205)中的`defineProperty`，Modernizr提供的`es5object`检查尺寸太大(minimize之后增加330字节),如果没有，添加[fix-ie](https://github.com/Alhadis/Fix-IE)，而不是[es5-shim](https://github.com/es-shims/es5-shim)。这一特性视实际使用情况可能作出调整。
+- weakmap : [WeakMap](https://kangax.github.io/compat-table/es6/#test-WeakMap)，如果浏览器不支持，自动安装[weakmap-polyfill](https://github.com/polygonplanet/weakmap-polyfill)
 
 Modernizr的一个值组合(chrome Version 70.0.3538.77 (Official Build) snap (64-bit)):
 @example
@@ -84,6 +85,7 @@ webp: Boolean{
   animation: true
   lossless: true
  }
+weakmap:true
 }
 @exports utils/polifills
 @access private
@@ -157,6 +159,7 @@ function setup (callback) {
 
   Modernizr.wasm = (typeof WebAssembly === 'object' && typeof (WebAssembly.instantiate) === 'function')
   Modernizr.defprop = (Object.defineProperty !== 'undefined')
+  Modernizr.weakmap = (window.WeakMap !== 'undefined')
 
   // // 同步方式为Promise做polyfill.
   // if (!Modernizr.promises) {
@@ -170,17 +173,19 @@ function setup (callback) {
   // }
   // require('./promise')
 
-  checkFeature('promises', '@/promise-polyfill/8.1.0/polyfill.min.js', () => {
-    // console.log('promises load ok')
-    require('./promise')
+  checkFeature('defprop', '@/fix-ie/1.2.1/ie.lteIE9.js', () => {
+    checkFeature('promises', '@/promise-polyfill/8.1.0/polyfill.min.js', () => {
+      // console.log('promises load ok')
+      require('./promise')
+      checkFeature('fetch', '@/whatwg-fetch/3.0.0/fetch.umd.js')
+    })
+    checkFeature('es6string', '@/string-polyfills/0.9.1/String.min.js')
+    checkFeature('mutationobserver', '@/mutationobserver-shim/0.3.2/mutationobserver.min.js')
+    checkFeature('urlparser', '@/%40webcomponents/url/0.7.1/url.js')
+    checkFeature('objectfit', '@/object-fit-images/3.2.4/ofi.min.js')
+    checkFeature('history', '@/html5-history-api/4.2.10/history.min.js')
+    checkFeature('weakmap', '@/weakmap-polyfill/2.0.0/weakmap-polyfill.min.js')
   })
-  checkFeature('es6string', '@/string-polyfills/0.9.1/String.min.js')
-  checkFeature('fetch', '@/whatwg-fetch/3.0.0/fetch.umd.js')
-  checkFeature('mutationobserver', '@/mutationobserver-shim/0.3.2/mutationobserver.min.js')
-  checkFeature('urlparser', '@/%40webcomponents/url/0.7.1/url.js')
-  checkFeature('objectfit', '@/object-fit-images/3.2.4/ofi.min.js')
-  checkFeature('history', '@/html5-history-api/4.2.10/history.min.js')
-  checkFeature('defprop', '@/fix-ie/1.2.1/ie.lteIE9.js')
 
   // 如果没有equestanimationframe(只有ie9,按照[这里](https://gist.github.com/paulirish/1579671)的方案polyfill)
   if (!Modernizr.equestanimationframe) {
