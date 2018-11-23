@@ -260,11 +260,39 @@ describe('wwclass元素机制', function () {
     }, 0)
   }).timeout(5000)
 
-  it('watch无初始值的属性，没有默认触发，并正确监听了属性变化', function () {
+  it('watch无初始值的属性，没有默认触发，并正确监听了属性变化', function (done) {
+    let notifycount = 0
+    let renderCount = 0
+
+    class Test6 extends wwjs.wwclass {
+      static version = '1.2.3'
+      constructor (ele) {
+        super(ele)
+        this.watch('data-test')
+      }
+      ontestChanged (oldValue, newValue) {
+        notifycount++
+      }
+      doRender () {
+        let self = this
+        renderCount++
+        self.render`<p id='pintest6'><span>${self.props.test}</span></p>`
+      }
+    }
+
+    setTimeout(() => {
+      chai.expect(notifycount).to.be.equal(0, '无初始值的元素被请求绘制了？')
+      chai.expect(renderCount).to.be.equal(1, '即便没有任何值更新，只要定义了doRender方法，初始化之后，也应该请求绘制一次．')
+      done()
+    }, 200)
+    wwjs.wwclass.reg('Test6', Test6)
+
+    setTimeout(() => {
+      wwjs.ui.$container().append(`<div id="wwTest6" data-wwclass="Test6"></div>`)
+      // t0 = performance.now()
+    }, 0)
   })
-  it('watch可以正确接收子元素加入/删除事件，选项触发render', function () {
-  })
-  it('render方法利用的模板是增量更新', function () {
+  it('watch可以正确接收子元素加入/删除事件，可选触发render', function () {
   })
   it('基类attr方法正确更新绑定的变量', function () {
   })

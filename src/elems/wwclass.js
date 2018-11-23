@@ -131,7 +131,9 @@ function frameProc (/*, timeStamp */) {
   if (wwInst._rid) {
     cancelAnimationFrame(wwInst._rid)
     wwInst._rid = undefined
+    // if (typeof (wwInst.doRender) === 'function') {
     wwInst.doRender()
+    // }
   }
 }
 
@@ -437,28 +439,24 @@ class Demo extends wwjs.wwclass {
   }
 
   /**
-  请求一次绘制，这会内部调用requestAnimationFrame，并确保一个绘制周期只实际发生一次`doRender`调用．请求一次，只会调用一次doRender．如果期望多次调用，需要再次请求．派生类可以定义`onRequestRender`函数，在每次请求时都得到调用．
+  请求一次绘制，这会内部调用requestAnimationFrame，并确保一个绘制周期只实际发生一次`doRender`调用．请求一次，只会调用一次doRender．如果期望多次调用，需要再次请求．派生类可以定义`onRequestRender`函数，在每次请求时都得到调用．如果不定义doRender方法，不会得到`onRequestRender`调用.
+
+  - 对于有绘制的元素，推荐做法是，使用`watch`在影响渲染的属性变动时，自动调用doRender,派生类实现doRender,然后调用`this.render(...)`来定义渲染模板，复杂模板可以利用`wwjs.hyper.wire()`来分解．
+  - 对于无绘制的元素，不要定义`doRender`方法,则所有的绘制机制不再工作．
   @function requestRender
   @memberof wwclass
   @instance
   @return {undefined}
   **/
   requestRender () {
-    if (!this._rid) {
-      this._rid = requestAnimationFrame(frameProc.bind(this))
+    if (typeof (this.doRender) === 'function') {
+      if (!this._rid) {
+        this._rid = requestAnimationFrame(frameProc.bind(this))
+      }
+      if (typeof (this.onRequestRender) === 'function') {
+        this.onRequestRender()
+      }
     }
-    if (typeof (this.onRequestRender) === 'function') {
-      this.onRequestRender()
-    }
-  }
-
-  /**
-  基类的doRender只是防止派生类没有实现doRender方法，是一个空实现．推荐做法是，使用`watch`在影响渲染的属性变动时，自动调用doRender,派生类实现doRender,然后调用`this.render(...)`来定义渲染模板，复杂模板可以利用`wwjs.hyper.wire()`来分解．
-  @function doRender
-  @instance
-  @memberof wwclass
-  **/
-  doRender () {
   }
 }
 

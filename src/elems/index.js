@@ -31,6 +31,9 @@ function construCls (ele, cls) {
   Promise.resolve(wwclass.get(cls, ele.getAttribute('data-classurl'))).then((Cls) => {
     Promise.resolve(new Cls(ele)).then((inst) => {
       EE.emit('elems.inst', ele, inst, cls)
+      if (!inst._rid && typeof (inst.doRender) === 'function') {
+        inst.requestRender()
+      }
     })
     // console.log('ele =', ele, 'cls = ', cls)
   })
