@@ -296,6 +296,41 @@ describe('wwclass元素机制', function () {
   })
   it('基类attr方法正确更新绑定的变量', function () {
   })
-  it('析构函数触发', function () {
+  it('析构函数触发', function (done) {
+    class Test11 extends wwjs.wwclass {
+      static version = '1.2.3'
+      constructor (ele) {
+        super(ele)
+        this.watch('data-test')
+      }
+      finalize () {
+        let ele = this.$ele[0]
+        let self = this
+        setTimeout(() => {
+          // eslint-disable-next-line
+          chai.expect(wwjs.wwclass.getInstance(ele)).to.be.undefined
+          chai.expect(ele).to.be.instanceof(Element)
+          // eslint-disable-next-line
+          chai.expect(self.$ele).to.be.undefined
+          done()
+        }, 0)
+      }
+      ontestChanged (oldValue, newValue) {
+      }
+      doRender () {
+        let self = this
+        self.render`<p id='pintest11'><span>${self.props.test}</span></p>`
+      }
+    }
+
+    setTimeout(() => {
+      $('#wwTest11').remove()
+    }, 20)
+    wwjs.wwclass.reg('Test11', Test11)
+
+    setTimeout(() => {
+      wwjs.ui.$container().append(`<div id="wwTest11" data-wwclass="Test11"></div>`)
+      // t0 = performance.now()
+    }, 0)
   })
 })
