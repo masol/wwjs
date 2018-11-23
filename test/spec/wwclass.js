@@ -9,7 +9,7 @@ describe('wwclass元素机制', function () {
   })
   after(function (done) {
     wwimport('ready', () => {
-      wwjs.ui.$container().html('')
+      // wwjs.ui.$container().html('')
       done()
     }, (err) => { done(err) })
   })
@@ -292,9 +292,69 @@ describe('wwclass元素机制', function () {
       // t0 = performance.now()
     }, 0)
   })
-  it('watch可以正确接收子元素加入/删除事件，可选触发render', function () {
+
+  it('watchAdd可以正确接收子元素加入/删除事件，演示如何与数组元素绑定，做到增量更新', function (done) {
+    let childAdded = 0
+    let treeAdded = 0
+    class Test7 extends wwjs.wwclass {
+      constructor (ele) {
+        super(ele)
+        this.props.data = [{ v: 'a' }, { v: 'b' }, { v: 'c' }]
+        this.watchAdd('.test')
+        this.watchAdd('[data-add1]', this.onTreeAdd, { tree: true })
+      }
+      fullfilled () {
+        if (childAdded === 1 && treeAdded === 3) {
+          this.props.data[0].v = 123122
+          this.props.data[1].v = 3222221
+          this.props.data.push({ v: 'add new item' })
+          this.requestRender()
+          setTimeout(function () {
+            chai.expect(treeAdded).to.be.equal(4, '节点不是增量更新？')
+            done()
+          }, 50)
+          // done()
+        }
+      }
+      onChildAdd (eleArray) {
+        let self = this
+        // console.log(self)
+        eleArray.forEach((ele) => {
+          childAdded++
+          // eslint-disable-next-line
+          chai.expect($(ele).hasClass('test')).to.be.true
+          // console.log('onChildAdd=', ele)
+          self.fullfilled()
+        })
+      }
+      onTreeAdd (eleArray) {
+        let self = this
+        eleArray.forEach((ele) => {
+          treeAdded++
+          // console.log('onTreeAdd=', ele)
+          self.fullfilled()
+        })
+      }
+      doRender () {
+        let self = this
+        self.render`<div></div><span></span><p class="test">
+        <span>
+  ${self.props.data.map(
+    (item) => {
+      return wwjs.hyper.wire(item)`<li data-add1="${item.v}">${item.v}</li>`
+    })}</span></p><!--test-->`
+      }
+    }
+
+    wwjs.wwclass.reg('Test7', Test7)
+
+    setTimeout(() => {
+      wwjs.ui.$container().append(`<div data-wwclass="Test7"></div>`)
+      // t0 = performance.now()
+    }, 0)
   })
-  it('基类attr方法正确更新绑定的变量', function () {
+
+  it('props属性的更新，可以正确同步绑定的KO变量', function () {
   })
   it('析构函数触发', function (done) {
     class Test11 extends wwjs.wwclass {

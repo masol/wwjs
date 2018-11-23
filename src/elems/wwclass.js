@@ -34,15 +34,74 @@ function removeDataPrefix (str) {
   return str
 }
 
+function procNode (ele, condition, inst) {
+  // console.log('procNode ele=', ele)
+  for (let i = 0; i < condition.length; i++) {
+    const cond = condition[i]
+    let func = (typeof (cond.handler) === 'function') ? cond.handler : inst[cond.handler]
+    if (!func) {
+      return
+    }
+    if (cond.nodeType) {
+      if (ele.nodeType & cond.nodeType === 0) { return }
+    } else if (ele.nodeType !== 1) {
+      return
+    }
+    if (cond.selector) {
+      let $ele = $(ele)
+      // console.log('cond.selector=', cond.selector, '$ele.find(cond.selector)=', $ele.find(cond.selector))
+      let notiArray = []
+      if ($ele.is(cond.selector)) {
+        notiArray.push(ele)
+      }
+      notiArray = notiArray.concat($ele.find(cond.selector).toArray())
+      // console.log('notiArray=', notiArray)
+      if (notiArray.length > 0) {
+        // console.log('func', func, 'inst', inst)
+        func.call(inst, notiArray)
+        if (cond.render) {
+          inst.requestRender()
+        }
+      }
+    }
+  }
+}
+
+function addTreeMonitor (isAdd, subtree, selector, handleName, nodeType, render) {
+  let self = this
+  self._mut = self._mut || {}
+  let treeName = isAdd ? 'addtree' : 'rmtree'
+  self._mut[treeName] = self._mut[treeName] || []
+  self._mut[treeName].push({
+    selector: selector,
+    handler: handleName,
+    nodeType: nodeType,
+    render: render
+  })
+  let subType = subtree ? 'subtree' : false
+  // console.log('subType=', subType)
+  monitor(self, 'childList', subType)
+}
+
 function check (mutations) {
   let self = this
   // console.log('enter mutation callback')
   mutations.forEach(function (mutation) {
     if (mutation.removedNodes && mutation.removedNodes.length > 0) {
       // @TODO 实现选择器判定式通知self指定函数.
+      if (self._mut.rmtree && self._mut.rmtree.length > 0) {
+        for (let i = 0; i < mutation.removedNodes.length; i++) {
+          procNode(mutation.removedNodes[i], self._mut.rmtree, self)
+        }
+      }
     }
     if (mutation.addedNodes && mutation.addedNodes.length > 0) {
       // @TODO 实现选择器判定式通知self指定函数.
+      if (self._mut.addtree && self._mut.addtree.length > 0) {
+        for (let i = 0; i < mutation.addedNodes.length; i++) {
+          procNode(mutation.addedNodes[i], self._mut.addtree, self)
+        }
+      }
     }
     if (mutation.attributeName) {
       const attrName = String(mutation.attributeName)
@@ -58,17 +117,20 @@ function check (mutations) {
   })
 }
 
-function monitor (self, type) {
+function monitor (self, type, subType) {
   self._mut = self._mut || {}
   self._mut.attr = self._mut.attr || {}
   self._mut.config = self._mut.config || {}
   // 尚未开始监听此类型．添加监听.
-  if (!self._mut.config[type]) {
+  if (!self._mut.config[type] || (subType && !self._mut.config[subType])) {
     if (self._mut.observer) {
       self._mut.observer.disconnect()
       self._mut.observer = undefined
     }
     self._mut.config[type] = true
+    if (subType) {
+      self._mut.config[subType] = true
+    }
     self._mut.observer = new MutationObserver(Function.bind.call(check, self))
     // console.log('self.$ele=', self.$ele, 'config=', self._mut.config)
     self._mut.observer.observe(self.$ele[0], self._mut.config)
@@ -172,27 +234,51 @@ wwjs元素处于三种状态:
 - 元素类就绪:元素类及其依赖已被加载，元素类开始根据上下文重新调整元素外观，这里最重要的就是<font color='red'>平滑处理</font>，也就是从初始状态变化到元素类就绪状态，页面不应该闪烁。
 - 数据就绪:需要的真实数据是由ko从各个数据源同步到元素上的，这可能发生在元素类就绪状态之前或之后，对元素类开发人员来说，这个状态大多数时候都可以忽略。而View开发者不关注元素类就绪状态，但是关注数据就绪的平滑处理。
 
-wwclass类提供了如下修饰符(派生类不可见):
+wwclass类提供了如下修饰符(使用派生类不可见):
 - [@wwjs.wwclass.dep](#.dep)
 - [@wwjs.wwclass.readonly](#.readonly)
 
 以及如下类修改器(在构造函数中使用)
-- [this.watch(...)](#.watch)
-- [this.watchchild(...)](#.watchchild)
-- [this.watchtree(...)](#.watchtree)
+- [this.watch(...)](#~watch)
+- [this.watchAdd(...)](#~watchAdd)
+- [this.watchRm(...)](#~watchRm)
 
 以及如下静态方法(派生类不可见):
 - [wwjs.wwclass.get](#.get)
 - [wwjs.wwclass.reg](#.reg)
 - [wwjs.wwclass.unreg](#.unreg)
+- [wwjs.wwclass.getInstance](#.getInstance)
 
-wwclass元素只处理客户端展示与逻辑，无需处理任意的数据源．这个概念类似[redux](https://redux.js.org/),不过是应用在整个系统，reducer就是服务器响应某个action的脚本，而action对象就是请求．redux与wwclass元素无关，设计初衷是：所有的数据，都是通过同步机制同步到KO层，再绑定到Dom元素上，从而触发wwclass元素作出反应，任意对服务器的请求就是一次状态变化请求．因此，wwclass没有提供任意与服务器通信的机制(也不需要与服务器通信，除了专门负责通信的元素)，只提供了如下机制:
+以及如下渲染支持(使用派生类可见):
+- [requestRender](#requestRender)
+- [render](#.render)
+
+wwclass元素只处理客户端展示与逻辑，无需处理任意的数据源．这个概念类似[redux](https://redux.js.org/),不过是应用在整个系统，reducer就是服务器响应某个action的脚本，而action对象就是请求．redux与wwclass元素无关，设计初衷是：所有的公共数据(需要保存在服务器端的数据)，都是通过同步机制同步到KO层，再绑定到Dom元素上，从而触发wwclass元素作出反应，任意对服务器的请求就是一次状态变化请求．因此，wwclass没有提供任意与服务器通信的机制(也不需要与服务器通信，除了专门负责通信的元素)，只提供了如下机制:
 - 绘制机制：任意时刻，调用```requestRender()```,在下一帧绘制时自动调用`doRender`,派生类可以重载`doRender`，函数内调用```this.render`Template．．．．````(<font color="red">注意不是函数调用，而是es6文字模板调用，没有括号</font>)即可实现模板动态绘制．这会自动维护增量更新，只需写出全模板即可．
 - 依赖管理：如果依赖任意第三方库，可以通过``` @wwjs.wwclass.dep(...)```来修饰方法或类，从而自动加载依赖．
 - 属性监听,自动更新,自动绘制: 构造函数中调用`this.watch(...)`即可支持.此时，`this.props[propName]`的写入，自动触发配置的同步．函数返回，`this.props[propName]`的值已经有效．并且如果本属性会触发渲染，只要有任意初始值，将会自动触发，无需额外调用．
 - 构造与析构: 添加方法```finalize()```，在析构时自动调用.
 - 版本控制：类定义中添加静态方法```static version : ＇X.X.X.X'```即可得到支持．(本条可以忽略，如果使用标准环境，版本控制是全自动的)
 - 事件机制：并未实现特殊的事件监听机制，请自行使用`this.$ele.on('click',this.handlerFunc.bind(this))`的方式来监听事件－通常在构造函数中使用．
+
+关于渲染的说明：
+- 什么是增量更新？考虑一个例子`<ul>由DATA控制的li数组</ul>`．这个例子看起来很简单，直觉就会使用如下模板:
+  ```
+  doRender(){
+  let self = this
+  self.render`<ul>${DATA.map((item)=>{
+    return `<li>${item.data}</li>`
+  })}</ul>`
+}```
+  但是，这引发一个问题．如果我们变动DATA中的值，然后重新渲染，会发现每次都删除全部li元素，然后再新建.如何维持Dom元素与DATA数组中的关系？确保只新增DATA中新加的，删除DATA中新删除的．这一特性就称为增量更新．
+- 增量更新唯一需要注意的是在循环中，需要利用`wwjs.hyper.wire(Object)`来维护Object是否变化，如果是新的Object则新建Dom元素，否则更新原Dom节点.因此，循环体中，必须`wire`到一个Object上，由这个Object来控制是否需要删除旧元素并新建，还是直接在对应的旧元素上更新．参考测试用例关于wwclass的部分,有测试此特性的代码，摘抄如下：
+```
+doRender(){
+  let self = this
+  self.render`<ul>${DATA.map((item)=>{
+    return wwjs.hyper.wire(item)`<li>${item.data}</li>`
+  })}</ul>`
+}```
 
 @hideconstructor
 **/
@@ -243,6 +329,50 @@ class Demo extends wwjs.wwclass {
     // 必须在defineProperty后调用．否则回调里访问self.props会出错．先写入初始的attr值.updateProp中会判定新旧值是否一致，因此这里不判定．
     updateProp(self, self.$ele.attr(attrName), attrName, propName, methodName, options)
   }
+
+  /**
+  <strong><font color="green">modifier</font></strong>: 类修改器,为实例添加监测子节点加入的能力
+  @function watchAdd
+  @memberof wwclass
+  @param {string} selector 标准的选择器，用于判定一个Dom元素的加入是否需要通知handler.
+  @param {string|function} [handler='onChildAdd'] 一个处理函数，或者函数名(函数名必须属于实例对象).被调用到时，`this`就是实例．
+  @param {object} [options={tree=false,nodeType=1,render:false}] 通过选项控制额外特性:
+  - tree: 监听全部子节点加入？如果给出false,只监听直接孩子节点的加入．
+  - nodeType: 要检查的节点类型，默认是普通元素，不包含text,comment等类型．
+  - render: 是否触发渲染？默认不触发渲染．
+  @inner
+  @access private
+  @example
+class Demo extends wwjs.wwclass {
+  constructor(ele) {
+    super(ele)
+    this.watchAdd('.somclass [data-prop]',this.onSomeClassAdd)
+  }
+}
+  **/
+  watchAdd (selector, handleName, options) {
+    options = options || {}
+    addTreeMonitor.call(this, true, options.tree, selector, handleName || 'onChildAdd', options.nodeType, options.render)
+  }
+
+  /**
+  <strong><font color="green">modifier</font></strong>: 类修改器,为实例添加监测子节点移除的能力
+  @function watchRm
+  @memberof wwclass
+  @param {string} selector 标准的选择器，用于判定一个Dom元素的加入是否需要通知handler.
+  @param {string|function} [handler='onChildRm'] 一个处理函数，或者函数名(函数名必须属于实例对象).被调用到时，`this`就是实例．
+  @param {object} [options={tree=false,nodeType=1,render:false}] 通过选项控制额外特性:
+  - tree: 监听全部子节点加入？如果给出false,只监听直接孩子节点的加入．
+  - nodeType: 要检查的节点类型，默认是普通元素，不包含text,comment等类型．
+  - render: 是否触发渲染？默认不触发渲染．
+  @inner
+  @access private
+  **/
+  watchRm (selector, handleName, options) {
+    options = options || {}
+    addTreeMonitor.call(this, false, options.tree, selector, handleName || 'onChildRm', options.nodeType, options.render)
+  }
+
   /**
   <strong><font color="red">decorator</font></strong>:防止方法或属性被改变(只读)
   @function readonly
@@ -429,6 +559,12 @@ class Demo extends wwjs.wwclass {
     }
     self.$ele = $(ele)
     self.props = {}
+    /**
+    render模板渲染属性，利用[HyperHTML](https://github.com/WebReflection/hyperHTML/blob/master/index.js)，可以直接调用```this.render`ES6 Template String` ```，通常在`doRender`函数中使用．这样引发的更新是增量更新．
+    @member render
+    @access private
+    @memberof wwclass
+    **/
     Object.defineProperty(self, 'render', {
       get () { // [HyperHTML的实现](https://github.com/WebReflection/hyperHTML/blob/master/index.js)，非常轻量，每次直接调用无问题,无需利用一个变量缓冲．
         return hyper.bind(self.$ele[0])
