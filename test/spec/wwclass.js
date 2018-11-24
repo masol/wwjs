@@ -354,8 +354,48 @@ describe('wwclass元素机制', function () {
     }, 0)
   })
 
-  it('props属性的更新，可以正确同步绑定的KO变量', function () {
+  it('props属性的更新，可以正确同步绑定的KO变量，并且元素移除出Dom后，环境清理干净，绑定变量不再被更新', function (done) {
+    class Test9 extends wwjs.wwclass {
+      constructor (ele) {
+        super(ele)
+        this.watch('data-test')
+      }
+      ontestChanged (oldValue, newValue) {
+        // console.log('data-test changed:', arguments)
+        let $ele = this.$ele
+        let ivCount = 0
+        if (!oldValue) {
+          chai.expect(newValue).to.be.equal('1', '没有被data-bind改写？')
+          this.props.test = '2'
+        } else if (oldValue === '1') {
+          chai.expect(wwjs.vm.get().test9()).to.be.equal('2', '属性更新没有改写绑定的变量？')
+          $('#wwTest9').remove()
+          let ivid = setInterval(() => {
+            // console.log('to trigger attrChanged event 2', wwjs.vm.get().test9())
+            const newValue = String(ivCount + 10)
+            $ele.attr('data-test', newValue)
+            $ele.trigger(ko.attrChanged, 'data-test', newValue)
+            if (ivCount++ === 10) {
+              clearInterval(ivid)
+              chai.expect(wwjs.vm.get().test9()).to.be.equal('2', '元素删除之后，绑定变量依然得到通知了？')
+              done()
+            }
+          }, 10)
+        }
+      }
+      doRender () {
+        let self = this
+        self.render`<p id='pintest9'><span>${self.props.test}</span></p>`
+      }
+    }
+    wwjs.wwclass.reg('Test9', Test9)
+
+    setTimeout(() => {
+      wwjs.ui.$container().append(`<div id="wwTest9" data-wwclass="Test9" data-bind='attr : {"data-test" : test9}' data-bindvar='{"test9":1}'></div>`)
+      // t0 = performance.now()
+    }, 0)
   })
+
   it('析构函数触发', function (done) {
     class Test11 extends wwjs.wwclass {
       static version = '1.2.3'

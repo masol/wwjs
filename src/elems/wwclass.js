@@ -210,10 +210,8 @@ function updateProp (self, newValue, attrName, propName, methodName, options) {
       self.$ele.attr(attrName, newValue)
     }
     if (!options.noSyncKO) {
-      let accessor = self.$ele.data(`wwrn-${attrName}`)
-      if (accessor && accessor() !== newValue) {
-        accessor(newValue)
-      }
+      // console.log('to trigger attrChanged event')
+      self.$ele.trigger(ko.attrChanged, attrName)
     }
     if (options.render) {
       self.requestRender()

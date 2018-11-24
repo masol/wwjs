@@ -22,6 +22,7 @@ import mapping from './mapping'
 import EE from '../utils/evt'
 import VM from './viewmodel'
 import ns from './ns'
+import attr from './attr'
 
 ko.mapping = mapping
 // @see https://knockoutjs.com/documentation/deferred-updates.html
@@ -53,6 +54,9 @@ ko.options.deferUpdates = true
 // }
 
 window.ko = ko
+
+// console.log(attr)
+attr()
 
 VM.reset()
 
