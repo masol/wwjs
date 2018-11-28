@@ -11,7 +11,7 @@
     "pack": "webpack  --optimize-minimize --mode production --env=prod --display-modules",
     "build": "npm run lint && npm run pack && npm run test",
     "build-dev": "webpack --env=dev --display-modules ",
-    "doc": "node_modules/.bin/jsdoc  --configure .jsdoc.json --verbose;xdg-open ./docs/wwjs/`node -p 'require(\"./package.json\").version'`/index.html",
+    "doc": "node_modules/.bin/jsdoc  --configure .jsdoc.json --verbose;xdg-open ./dist/docs/wwjs/`node -p 'require(\"./package.json\").version'`/index.html",
     "v:patch": "npm version --no-git-tag-version patch",
     "start:dev": "webpack-dev-server --open --progress --colors",
     "start:global": "webpack-dev-server --open --progress --colors --host 0.0.0.0",
