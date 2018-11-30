@@ -13,6 +13,8 @@
 'use strict'
 
 import wwcls from './wwclass'
+import './view'
+import './form'
 import cfg from '../utils/cfg'
 
 const wwclass = wwcls.wwclass

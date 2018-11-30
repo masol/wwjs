@@ -74,7 +74,19 @@ function currentScript (srcparts) {
   return null
 }
 
+/**
+block指定元素．默认实现使用了[waitMe](https://github.com/vadimsva/waitMe)．可以在插件中通过重载`wwjs.ui.block`函数来替换默认方案．
+@exports utils/ui
+@method block
+@param {JQueryElement} [$ele] block指定元素．
+@param {boolean} [block=false] block或unblock指定元素.
+@param {object} [opt={}] 配置细节信息，这些配置同时可以同名从ele中获取．这里的配置优先级高于ele的配置.
+@return {Promise} 解析为指定元素是否被block.
+*/
+function block ($ele, block, opt) {}
+
 export default {
   $container: $container,
-  currentScript: currentScript
+  currentScript: currentScript,
+  block: block
 }
