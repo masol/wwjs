@@ -1,6 +1,6 @@
 {
   "name": "wwjs",
-  "version": "2.0.0",
+  "version": "1.7.1",
   "description": "wware browser runtime library",
   "browser": "src/index.js",
   "keywords": [],
@@ -8,7 +8,7 @@
     "lint": "eslint src",
     "clean": "rm -rf dist",
     "check": "npm run lint && npm run test",
-    "pack": "webpack  --optimize-minimize --mode production --env=prod --display-modules",
+    "pack": "node_modules/.bin/jsdoc  --configure .jsdoc.json --verbose;webpack  --optimize-minimize --mode production --env=prod --display-modules",
     "build": "npm run lint && npm run pack && npm run test",
     "build-dev": "webpack --env=dev --display-modules ",
     "doc": "node_modules/.bin/jsdoc  --configure .jsdoc.json --verbose;xdg-open ./dist/docs/wwjs/`node -p 'require(\"./package.json\").version'`/index.html",

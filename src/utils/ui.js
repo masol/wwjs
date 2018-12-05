@@ -75,6 +75,26 @@ function currentScript (srcparts) {
 }
 
 /**
+ref: #22051 从wwclass.js V1.7中拷贝．
+@exports utils/ui
+@method createIframe
+@param {JQueryElement} $ele iframe的父元素
+@param {string} htmlsrc HTML的正文内容．
+@return {Element} 返回新创建的IFrame元素．
+*/
+function createIframe ($ele, htmlstr) {
+  $ele.addClass('embed-responsive embed-responsive-4by3')
+  let parent = $ele.get(0)
+  let iframe = document.createElement('iframe')
+  parent.appendChild(iframe)
+  $(iframe).addClass('embed-responsive-item').attr('width', '100%').css('width', '100%').attr('frameborder', '0')
+  iframe.contentWindow.document.open('text/htmlreplace')
+  iframe.contentWindow.document.write(htmlstr)
+  iframe.contentWindow.document.close()
+  return iframe
+}
+
+/**
 block指定元素．默认实现使用了[waitMe](https://github.com/vadimsva/waitMe)．可以在插件中通过重载`wwjs.ui.block`函数来替换默认方案．
 @exports utils/ui
 @method block
@@ -88,5 +108,6 @@ function block ($ele, block, opt) {}
 export default {
   $container: $container,
   currentScript: currentScript,
-  block: block
+  block: block,
+  createIframe: createIframe
 }
