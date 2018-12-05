@@ -287,7 +287,7 @@ module.exports = {
    * @member wwjs
    * @constant
    * @type {object}
-   * @name ui
+   * @name vm
   **/
   vm: vm,
   /**
@@ -299,7 +299,7 @@ module.exports = {
    **/
   version: '<# VERSION #>',
   /**
-  wwclass基类[ko/viewmodel模块](module-ko_viewmodel.html)
+  wwclass基类[wwclass类定义](wwclass.html)
    * @member wwjs
    * @constant
    * @type {object}

@@ -48,7 +48,7 @@ window.wwimport('ready', () => {
     constructor (ele) {
       super(ele)
       let self = this
-      self.watch('src', { render: true })
+      self.watch('src')
       self.watch('datasrc')
       self.curURL = ''
       self.curReq = null
