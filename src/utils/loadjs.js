@@ -31,7 +31,7 @@ import cfg from './cfg'
 */
 function resolve (deps) {
   if (typeof (deps) === 'string') {
-    if (/(^css!@|^img!@)/.test(deps)) {
+    if (/^(css!@|img!@)/.test(deps)) {
       return deps.replace('@', cfg.libbase)
     } else if (deps.length > 0 && deps[0] === '@') {
       return cfg.libbase + deps.substr(1)

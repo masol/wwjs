@@ -96,31 +96,33 @@ function createIframe ($ele, htmlstr) {
 }
 
 /**
- * 显示消息对象
- * @param {object} message - 消息对象
- * @param {array} message.global - 全局消息列表
- * @param {object} message.global[] - 全局消息列表项
- * @param {string} message.global[].text - 全局消息提示文本, 必填
- * @param {string} message.global[].type - 全局消息提示文本, 默认 error, 可选 alert, success, error, warning, info
- * @param {string} message.global[].layout - 全局消息提示文本, 默认 topRight, 可选 top, topLeft, topCenter, topRight, center, centerLeft, centerRight, bottom, bottomLeft, bottomCenter, bottomRight
- * @param {string} message.global[].mint - 全局消息提示文本, 默认 mint, 可选 relax, mint, sunset, metroui, semanticui, bootstrap-v3, bootstrap-v4, nest
- * @param {number|false} message.global[].timeout - 全局消息提示文本, 默认 3500, 毫秒数或false
- * @param {array} message.element - 元素消息列表
- * @param {object} message.element[] - 元素消息列表项
- * @param {string} message.element[].text - 元素消息提示文本, 必填
- * @param {string} message.element[].className - 元素消息提示文本, 必填, 元素name
- * @param {string} message.element[].layout - 元素消息提示文本, 默认error, 提示类型success/error/warn/info
- * @param {string} message.element[].mint - 元素消息提示文本, 默认 "bottom left", 提示位置 "top", "middle" or "bottom";  "left", "center" or "right"
- * @param {number|false} message.element[].timeout - 元素消息提示文本, 默认 3000, 自动关闭, 或毫秒数
+  显示消息提醒，从WIDE1中继承。
+  @exports utils/ui
+  @method showMessage
+  @param {object} message - 消息对象,格式如下:
+ - {array} message.global - 全局消息列表
+   - {object} message.global[] - 全局消息列表项
+   - {string} message.global[].text - 全局消息提示文本, 必填
+   - {string} [message.global[].type] - 全局消息提示文本, 默认 error, 可选 alert, success, error, warning, info
+   - {string} [message.global[].layout] - 全局消息提示文本, 默认 topRight, 可选 top, topLeft, topCenter, topRight, center, centerLeft, centerRight, bottom, bottomLeft, bottomCenter, bottomRight
+   - {string} [message.global[].mint] - 全局消息提示文本, 默认 mint, 可选 relax, mint, sunset, metroui, semanticui, bootstrap-v3, bootstrap-v4, nest
+   - {number|boolean} [message.global[].timeout] - 全局消息提示文本, 默认 3500, 毫秒数或false
+ - {array} message.element - 元素消息列表
+   - {object} message.element[] - 元素消息列表项
+   - {string} message.element[].text - 元素消息提示文本, 必填
+   - {string} message.element[].className - 元素消息提示文本, 必填, 元素name
+   - {string} [message.element[].layout] - 元素消息提示文本, 默认error, 提示类型success/error/warn/info
+   - {string} [message.element[].mint] - 元素消息提示文本, 默认 "bottom left", 提示位置 "top", "middle" or "bottom";  "left", "center" or "right"
+   - {number|boolean} [message.element[].timeout] - 元素消息提示文本, 默认 3000, 自动关闭, 或毫秒数
  */
-function showNewMessage (message) {
+function showMessage (message) {
   /**
    * 页面提示功能, 可提示在特定元素, 也可提示在全局
-   * @param {jQuery element} $ele - 若传入 $ 表示全局提示, 若传入jQuery对象, 表示在该元素上提示
+   * @param {jQueryElement} $ele - 若传入 $ 表示全局提示, 若传入jQuery对象, 表示在该元素上提示
    * @param {string} info - 提示文本
    * @param {string} className - 提示类名, 关联提示样式 success/error/warn/info, 默认是 "error" 错误提示
    * @param {string} style - 样式主题, 默认是 "bootstrap" 主题
-   * @param {boolean/number} hide - 是否自动隐藏, 可传入毫秒数表示多少毫秒后隐藏, 或传入false表示不隐藏. 默认是3000
+   * @param {boolean|number} hide - 是否自动隐藏, 可传入毫秒数表示多少毫秒后隐藏, 或传入false表示不隐藏. 默认是3000
    */
   var notify = (function () {
     var defaultConfig = {
@@ -291,6 +293,20 @@ function showNewMessage (message) {
     }
 
     var loadDependence = function (fncallback) {
+      const notyURL = loadjs.resolve('@/noty/3.2.0-beta/noty.min.js')
+      const notyCSS = loadjs.resolve('css!@/noty/3.2.0-beta/noty.css')
+      if (!loadjs.isDefined(notyURL)) {
+        loadjs([notyURL], notyURL)
+      }
+      if (!loadjs.isDefined(notyCSS)) {
+        loadjs([notyCSS], notyCSS)
+      }
+      loadjs.ready([notyURL, notyCSS], {
+        success: fncallback,
+        error: () => {
+        }
+      })
+
       if (!window.wwload.noty) {
         window.wwload.noty = 'wait'
         loadjs.load(['@/noty/3.2.0-beta/noty.min.js', 'css!@/noty/3.2.0-beta/noty.css'], function () {
@@ -362,31 +378,14 @@ function showNewMessage (message) {
 }
 
 /**
-判断使用新message对象格式还是旧message对象格式.从wide1.5中继承。
+获取元素的名称，依次获取name,data-name,id,data-id.如果没有，创建唯一id，并返回这一唯一id.返回第一个获取到的。
 @exports utils/ui
-@method showMessage
-@param {object|string} message 消息对象或者消息字符串
- */
-function showMessage (message, $container, className, defaultMessage, strict) {
-  if (!message) {
-    return false
-  }
-  if (message.global && message.element && $.isArray(message.global) && $.isArray(message.element)) {
-    showNewMessage(message)
-  } else {
-    // showOldMessage(message, $container, className, defaultMessage, strict)
-  }
-}
-
-// 获取元素name
+@method getName
+@param {JQueryElement} $ele 需要获取名称的元素。
+@return {String} 获取到的名称。
+*/
 function getName ($ele) {
-  var name = $ele.attr('name')
-  name = name || $ele.data('name')
-  if (name) {
-    return name
-  } else {
-    return false
-  }
+  return $ele.attr('name') || $ele.attr('data-name') || $ele.attr('id') || $ele.attr('data-id') || ($ele.uniqueId(), $ele.attr('id'))
 }
 
 /**
