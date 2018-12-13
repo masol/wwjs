@@ -28,6 +28,9 @@ window.EE = EE
 - `elem.depfailed` : 元素dep依赖加载失败，错误对象是第二个参数。
 - `wwclass.finalize` : 元素析构时发生错误，错误对象是第二个参数。查阅[elems模块](module-elems.html)
 - `wwclass.get` : 获取元素类时发生错误，加载失败的文件名是第二个参数。查阅[wwclass:get](wwclass.html#.get)
+- `net.invalidURL` : 加载网络命令处理器时发生错误，第二个参数是errFiles，第三个参数是请求的命令。
+- `net.invalidData` : 执行`updatelv`时，params参数无效。第二个参数是传入的params.
+- `net.eval` : 执行`eval`指令时发生错误。第二个参数是传入的params
 
 系统所有的警告机制，可以通过调用`EE.on("warn",function(desc,exobj){})`的方式来拦截，提供了如下警告:
 - `elems.verMismatch` : 回调(type, name, RequestVer, RegVer)请求实例化元素，但是元素版本与当前注册表中的版本不匹配，这说明当前页面请求了不同版本的相同元素.

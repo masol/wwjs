@@ -23,11 +23,14 @@ import ui from './utils/ui'
 import polyfillSetup from './utils/polyfills'
 import vm from './ko/viewmodel'
 import wwcls from './elems'
+import net from './net'
 
 // console.log(loadjs)
 
+// 这是[jQuery 3.3.1](https://jquery.com/)，并被绑定到window.jQuery以及window.$
+
 /**
-内建的jQuery支持。这是[jQuery 3.3.1](https://jquery.com/)，并被绑定到window.jQuery以及window.$
+内建的jQuery支持。注意这不是[jQuery](https://jquery.com/),而是[cash-dom](https://github.com/kenwheeler/cash)
  * @type {jQuery}
  * @name $
  **/
@@ -266,7 +269,15 @@ module.exports = {
   **/
   loadjs: loadjs,
   /**
-  名称空间子模块，通过wwjs暴露到全局空间。详细文档查看[ko/ns模块](module-ko_ns.html)
+  网络协议子模块，通过wwjs暴露到全局空间。详细文档查看[net模块](module-net.html)
+   * @member wwjs
+   * @constant
+   * @type {object}
+   * @name net
+  **/
+  net: net,
+  /**
+  名称空间子模块，通过wwjs暴露到全e局空间。详细文档查看[ko/ns模块](module-ko_ns.html)
    * @member wwjs
    * @constant
    * @type {object}
@@ -274,6 +285,14 @@ module.exports = {
   **/
   ns: ns.pub,
   ready: ready,
+  /**
+  es6模板规范的编译器，用于在es5环境下使用template。API参考[es6-dynamic-template](https://www.npmjs.com/package/es6-dynamic-template)，注意这是利用了babel的编译能力。
+   * @member wwjs
+   * @constant
+   * @type {function}
+   * @name Template
+  **/
+  Template: require('es6-dynamic-template'),
   /**
   UI抽象子模块，提供了对HTML布局的一个抽象假设。可以通过[cfg模块](module-utils_cfg.html)来配置。详细文档查看[utils/ui模块](module-utils_ui.html)
    * @member wwjs

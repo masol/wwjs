@@ -75,7 +75,8 @@ module.exports = env => {
       // symlinks: false,
       modules: [resolve('src'), resolve('node_modules')],
       alias: {
-        // jquery: 'cash-dom'
+        jquery: 'cash-dom',
+        knockout: 'knockout/build/output/knockout-latest'
       }
     }
   }
