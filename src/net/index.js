@@ -14,6 +14,7 @@
 
 import loadjs from '../utils/loadjs'
 import cfg from '../utils/cfg'
+import str from '../utils/str'
 import vm from '../ko/viewmodel'
 const Template = require('es6-dynamic-template')
 
@@ -22,6 +23,20 @@ JSON格式的网络命令协议模块。命令协议模块，用于解析可以�
 其中默认格式采用JSON，其它格式最终都转为JSON格式来执行。因此，netProtocal模块的默认实现采用了JSON格式。
 @module net
 */
+
+/**
+@exports net
+@method template
+@desc 在指定元素的名称空间下展开模板。
+@param {String} params 需要展开的字符串模板。这个字符串模板的格式遵守es6 template literial规范。额外变量是refEle所指定的viewModel的变量，如果未指定，则为全局空间。
+@param {Element} [refEle=undefined] 用于确定名称空间，进而确定viewModel的元素。
+@return {String} 展开之后的模板元素。
+*/
+function template (params, refEle) {
+  let tstr
+  tstr = ($.isArray(params)) ? params.join('') : String(params)
+  return (tstr.indexOf('${') >= 0) ? Template(tstr, vm.get(refEle, 'json')) : tstr
+}
 
 function updatelv (params, refEle) {
   if (!$.isArray(params) || params.length < 1) {
@@ -63,14 +78,8 @@ function evalStr (params, refEle) {
 }
 
 function open (params, refEle) {
-  let newURL
-  if ($.isArray(params) && params.length > 0) {
-    newURL = (params[0].indexOf('${') >= 0) ? Template(params[0], vm.get(refEle, 'json')) : params[0]
-    if (window.location.href === newURL) {
-      newURL = undefined
-    }
-  }
-  if (newURL) {
+  let newURL = template(params, refEle)
+  if (newURL && window.location.href !== newURL) {
     window.location.href = newURL
   } else {
     window.location.reload()
@@ -265,14 +274,14 @@ function vmArrFuc (params, refEle) {
 let cmds = null
 /**
 @exports net
-@method getCmd
-@desc 获取一个命令处理器。
-@param {String} name  命令的名称。可能是如下三种:
- - 内建命令
- - 以@开头，默认从libs服务器加载处理器，并以?分割，?之后的部分识别为包中需要执行的命令。
- - 一个url，以?分割，?之后的部分识别为包中需要执行的命令。
+@method cmd
+@desc 获取一个命令集对象。
+@param {String} name  命令集的名称。可能是如下三种:
+ - 内建命令: 此时命令集中的命令就一个，因此返回的是function对象。
+ - 以@开头，默认从libs服务器加载处理器，并以?分割，?之后的部分识别为命令集中需要执行的命令。返回object或function
+ - 一个url，以?分割，?之后的部分识别为命令集中需要执行的命令。返回object或function
 @param {boolean} [noAutoLoad=false] 不自动加载，默认是false(自动加载)
-@return {Promise<function>} 最终解析为加载完毕的处理器。
+@return {Promise<function|object>} 最终解析为加载完毕的处理器——注意处理器可能是对象。
 */
 function getCmd (name, noAutoLoad) {
   const internalGetCmd = (url, subName) => {
@@ -295,7 +304,10 @@ function getCmd (name, noAutoLoad) {
   let url, subName
   if (pkgArray.length === 2) {
     url = pkgArray[0]
-    subName = pkgArray[1]
+    if (url.length > 0 && url[0] === '@') {
+      url = str.lib(url.substr(1))
+    }
+    subName = (pkgArray.length > 2) ? pkgArray.slice(1).join('') : [1]
   }
   let ret = internalGetCmd(url, subName)
   if (!ret && !noAutoLoad) {
@@ -319,17 +331,34 @@ function getCmd (name, noAutoLoad) {
   return ret
 }
 
-function reg (name, func) {
+/**
+@exports net
+@method reg
+@desc 注册一个命令集的处理器。由于默认了全局加载，而不是模块加载方式。因此扩展插件需要在被加载时调用`wwjs.net.reg`函数来自行注册。
+@param {String} name  命令集的名称。
+@param {function|object} [handler=undefined] 命令集的处理器。可能是函数，也可能是对象。如果传入undefined，则删除此处理器。
+@return {function|object} 返回设置之前的旧处理器。
+*/
+function reg (name, handler) {
   cmds = cmds || {}
   let ret = cmds[name]
-  if (typeof func === 'function') {
-    cmds[name] = func
-  } else {
-    cmds[name] = undefined
-  }
+  cmds[name] = undefined
   return ret
 }
 
+/**
+@exports net
+@method run
+@desc 在指定元素的名称空间下执行一个命令。
+@param {object|array} cmd  命令对象，如果是对象，格式如下：
+`{
+command: "命令名，例如@xxxx?commandName",
+params: []
+}`
+如果是数组，第一个元素是命令名，之后的是参数。
+@param {Element} [refEle=undefined] 触发此命令的元素。
+@return {any} 如果执行成功，返回值由处理器确定，否则返回false.
+*/
 function run (cmd, refEle) {
   let name, params
   if (typeof cmd === 'object') {
@@ -353,7 +382,8 @@ function run (cmd, refEle) {
 }
 
 export default {
-  get: getCmd,
+  template: template,
+  cmd: getCmd,
   reg: reg,
   run: run
 }
