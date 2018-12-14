@@ -19,7 +19,7 @@
 
 /**
 给出类似npm包格式的字符串，拼接出完整的基于lib的url。拼接后的格式为:
-`\`@/${prefix}/${name}/${version}/${fname}\``
+`@/${prefix}/${name}/${version}/${fname}`
 @exports utils/str
 @method lib
 @param {String} name  类似npm包格式的字符串。如果未指定版本号，默认为`latest`

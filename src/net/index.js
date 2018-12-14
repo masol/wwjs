@@ -305,7 +305,7 @@ function getCmd (name, noAutoLoad) {
   if (pkgArray.length === 2) {
     url = pkgArray[0]
     if (url.length > 0 && url[0] === '@') {
-      url = str.lib(url.substr(1))
+      url = str.lib(url.substr(1), '@wwcmd')
     }
     subName = (pkgArray.length > 2) ? pkgArray.slice(1).join('') : [1]
   }
