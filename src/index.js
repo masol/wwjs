@@ -55,6 +55,16 @@ if (!window.$) {
  **/
 
 /**
+暴露在window.Template全局名称空间的[Template](module-wwjs.html#~Template)函数。等同于`wwjs.Template`。
+ * @method Template
+ * @param {string} templateString 符合es6 template literial规范的字符串。
+ * @param {object} [value={}] 在templateString中可以使用的额外变量声明。
+*/
+function Template (templateString, value) {
+  return window.Template.apply(this, arguments)
+}
+
+/**
  暴露在window.EE全局名称空间的事件中心，API文档参考[Nodejs官方文档](https://nodejs.org/api/events.html)，事件列表参考[evt模块](module-utils_evt.html)。
  全局的`EE`对象存在的目的: 当wwjs自身发生错误时，导致wwjs等机制无法工作，EE依然可以响应。
   * @type {object}
@@ -292,7 +302,7 @@ module.exports = {
    * @type {function}
    * @name Template
   **/
-  Template: require('es6-dynamic-template'),
+  Template: Template,
   /**
   UI抽象子模块，提供了对HTML布局的一个抽象假设。可以通过[cfg模块](module-utils_cfg.html)来配置。详细文档查看[utils/ui模块](module-utils_ui.html)
    * @member wwjs

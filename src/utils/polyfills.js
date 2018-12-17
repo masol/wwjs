@@ -37,6 +37,7 @@ const Modernizr = window.Modernizr
 - [WebRTC Peer-to-peer connections](https://caniuse.com/#search=WebRTC%20Peer-to-peer%20connections),如果不支持，需要自行安装[AdapterJS](https://github.com/Temasys/AdapterJS)
 - [Beacon API](https://caniuse.com/#search=Beacon%20API),用于在页面结束前有机会向服务器发送消息，而忽略其回应。
 - [webgl](https://caniuse.com/#search=webgl),如果不支持(只有ie9和ie10不被支持)，可以安装[cwebgl](https://github.com/cimaron/cwebgl)
+- [templatestrings](),提供了`window.pkgs.Template`函数来支持动态模板。如果不支持，自动polyfill本函数，如果支持，使用本地函数[es6-dynamic-template](https://www.npmjs.com/package/es6-dynamic-template)
 - [Web Audio API](https://caniuse.com/#search=Web%20Audio%20API),如果不支持，自行安装[audiolib.js](https://github.com/jussi-kalliokoski/audiolib.js).
 - 图像格式类检查，配合lazyloader,指示请求何种资源：
   - [Webp](https://caniuse.com/#search=WebP%20image%20format),本特性主要用来检查，以明确服务器返回何种格式的图像。配合lazyloader
@@ -82,6 +83,7 @@ promises: true
 raf: true
 requestanimationframe: true
 serviceworker: true
+templatestrings: true
 urlparser: true
 wasm: true
 webaudio: true
@@ -191,6 +193,11 @@ function setup (callback) {
     checkFeature('urlparser', '@/%40webcomponents/url/0.7.1/url.js')
     checkFeature('objectfit', '@/object-fit-images/3.2.4/ofi.min.js')
     checkFeature('history', '@/html5-history-api/4.2.10/history.min.js')
+    checkFeature('templatestrings', '@//es6tpl/1.0.1/es6tpl.min.js', () => {
+      if (Modernizr.templatestrings) {
+        window.Template = require('es6-dynamic-template')
+      }
+    })
     checkFeature('weakmap', '@/weakmap-polyfill/2.0.0/weakmap-polyfill.min.js')
   })
 

@@ -16,7 +16,6 @@ import loadjs from '../utils/loadjs'
 import cfg from '../utils/cfg'
 import str from '../utils/str'
 import vm from '../ko/viewmodel'
-const Template = require('es6-dynamic-template')
 
 /**
 JSON格式的网络命令协议模块。命令协议模块，用于解析可以通过网络传输的可扩展命令。
@@ -35,7 +34,7 @@ JSON格式的网络命令协议模块。命令协议模块，用于解析可以�
 function template (params, refEle) {
   let tstr
   tstr = ($.isArray(params)) ? params.join('') : String(params)
-  return (tstr.indexOf('${') >= 0) ? Template(tstr, vm.get(refEle, 'json')) : tstr
+  return (tstr.indexOf('${') >= 0) ? window.Template(tstr, vm.get(refEle, 'json')) : tstr
 }
 
 function updatelv (params, refEle) {
