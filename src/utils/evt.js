@@ -13,6 +13,8 @@
 'use strict'
 
 import EventEmitter from 'eventemitter3'
+import setup from '../chk'
+import UI from './ui'
 
 const EE = new EventEmitter()
 window.EE = EE
@@ -56,5 +58,25 @@ EE.on('error',function(desc,exobj){
 
 @module utils/evt
 */
+
+/**
+onNodeAdd事件，是对`EE.on('nodeAdd'...)`的一个扩展，如果监听时，事件已经发出，则会将$container的加入事件重新发送一遍，以确保不会遗漏加入事件，用于注册的chk函数。
+@exports utils/evt
+@access public
+@param {function} [cb] 接收onNodeAdd事件的回调函数，参考[chk模块](module-chk.html#~setup).
+@method onNodeAdd
+@return {undefined}
+*/
+
+EE.onNodeAdd = function (cb) {
+  if ($.isFunction(cb)) {
+    EE.on('nodeAdd', cb)
+    if (setup.emitted) {
+      setTimeout(() => {
+        EE.emit('nodeAdd', [UI.$container()[0]])
+      }, 0)
+    }
+  }
+}
 
 export default EE
