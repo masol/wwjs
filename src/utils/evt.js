@@ -13,7 +13,6 @@
 'use strict'
 
 import EventEmitter from 'eventemitter3'
-import setup from '../chk'
 import UI from './ui'
 
 const EE = new EventEmitter()
@@ -48,6 +47,7 @@ window.EE = EE
 - `koprepare` : 第一个参数是检查的元素(只通知根元素)，这是一个同步事件，用于在数据绑定前做处理。参考[ko模块](module-ko.html)
 - `vm.get.invalidPath` : 第一个参数是`pathOrele`。参考[viewModel::get](module-ko_viewmodel.html#~get)
 - `elems.inst` : 回调(ele, inst, reqfullclass)，当一个Dom元素被绑定了wwclass类实例时发出．
+- `wwclass.reg`: 回调(name,clsdef),当一个wwclass元素被注册时，发出事件。
 
 @example
 <script type="script/wwjs">
@@ -71,7 +71,7 @@ onNodeAdd事件，是对`EE.on('nodeAdd'...)`的一个扩展，如果监听时�
 EE.onNodeAdd = function (cb) {
   if ($.isFunction(cb)) {
     EE.on('nodeAdd', cb)
-    if (setup.emitted) {
+    if (EE.alreadyEmitted) {
       setTimeout(() => {
         EE.emit('nodeAdd', [UI.$container()[0]])
       }, 0)

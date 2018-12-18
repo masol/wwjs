@@ -47,10 +47,12 @@
   <!--  -->
 
   <script>
+  wwimport('ready',function(){
     //mocha.checkLeaks();
     mocha.run(function() {
       $('body').append('<div id="test_finished" style="display:none"></div>')
     });
+  })
   </script>
   <script async src="dist/wwjs.min.js"></script>
 </body>

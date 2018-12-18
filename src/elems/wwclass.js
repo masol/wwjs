@@ -461,6 +461,7 @@ class Demo extends wwjs.wwclass {
       return false
     }
     wwclsMap[name] = clsdef
+    EE.emit('wwclass.reg', name, clsdef)
     return true
   }
 
@@ -483,11 +484,46 @@ class Demo extends wwjs.wwclass {
   @static
   @param {string} name 给出需要加载的元素类的名称。
   @param {string} [url] 可选的，给出其加载的url地址。元素上通过属性`[data-classurl]`来指定．
+  @param {number} [delay] 可选的，给出毫秒为单位的延迟加载时间。在延迟时间内，如果有元素注册在这个名称下，则立即返回。延时到达，尚未有元素注册，则开始加载。元素上通过属性`[data-delay-load]`来指定．
   @return {Promise<function>} 返回元素类对象。如果发生错误，则reject。
   **/
-  static get (name, url) {
+  static get (name, url, delay) {
     const nameParts = name.split('@')
     const version = nameParts[1] || false
+    const loadEle = (resolve, reject, name) => {
+      // const bundleName = `_wwcls_${name}@${version || ''}`
+      const bundleName = `_wwcls_${name}`
+      // console.log(bundleName)
+      if (!loadjs.isDefined(bundleName)) {
+        loadjs(loadjs.resolve(url), bundleName)
+      }
+      loadjs.ready(bundleName, {
+        'success': function () {
+          // 执行到这里，wwclsMap[name]的值应该已经被插件改变．
+          // console.log(1)
+          let item = wwclsMap[name]
+          if (item instanceof Promise) {
+            const urlErr = [url]
+            reject(urlErr)
+          } else {
+            loadjs.done(bundleName)
+            resolve(item)
+          }
+        },
+        before: (path, scriptEl) => {
+          scriptEl.crossOrigin = true
+        },
+        'error': function (errFiles) {
+          // console.log(2)
+          wwclass.unreg(name)
+          if (cfg.debug) {
+            console.error(`元素类${name}从${errFiles}加载失败。`)
+          }
+          EE.emit('error', 'wwclass.get', errFiles)
+          reject(errFiles)
+        }
+      })
+    }
     name = nameParts[0]
     // console.log('wwclsMap[name]=', wwclsMap[name])
     if (!wwclsMap[name]) {
@@ -495,38 +531,21 @@ class Demo extends wwjs.wwclass {
         url = `@/@wwclass/${name}/${version || 'latest'}/index.min.js`
       }
       wwclsMap[name] = new Promise((resolve, reject) => {
-        // const bundleName = `_wwcls_${name}@${version || ''}`
-        const bundleName = `_wwcls_${name}`
-        // console.log(bundleName)
-        if (!loadjs.isDefined(bundleName)) {
-          loadjs(loadjs.resolve(url), bundleName)
-        }
-        loadjs.ready(bundleName, {
-          'success': function () {
-            // 执行到这里，wwclsMap[name]的值应该已经被插件改变．
-            // console.log(1)
-            let item = wwclsMap[name]
-            if (item instanceof Promise) {
-              const urlErr = [url]
-              reject(urlErr)
-            } else {
-              loadjs.done(bundleName)
-              resolve(item)
+        if (!isNaN(delay) && delay > 0) {
+          let regHandler = (clsName, clsdef) => {
+            if (clsName === name) {
+              clearTimeout(timeOutHandler)
+              loadEle(resolve, reject, name)
             }
-          },
-          before: (path, scriptEl) => {
-            scriptEl.crossOrigin = true
-          },
-          'error': function (errFiles) {
-            // console.log(2)
-            wwclass.unreg(name)
-            if (cfg.debug) {
-              console.error(`元素类${name}从${errFiles}加载失败。`)
-            }
-            EE.emit('error', 'wwclass.get', errFiles)
-            reject(errFiles)
           }
-        })
+          let timeOutHandler = setTimeout(() => {
+            EE.off('wwclass.reg', regHandler)
+            loadEle(resolve, reject, name)
+          }, delay)
+          EE.on('wwclass.reg', regHandler)
+        } else {
+          loadEle(resolve, reject, name)
+        }
       })
     } else if (version && !(wwclsMap[name] instanceof Promise) && (version !== wwclsMap[name].version)) { // 请求了指定版本．从缓冲中获取．
       EE.emit('warn', 'elems.verMismatch', name, version, wwclsMap[name].version)

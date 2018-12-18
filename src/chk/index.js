@@ -51,7 +51,6 @@ function rafProc (nodelist, evtName) {
   oldRaf.id = requestAnimationFrame(frameProc.bind(null, evtName))
 }
 
-let alreadyEmitted = false
 /**
 本函数首先初始化内建的chker,依次调用下列checker模块的setup:
 - ko
@@ -128,7 +127,7 @@ function setup () {
     // 伪造事件不需要等待下一次绘制(RequestAnimationFrame)
     EE.emit('nodeAdd', [$container[0]])
     // rafProc([$container[0]], 'nodeAdd')
-    alreadyEmitted = true
+    EE.alreadyEmitted = true
   } else {
     if (cfg.debug) {
       console.error('没有获取到有效的$container节点，无法构建Mutation监听')
@@ -137,10 +136,6 @@ function setup () {
   }
 
   // document.getElementById('PreLoaderBar').style.display = 'none'
-}
-
-setup.emitted = function () {
-  return alreadyEmitted
 }
 
 export default setup

@@ -14,7 +14,6 @@
 
 import wwcls from './wwclass'
 import './view'
-import './form'
 import cfg from '../utils/cfg'
 
 const wwclass = wwcls.wwclass
@@ -30,7 +29,8 @@ wwjs的元素扩展模块，内建推荐方法是扩展[wwclass](wwclass.html)�
 
 function construCls (ele, cls) {
   // console.log('in construCls,ele=', ele)
-  Promise.resolve(wwclass.get(cls, ele.getAttribute('data-classurl'))).then((Cls) => {
+  let delayload = parseInt(ele.getAttribute('data-delay-load') || 0)
+  Promise.resolve(wwclass.get(cls, ele.getAttribute('data-classurl'), delayload)).then((Cls) => {
     Promise.resolve(new Cls(ele)).then((inst) => {
       EE.emit('elems.inst', ele, inst, cls)
       if (!inst._rid && typeof (inst.doRender) === 'function') {
