@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="1.9.0"></a>
+# [1.9.0](http://wwjs@scm.spolo.org:/home/source/wwjs/wware/compare/v1.8.0...v1.9.0) (2018-12-18)
+
+
+### Features
+
+* evt中添加onNodeAdd函数，以方便chk的扩展。 ([4ccf379](http://wwjs@scm.spolo.org:/home/source/wwjs/wware/commits/4ccf379))
+* 元素加载添加了data-delay-load属性，以方便本地加载的元素扩展。 ([a51a5ed](http://wwjs@scm.spolo.org:/home/source/wwjs/wware/commits/a51a5ed))
+* 命令集支持了str.lib格式的缩写. ([9d8449a](http://wwjs@scm.spolo.org:/home/source/wwjs/wware/commits/9d8449a))
+* 基于尺寸考虑，使用cash-dom替换jquery. ([dbdcb2c](http://wwjs@scm.spolo.org:/home/source/wwjs/wware/commits/dbdcb2c))
+* 支持了window.Template函数，在不支持es6 template literial的浏览器下，自动加载编译器。 ([dcd9fe7](http://wwjs@scm.spolo.org:/home/source/wwjs/wware/commits/dcd9fe7))
+
+
+
 <a name="1.8.0"></a>
 # 1.8.0 (2018-12-05)
 
