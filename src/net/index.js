@@ -23,20 +23,6 @@ JSON格式的网络命令协议模块。命令协议模块，用于解析可以�
 @module net
 */
 
-/**
-@exports net
-@method template
-@desc 在指定元素的名称空间下展开模板。
-@param {String} params 需要展开的字符串模板。这个字符串模板的格式遵守es6 template literial规范。额外变量是refEle所指定的viewModel的变量，如果未指定，则为全局空间。
-@param {Element} [refEle=undefined] 用于确定名称空间，进而确定viewModel的元素。
-@return {String} 展开之后的模板元素。
-*/
-function template (params, refEle) {
-  let tstr
-  tstr = ($.isArray(params)) ? params.join('') : String(params)
-  return (tstr.indexOf('${') >= 0) ? window.Template(tstr, vm.get(refEle, 'json')) : tstr
-}
-
 function updatelv (params, refEle) {
   if (!$.isArray(params) || params.length < 1) {
     return false
@@ -77,7 +63,7 @@ function evalStr (params, refEle) {
 }
 
 function open (params, refEle) {
-  let newURL = template(params, refEle)
+  let newURL = wwjs.ns.template(params, refEle)
   if (newURL && window.location.href !== newURL) {
     window.location.href = newURL
   } else {
@@ -381,7 +367,6 @@ function run (cmd, refEle) {
 }
 
 export default {
-  template: template,
   cmd: getCmd,
   reg: reg,
   run: run
