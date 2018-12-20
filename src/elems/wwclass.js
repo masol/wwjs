@@ -242,6 +242,8 @@ wwclass类提供了如下修饰符(使用派生类不可见):
 - [this.watchRm(...)](#~watchRm)
 
 以及如下静态方法(派生类不可见):
+- [wwjs.wwclass.apply](#.apply)
+- [wwjs.wwclass.call](#.call)
 - [wwjs.wwclass.get](#.get)
 - [wwjs.wwclass.reg](#.reg)
 - [wwjs.wwclass.unreg](#.unreg)
@@ -554,9 +556,52 @@ class Demo extends wwjs.wwclass {
   }
 
   /** 从一个Dom元素获取其对应的instance.
+  @function getInstance
+  @memberof wwclass
+  @static
+  @param {Element} ele 给出一个DOM元素对象，返回其绑定的元素实例。
+  @return {null|object} 如果DOM元素有对应的扩展元素实例，则返回此实例，否则返回空。
   **/
   static getInstance (ele) {
     return getE2Iwmap().get(ele)
+  }
+
+  /**
+  调用DOM元素绑定实例的一个方法。与Function对象的[apply](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/apply)方法一致，只不过第一个参数为DOM元素。
+  @function apply
+  @memberof wwclass
+  @static
+  @param {Element} ele 需要调用的DOM元素对象。
+  @param {string} name 需要调用的函数名。
+  @param {Array} [params=[]] 参数数组
+  @return {object} 返回一个对象,{suc:true|false,result: any}
+  **/
+  static apply (ele, name, params) {
+    const inst = wwclass.getInstance(ele)
+    let ret = { suc: false, result: null }
+    if (typeof inst === 'object' && typeof inst.name === 'function') {
+      ret.result = inst.name.apply(inst, params || [])
+      ret.suc = true
+    }
+    return ret
+  }
+
+  /**
+  调用DOM元素绑定实例的一个方法。与Function对象的[call](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/call)方法一致，只不过第一个参数为DOM元素。
+  @function call
+  @memberof wwclass
+  @static
+  @param {Element} ele 需要调用的DOM元素对象。
+  @param {string} name 需要调用的函数名。
+  @param {...any} [varArgs] 任意多的其它参数。
+  @return {object} 返回一个对象,{suc:true|false,result: any}
+  **/
+  static call (ele, name, varArgs) {
+    let params = []
+    if (arguments.length > 2) {
+      params = Array.prototype.slice.call(arguments, 2)
+    }
+    return wwclass.apply(ele, name, params)
   }
 
   /**
