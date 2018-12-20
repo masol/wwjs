@@ -108,8 +108,10 @@
   },
   "dependencies": {},
   "files": [
+    "CHANGELOG.md",
     "dist/*",
-    "CHANGELOG.md"
+    "index.html",
+    "test/*"
   ],
   "license": "WWARE LICENSE",
   "homepage": "https://www.wware.org",
