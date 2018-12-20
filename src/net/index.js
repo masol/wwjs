@@ -16,6 +16,7 @@ import loadjs from '../utils/loadjs'
 import cfg from '../utils/cfg'
 import str from '../utils/str'
 import vm from '../ko/viewmodel'
+import trans from './trans'
 
 /**
 JSON格式的网络命令协议模块。命令协议模块，用于解析可以通过网络传输的可扩展命令。
@@ -344,30 +345,33 @@ params: []
 @param {Element} [refEle=undefined] 触发此命令的元素。
 @return {any} 如果执行成功，返回值由处理器确定，否则返回false.
 */
-function run (cmd, refEle) {
+function run (cmd, refEle, transName) {
   let name, params
-  if (typeof cmd === 'object') {
-    name = cmd.command
-    params = cmd.params
-  } else if (window.$.isArray(cmd) && cmd.length > 0) {
-    name = cmd[0]
-    if (cmd.length > 1) {
-      params = cmd.slice(1)
+  return Promise.resolve(trans.tran(transName, cmd)).then((cmd) => {
+    if (typeof cmd === 'object') {
+      name = cmd.command
+      params = cmd.params
+    } else if (window.$.isArray(cmd) && cmd.length > 0) {
+      name = cmd[0]
+      if (cmd.length > 1) {
+        params = cmd.slice(1)
+      }
     }
-  }
-  if (!name) {
-    return false
-  }
-  return Promise.resolve(getCmd(name)).then((func) => {
-    if (typeof func === 'function') {
-      return func(params, refEle)
+    if (!name) {
+      return false
     }
-    return false
+    return Promise.resolve(getCmd(name)).then((func) => {
+      if (typeof func === 'function') {
+        return func(params, refEle)
+      }
+      return false
+    })
   })
 }
 
 export default {
   cmd: getCmd,
   reg: reg,
-  run: run
+  run: run,
+  trans: trans
 }
