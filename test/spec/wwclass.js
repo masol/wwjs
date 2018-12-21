@@ -400,6 +400,76 @@ describe('wwclass元素机制', function () {
     }, 0)
   })
 
+  it('method非默认值才触发，并且默认同步', function (done) {
+    let t0, t1, t2
+    let callCount = 0
+    let submit2Count = 0
+    let submit3Count = 0
+    let pThis = this
+    class Test10 extends wwjs.wwclass {
+      constructor (ele) {
+        super(ele)
+        this.method('submit')
+        this.method('submit2')
+        this.method('submit3', { async: true })
+      }
+      submit2 (value) {
+        submit2Count++
+        // console.log(value)
+      }
+      submit3 (value) {
+        submit3Count++
+        return Promise.delay(100).then(() => {
+          if (submit3Count === 10) {
+            t2 = performance.now()
+          }
+        })
+      }
+      submit (value) {
+        callCount++
+        // console.log(`call into submit:${value},${callCount}`)
+        return Promise.delay(100).then(() => {
+          if (callCount === 10) {
+            t1 = performance.now()
+            // console.log(Math.abs(t1 - t0))
+            chai.expect(Math.abs(t1 - t0)).to.be.within(900, 1100, 'submit不是顺序执行的？')
+            chai.expect(submit2Count).to.be.equal(10, 'submit2没有调用10次？')
+            chai.expect(submit3Count).to.be.equal(10, 'submit2没有调用10次？')
+            pThis._runnable.title = `method非默认值才触发，10次100ms函数调用,同步执行时间${Math.abs(t1 - t0)},异步执行时间${Math.abs(t2 - t0)}`
+            chai.expect($('#wwTest10').attr('data-call-submit2')).to.be.equal('', '调用结束后，属性值没有改为默认值?')
+            setTimeout(() => {
+              // console.log('done called')
+              done()
+            }, 0)
+          }
+        })
+      }
+    }
+    wwjs.wwclass.reg('Test10', Test10)
+
+    setTimeout(() => {
+      wwjs.ui.$container().append(`<div id="wwTest10" data-wwclass="Test10" data-bind='attr : {"data-call-submit" : test10,"data-call-submit2" : testMethod1,"data-call-submit3" : testMethod2}' data-bindvar='{"test10":"","testMethod1":"","testMethod2":""}'></div>`)
+    }, 0)
+
+    setTimeout(() => {
+      chai.expect(callCount).to.be.equal(0, '默认值触发了函数调用？')
+      for (let i = 0; i < 10; i++) {
+        // console.log(wwjs.vm.get())
+        setTimeout(() => {
+          wwjs.vm.get().test10('true' + i)
+          wwjs.vm.get().testMethod2('true' + i)
+          let testMethod1 = wwjs.vm.get().testMethod1
+          if (i === 0) {
+            // console.log('testMethod1=', testMethod1)
+            testMethod1.extend({ notify: 'always' })
+          }
+          testMethod1('haha')
+        }, 0)
+      }
+      t0 = performance.now()
+    }, 20)
+  }).timeout(5000)
+
   it('析构函数触发', function (done) {
     class Test11 extends wwjs.wwclass {
       static version = '1.2.3'

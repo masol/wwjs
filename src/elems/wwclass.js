@@ -14,7 +14,9 @@
 import $ from 'jquery'
 import loadjs from '../utils/loadjs'
 import cfg from '../utils/cfg'
+import json from '../utils/json'
 const hyper = require('hyperhtml/umd')
+const callPrefix = 'data-call-'
 
 // 获取一个函数的名称。inspired from https://gist.github.com/dfkaye/6384439
 // 又是因为IE捣乱，废弃此特性支持．
@@ -83,6 +85,85 @@ function addTreeMonitor (isAdd, subtree, selector, handleName, nodeType, render)
   monitor(self, 'childList', subType)
 }
 
+function callMethod (self, name) {
+  const updateRes = (info, mid) => {
+    info = String(info || '')
+    if (info.length > 0 && self.$ele) {
+      const infoName = `data-${mid}-${name}`
+      console.log(self.$ele)
+      self.$ele.attr(infoName, info)
+      self.$ele.trigger(ko.attrChanged, infoName)
+    }
+  }
+
+  const opt = self._mut.methods[name]
+  let err = ''
+  if (typeof opt === 'object' && $.isFunction(self[name])) {
+    const func = self[name]
+    const defValue = opt.defValue || ''
+    const attrName = `${callPrefix}${name}`
+    const attrValue = self.$ele.attr(attrName)
+    if (defValue === attrValue) { // 默认值，不触发函数调用，直接返回.
+      return
+    }
+    let param = json.parse(attrValue)
+    if (param.error) {
+      param = attrValue
+    } else {
+      param = param.value
+    }
+    if (!opt.noParamChk) { // 需要检查参数数量。
+      let len = 1
+      if ($.isArray(param)) {
+        len = param.length
+      }
+      if (func.length > len) {
+        err = `invalidParameter:${name},except${func.length},given ${len}`
+      }
+    }
+
+    if (err.length === 0) { // 一切正常，执行函数。
+      if (!$.isArray(param)) {
+        param = [param]
+      }
+      const chkCacheReq = () => {
+        if (self.$ele) { // 尚未析构。
+          opt.req = opt.req || []
+          if (opt.req.length > 0) {
+            let reqParam = opt.req.shift()
+            callMethodImpl(reqParam)
+          } else { // 将属性更新为默认值，以方便下次调用。
+            self.$ele.attr(attrName, defValue)
+          }
+        }
+      }
+      const callMethodImpl = (param) => {
+        opt.result = Promise.resolve(func.apply(self, param)).then((result) => {
+          updateRes(result, 'x')
+          opt.result = undefined
+          chkCacheReq()
+        }).catch((errObj) => {
+          err = `runtimeError:${errObj}`
+          updateRes(err, 'e')
+          err = ''
+          chkCacheReq()
+        })
+      }
+      if (!opt.async && opt.result) { // 同步并且已经有调用执行中
+        opt.req = opt.req || []
+        opt.req.push(param)
+      } else { // 异步或者没有调用执行中.
+        callMethodImpl(param)
+      }
+    }
+  } else {
+    err = `invalidMethod:${name}`
+  }
+
+  updateRes(err, 'e')
+  err = ''
+}
+
 function check (mutations) {
   let self = this
   // console.log('enter mutation callback')
@@ -111,6 +192,8 @@ function check (mutations) {
         // console.log('propName=', propName)
         if (propName) {
           self.props[propName] = self.$ele.attr(attrName)
+        } else if (attrName.startsWith(callPrefix)) {
+          callMethod(self, attrName.substr(callPrefix.length))
         }
       }
     }
@@ -120,6 +203,7 @@ function check (mutations) {
 function monitor (self, type, subType) {
   self._mut = self._mut || {}
   self._mut.attr = self._mut.attr || {}
+  self._mut.methods = self._mut.methods || {}
   self._mut.config = self._mut.config || {}
   // 尚未开始监听此类型．添加监听.
   if (!self._mut.config[type] || (subType && !self._mut.config[subType])) {
@@ -237,6 +321,7 @@ wwclass类提供了如下修饰符(使用派生类不可见):
 - [@wwjs.wwclass.readonly](#.readonly)
 
 以及如下类修改器(在构造函数中使用)
+- [this.method(...)](#~method)
 - [this.watch(...)](#~watch)
 - [this.watchAdd(...)](#~watchAdd)
 - [this.watchRm(...)](#~watchRm)
@@ -328,6 +413,48 @@ class Demo extends wwjs.wwclass {
     self._mut.attr[attrName] = propName
     // 必须在defineProperty后调用．否则回调里访问self.props会出错．先写入初始的attr值.updateProp中会判定新旧值是否一致，因此这里不判定．
     updateProp(self, self.$ele.attr(attrName), attrName, propName, methodName, options)
+  }
+
+  /**
+  <strong><font color="green">modifier</font></strong>: 类修改器,为实例添加可以通过KO绑定来调用的方法。方法调用属性的值变动时，不会反向更新KO;DOM属性变化为非默认值则会触发函数调用。
+
+  函数调用通过三个配对属性来完成：
+  - `data-call-${函数名}`: 调用入口，值如果是一个JSON，则解析之后当作参数传入，否则当作字符串传入函数。这个属性在函数内部变化，不会更新绑定的KO变量，请内部不要更新此属性。**函数执行完毕之后，本属性的值被设置到默认值**,但是这个变动不会触发KO变量的同步。因此，下次直接改动KO变量即可再次调用函数。**额外注意，由于KO默认只有值变化才会触发通知，如果异步调用每次值都一致，需要设置对应绑定变量的通知机制**,如下代码:`vm.get().XXXX.extend({notify: 'always'});`或者`vm.get().XXXX.valueHasMutated()`。更多信息，参考[ko extender](https://knockoutjs.com/documentation/extenders.html)
+  - `data-x-${函数名}`: 函数的返回值。这个属性，无论KO还是DOM变动不会触发内部响应，DOM变动也不会触发KO同步，只有内部返回值才会触发KO绑定更新。
+  - `data-e-${函数名}`: 异常信息，如果函数执行中发生任何异常，则本属性被设置，以暴露异常信息。其更新规则与`data-x-${函数名}`相同，只有函数执行会自动更新KO绑定属性。DOM更新不会触发KO属性变动。
+  - 额外支持一个`data-call`属性，与`data-call-${函数名}`的区别是，必须传入一个数组，其中第一个参数为函数名。**尚未支持，有需要发请求**
+
+  **注意事项:**
+  - 为了防止初始值触发函数调用，函数参数必须有默认值来区分是否是有效值，以防止初始化时默认调用一次，默认的默认值是空字符串`''`，可以通过option来改变。
+  - 绑定方式的函数调用，并未支持sequence，因此多次并行调用无法区别返回值是哪个调用触发的。因此默认实现是同步机制，换言之，第二个调用一定会等地一个调用结束才会进行。为了改变这一特性，可以使用`async`属性来设置，但是此时,
+    - 如果需要返回值，请自行实现一个sequence机制来区别返回值属于哪次调用。
+    - 如果不需要返回值，可以安全忽略本注意事项。
+
+  @function method
+  @memberof wwclass
+  @param {string} name 函数名，必须在类中有定义。
+  @param {object} [options={noParamChk=false,defValue="",async="false"}] 配置项，含义如下:
+  - noParamChk: 用于设置是否不检查传入参数的数量与函数配对。
+  - defValue: 默认值，如果传入的值是默认值，不会触发函数调用。
+  - async: 是否支持异步调用，也就是多个调用同时执行。默认不支持，多次调用会依次执行完毕。
+  @inner
+  @access private
+  @example
+class Demo extends wwjs.wwclass {
+  constructor(ele) {
+    super(ele)
+    this.method('submit')
+  }
+  submit(value){
+  }
+}
+  **/
+  method (name, options) {
+    options = options || {}
+    let self = this
+    self._p = self._p || {}
+    monitor(self, 'attributes')
+    self._mut.methods[name] = options
   }
 
   /**
