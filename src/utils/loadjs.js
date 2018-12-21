@@ -66,48 +66,72 @@ function alldone (deps) {
 
 loadjs.depDone = alldone
 
+function defaultBefore (path, scriptEl) {
+  // debugger
+  scriptEl.crossOrigin = 'anonymous'
+  scriptEl.defer = 'defer'
+}
+
 /**
 请使用`loadjs.load()`而不是`loadjs()`，这会提供如下两个特征:
-- 自动将@开头的路径替换为`cfg.libbase`的能力。
-- 自动添加`scriptEl.crossOrigin = true`以允许跨域访问。
+- 自动resolve所有依赖库。
+- 为依赖库添加bundlename以方便bundle复用: bundle规则由参数`bundleTpl`决定。
+- 自动添加`scriptEl.crossOrigin = 'anonymous'`以允许跨域访问。
 @exports utils/loadjs
 @method load
-@param {string|array} deps bundle依赖库。
-@param {string} [bundleName=null] 定义一个bundleName,以方便后续`ready`使用。
-@param {function|object} [options] 加载成功的回调函数或者更详细的加载定义对象。
+@param {string|array} deps 依赖库的路径，这里只能使用URL，不能使用bundleName。
+@param {function|object} [options] 加载成功的回调函数或者更详细的加载定义对象。如果是对象，格式如下:
+{
+'success' : Function
+'error' : Function
+'before' : Function // 如果未指定，自动添加`scriptEl.crossOrigin = 'anonymous'`的函数。如果指定，不再添加。
+'bundleTpl' : String //bundleName的格式，默认是每个库没有resolve之前的名字:`${name}`
+}
 @return {undefined}
 */
-loadjs.load = function (deps, bundleName, options) {
-  deps = resolve(deps)
-  let opt
-  if (typeof (bundleName) === 'object') {
-    opt = bundleName
-  } else if (typeof (options) === 'object') {
-    opt = options
+loadjs.load = function (deps, options) {
+  if (!$.isArray(deps)) {
+    deps = [deps]
   }
-  if (!opt) {
-    const wrapOpt = (param) => {
-      if (typeof (param) === 'function') {
-        return {
-          success: param
-        }
-      }
-      return null
-    }
-    opt = wrapOpt(bundleName)
-    if (opt) bundleName = opt
-    if (!opt) {
-      opt = wrapOpt(options)
-      if (opt) options = opt
+  let before
+  if (!$.isFunction(options)) {
+    options = options || {}
+    if (!options.before) {
+      before = defaultBefore
     }
   }
-  if (opt && !opt.before) {
-    opt.before = (path, scriptEl) => {
-      scriptEl.crossOrigin = true
+
+  const bundleNameArray = []
+  for (let i = 0; i < deps.length; i++) {
+    const url = deps[i]
+    const bundleTpl = options.bundleTpl
+    const bundleName = bundleTpl ? window.Template(bundleTpl, { name: url }) : url
+    bundleNameArray.push(bundleName)
+    if (!loadjs.isDefined(bundleName)) {
+      loadjs(loadjs.resolve(url), bundleName, {
+        before: before
+      })
     }
   }
-  console.log('in loadjs.load,arguments=', arguments)
-  return loadjs(deps, bundleName, options)
+  return loadjs.ready(bundleNameArray, options)
+}
+
+/**
+给出类似npm包格式的字符串，拼接出完整url。拼接后的格式为:
+`@/${prefix}/${name}/${version}/${fname}`
+@exports utils/loadjs
+@method url
+@param {String} name  类似npm包格式的字符串。如果未指定版本号，默认为`latest`
+@param {String} [prefix='@wwclass'] 包前缀，用于支持多个包类型。
+@param {String} [fname='index.min.js'] 文件名。
+@return {String} 拼接后的完整URL，带有`@`前缀。
+**/
+loadjs.url = function (name, prefix, fname) {
+  const nameParts = name.split('@')
+  const version = nameParts[1] || false
+  name = nameParts[0]
+  // console.log('wwclsMap[name]=', wwclsMap[name])
+  return `@/${prefix || '@wwclass'}/${name}/${version || 'latest'}/${fname || 'index.min.js'}`
 }
 
 export default loadjs

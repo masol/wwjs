@@ -216,7 +216,7 @@ function showMessage (message) {
     //   }
     // })
     return function ($ele, info, className, otherConfig) {
-      loadjs.load(['notify', 'notify_bootstrap'], function () {
+      loadjs.load(['notify', 'notify_bootstrap'], () => {
         // debugger;
         init()
         processNotify($ele, info, className, otherConfig)

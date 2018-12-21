@@ -413,19 +413,8 @@ class Demo extends wwjs.wwclass {
       let self = this
       // console.log('enter wrap function....type=', type, 'urlArray=', urlArray, 'Target=', Target)
       return new Promise(function (resolve, reject) {
-        let resolveURLArray = loadjs.resolve(urlArray)
-        let i
-        if (!$.isArray(urlArray)) {
-          urlArray = [urlArray]
-        }
-        for (i = 0; i < urlArray.length; i++) {
-          if (!loadjs.isDefined(urlArray[i])) {
-            loadjs(resolveURLArray[i], urlArray[i])
-          }
-        }
-        loadjs.ready(urlArray, {
-          success: function () {
-            // console.log('load ok')
+        loadjs.load(urlArray, {
+          'success': () => {
             resolve(method.apply(self, args))
           },
           error: function (errFiles) {
@@ -513,7 +502,7 @@ class Demo extends wwjs.wwclass {
           }
         },
         before: (path, scriptEl) => {
-          scriptEl.crossOrigin = true
+          scriptEl.crossOrigin = 'anonymous'
         },
         'error': function (errFiles) {
           // console.log(2)
@@ -537,6 +526,7 @@ class Demo extends wwjs.wwclass {
           let regHandler = (clsName, clsdef) => {
             if (clsName === name) {
               clearTimeout(timeOutHandler)
+              EE.off('wwclass.reg', regHandler)
               loadEle(resolve, reject, name)
             }
           }
@@ -568,7 +558,7 @@ class Demo extends wwjs.wwclass {
 
   /**
   调用DOM元素绑定实例的一个方法。与Function对象的[apply](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/apply)方法一致，只不过第一个参数为DOM元素。
-  @function apply
+  @function applyMethod
   @memberof wwclass
   @static
   @param {Element} ele 需要调用的DOM元素对象。
@@ -576,7 +566,7 @@ class Demo extends wwjs.wwclass {
   @param {Array} [params=[]] 参数数组
   @return {object} 返回一个对象,{suc:true|false,result: any}
   **/
-  static apply (ele, name, params) {
+  static applyMethod (ele, name, params) {
     const inst = wwclass.getInstance(ele)
     let ret = { suc: false, result: null }
     if (typeof inst === 'object' && typeof inst.name === 'function') {
@@ -588,7 +578,7 @@ class Demo extends wwjs.wwclass {
 
   /**
   调用DOM元素绑定实例的一个方法。与Function对象的[call](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/call)方法一致，只不过第一个参数为DOM元素。
-  @function call
+  @function callMethod
   @memberof wwclass
   @static
   @param {Element} ele 需要调用的DOM元素对象。
@@ -596,7 +586,7 @@ class Demo extends wwjs.wwclass {
   @param {...any} [varArgs] 任意多的其它参数。
   @return {object} 返回一个对象,{suc:true|false,result: any}
   **/
-  static call (ele, name, varArgs) {
+  static callMethod (ele, name, varArgs) {
     let params = []
     if (arguments.length > 2) {
       params = Array.prototype.slice.call(arguments, 2)
