@@ -263,8 +263,8 @@ let cmds = null
 @desc 获取一个命令集对象。
 @param {String} name  命令集的名称。可能是如下三种:
  - 内建命令: 此时命令集中的命令就一个，因此返回的是function对象。
- - 以@开头，默认从libs服务器加载处理器，并以?分割，?之后的部分识别为命令集中需要执行的命令。返回object或function
- - 一个url，以?分割，?之后的部分识别为命令集中需要执行的命令。返回object或function
+ - 以@开头，默认从libs服务器加载处理器，并以#分割，#之后的部分识别为命令集中需要执行的命令。返回object或function
+ - 一个url，以#分割，#之后的部分识别为命令集中需要执行的命令。返回object或function
 @param {boolean} [noAutoLoad=false] 不自动加载，默认是false(自动加载)
 @return {Promise<function|object>} 最终解析为加载完毕的处理器——注意处理器可能是对象。
 */
@@ -285,7 +285,7 @@ function getCmd (name, noAutoLoad) {
     reg('open', open)
     reg('vmArrFuc', vmArrFuc)
   }
-  const pkgArray = name.split('?')
+  const pkgArray = name.split('#')
   let url, subName
   if (pkgArray.length === 2) {
     url = pkgArray[0]
@@ -297,11 +297,8 @@ function getCmd (name, noAutoLoad) {
   let ret = internalGetCmd(url, subName)
   if (!ret && !noAutoLoad) {
   // try loading functor.
-    if (!loadjs.isDefined(url)) {
-      loadjs(loadjs.resolve(url), url)
-    }
     return new Promise((resolve, reject) => {
-      loadjs.ready(url, {
+      loadjs.load(url, {
         success: function () {
           ret = internalGetCmd(url, subName)
           resolve(ret)

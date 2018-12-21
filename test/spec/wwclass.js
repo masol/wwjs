@@ -82,16 +82,18 @@ describe('wwclass元素机制', function () {
   })
 
   it('元素动态加载解析正确，并且同时多个元素请求只会加载一次', function (done) {
+    const eleName = 'TestNotExist@4.1.2'
     EE.on('error', function (type, errFiles) {
+      const url = wwjs.loadjs.url(eleName)
       if (type === 'wwclass.get') {
         chai.expect(errFiles.length).to.be.equal(1, '元素被加载了多次？')
-        chai.expect(errFiles[0]).to.be.equal(`_wwcls_TestNotExist`, '元素bundleName规则有误？')
+        chai.expect(errFiles[0]).to.be.equal(`_wwcls_${url}`, '元素bundleName规则有误？')
         chai.expect($(`head > script[src*='/@wwclass/TestNotExist/4.1.2/index.min.js']`).length).to.be.equal(1, 'script标签插入错误？')
         done()
       }
     })
     setTimeout(() => {
-      wwjs.ui.$container().append(`<div data-wwclass="TestNotExist@4.1.2"></div><div data-wwclass="TestNotExist@4.1.2"></div>`)
+      wwjs.ui.$container().append(`<div data-wwclass="${eleName}"></div><div data-wwclass="${eleName}"></div>`)
       // t0 = performance.now()
     }, 0)
   })

@@ -133,7 +133,7 @@ function wwimport (id, cb) {
   } else if (id === 'ready') {
     ready(cb)
   } else {
-    return loadjs(id, {
+    return loadjs.load(id, {
       success: function () {
         let args = Array.prototype.slice(arguments, 0)
         args.unshift(null)

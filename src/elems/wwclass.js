@@ -483,12 +483,9 @@ class Demo extends wwjs.wwclass {
     const version = nameParts[1] || false
     const loadEle = (resolve, reject, name) => {
       // const bundleName = `_wwcls_${name}@${version || ''}`
-      const bundleName = `_wwcls_${name}`
-      // console.log(bundleName)
-      if (!loadjs.isDefined(bundleName)) {
-        loadjs(loadjs.resolve(url), bundleName)
-      }
-      loadjs.ready(bundleName, {
+      loadjs.load(url, {
+        /* eslint-disable-next-line */
+        bundleTpl: '_wwcls_${name}',
         'success': function () {
           // 执行到这里，wwclsMap[name]的值应该已经被插件改变．
           // console.log(1)
@@ -497,12 +494,9 @@ class Demo extends wwjs.wwclass {
             const urlErr = [url]
             reject(urlErr)
           } else {
-            loadjs.done(bundleName)
+            // loadjs.done(bundleName)
             resolve(item)
           }
-        },
-        before: (path, scriptEl) => {
-          scriptEl.crossOrigin = 'anonymous'
         },
         'error': function (errFiles) {
           // console.log(2)
