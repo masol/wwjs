@@ -419,7 +419,7 @@ class Demo extends wwjs.wwclass {
   <strong><font color="green">modifier</font></strong>: 类修改器,为实例添加可以通过KO绑定来调用的方法。方法调用属性的值变动时，不会反向更新KO;DOM属性变化为非默认值则会触发函数调用。
 
   函数调用通过三个配对属性来完成：
-  - `data-call-${函数名}`: 调用入口，值如果是一个JSON，则解析之后当作参数传入，否则当作字符串传入函数。这个属性在函数内部变化，不会更新绑定的KO变量，请内部不要更新此属性。**函数执行完毕之后，本属性的值被设置到默认值**,但是这个变动不会触发KO变量的同步。因此，下次直接改动KO变量即可再次调用函数。**额外注意，由于KO默认只有值变化才会触发通知，如果异步调用每次值都一致，需要设置对应绑定变量的通知机制**,如下代码:`vm.get().XXXX.extend({notify: 'always'});`或者`vm.get().XXXX.valueHasMutated()`。更多信息，参考[ko extender](https://knockoutjs.com/documentation/extenders.html)
+  - `data-call-${函数名}`: 调用入口，值如果是一个JSON，则解析之后当作参数传入，否则当作字符串传入函数。这个属性在函数内部变化，不会更新绑定的KO变量，请内部不要更新此属性。**函数执行完毕之后，本属性的值被设置到默认值**,但是这个变动不会触发KO变量的同步。因此，下次直接改动KO变量即可再次调用函数。**额外注意，由于KO默认只有值变化才会触发通知，如果异步调用每次值都一致，需要设置对应绑定变量的通知机制**,如下代码:`vm.get().XXXX.extend({notify: 'always'});`(关闭使用`{notify: 'change'}`)。更多信息，参考[ko extender](https://knockoutjs.com/documentation/extenders.html)
   - `data-x-${函数名}`: 函数的返回值。这个属性，无论KO还是DOM变动不会触发内部响应，DOM变动也不会触发KO同步，只有内部返回值才会触发KO绑定更新。
   - `data-e-${函数名}`: 异常信息，如果函数执行中发生任何异常，则本属性被设置，以暴露异常信息。其更新规则与`data-x-${函数名}`相同，只有函数执行会自动更新KO绑定属性。DOM更新不会触发KO属性变动。
   - 额外支持一个`data-call`属性，与`data-call-${函数名}`的区别是，必须传入一个数组，其中第一个参数为函数名。**尚未支持，有需要发请求**
