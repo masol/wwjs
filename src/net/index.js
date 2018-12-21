@@ -23,6 +23,7 @@ JSON格式的网络命令协议模块。命令协议模块，用于解析可以�
 @module net
 */
 
+// @TODO 第二个path参数取消掉，改为extender。
 function updatelv (params, refEle) {
   if (!$.isArray(params) || params.length < 1) {
     return false
