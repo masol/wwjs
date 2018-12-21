@@ -19,11 +19,28 @@ import trans from './trans'
 
 /**
 JSON格式的网络命令协议模块。命令协议模块，用于解析可以通过网络传输的可扩展命令。
-其中默认格式采用JSON，其它格式最终都转为JSON格式来执行。因此，netProtocal模块的默认实现采用了JSON格式。
+其中默认格式采用JSON，其它格式最终都转为JSON格式来执行。因此，netProtocal模块的默认实现采用了JSON格式。支持的内建命令如下:
+- [eval](#.eval)
+- [open](#.open)
+- [updatelv](#.updatelv)
+- [vmArrFuc](#.vmArrFuc)
 @module net
 */
 
-// @TODO 第二个path参数取消掉，改为extender。
+/**
+<strong><font color="green">内建命令</font></strong>:用于更新viewModel的值。
+@exports net
+@method updatelv
+@static
+@param {array} params 数组至少一项，最多三项，含义如下：
+- 第一个是当前viewModel对应的JSON对象。必须是一个对象。
+- 如果给出非空字符串的第二个参数，则指示了更新当前名称空间下指定路径，并且支持几个前缀:
+ - $root: 指示从根viewModel开始，而不是当前viewModel。
+ - $parent: 指示从父名称空间开始，而不是当前viewModel。
+- 如果给出第三个参数，则指示了当前对应更新的extender.
+@param {Element} [refEle=$container] 指示本次更新的DOM元素，通常是发起调用的元素自身。如果未指定，从全局viewModel开始。
+@return {boolean|Promise<boolean>} 返回是否更新成功。如果extender需要从网络加载，则返回Promise。
+*/
 function updatelv (params, refEle) {
   if (!$.isArray(params) || params.length < 1) {
     return false
@@ -50,6 +67,16 @@ function updatelv (params, refEle) {
   }
 }
 
+/**
+<strong><font color="green">内建命令</font></strong>:用于执行任意脚本，并添加vm局部变量。
+@exports net
+@method eval
+@static
+@param {array} params 数组至少一项，为需要eval的值。
+@param {Element} [refEle=$container] eval时，VM的局部变量由此DOM元素决定。
+@exception {net.eval} 如果发生异常，发出error事件，参考[evt模块](module-utils_evt.html)
+@return {any} 返回执行结果。
+*/
 function evalStr (params, refEle) {
   try {
     /* eslint-disable */
@@ -63,6 +90,23 @@ function evalStr (params, refEle) {
   }
 }
 
+/**
+<strong><font color="green">内建命令</font></strong>:用于打开指定页面。
+@exports net
+@method open
+@static
+@param {array} params 数组至少一项，最多三项:
+- 第一项为URL。如果未给出，默认为`about:blank`。如果url等于当前url,则刷新本页面。
+- 第二项为target,如下几个值中的一个(默认为_self):
+ - **_self**: 目标文档载入并显示在相同的框架或者窗口中作为源文档
+ - _blank: 在新窗口中打开被链接文档。
+ - _parent: 在父框架集中打开被链接文档。
+ - _top: 在整个窗口中打开被链接文档。
+ - framename: 在指定的框架中打开被链接文档。如果framename指示了一个view,则更新此view的src属性.
+- 第三项如果给出，并且第一项未给出，则被当作HTML内容注入到targt中去.
+@param {Element} [refEle=$container] 寻找name时，名称空间范围。
+@return {boolean} 返回处理结果。
+*/
 function open (params, refEle) {
   let newURL = wwjs.ns.template(params, refEle)
   if (newURL && window.location.href !== newURL) {
@@ -72,6 +116,15 @@ function open (params, refEle) {
   }
 }
 
+/**
+<strong><font color="green">内建命令</font></strong>:执行数组更新
+@exports net
+@method vmArrFuc
+@static
+@param {array} params
+@param {Element} [refEle=$container] 寻找name时，名称空间范围。
+@return {boolean} 返回处理结果。
+*/
 function vmArrFuc (params, refEle) {
   var sortCompareSet = {
     'numDesc': function (b, a) {
