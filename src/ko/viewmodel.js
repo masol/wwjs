@@ -16,95 +16,15 @@ import ko from 'knockout'
 import EE from '../utils/evt'
 import json from '../utils/json'
 import cfg from '../utils/cfg'
+import ObjectPath from 'objectpath'
+
+// console.log(ObjectPath)
 
 /**
 与ko配合的全局数据模型对象。
 @module ko/viewmodel
 */
-
 let viewModel
-
-function parsingRootPath (path) {
-  let fenge = []
-  let i, k
-  for (i = 0, k = 0; i < path.length; i++) {
-    if (path[i] === '.' && k === 0) {
-      fenge.push(i)
-    } else if (path[i] === '[') {
-      k++
-    } else if (path[i] === ']') {
-      k--
-    }
-  }
-  fenge.push(path.length)
-  var result = []
-  i = 0
-  for (let begin, end; i < fenge.length; i++) {
-    begin = i === 0 ? 0 : fenge[i - 1] + 1
-    end = fenge[i]
-    result.push(path.substring(begin, end))
-  }
-
-  for (let begin, a, i = result.length - 1; i >= 0; i--) {
-    begin = result[i].indexOf('[')
-    if (begin >= 0 && result[i][result[i].length - 1] !== ']') {
-      console.error('root路径格式不对')
-      return false
-    }
-    a = {}
-    if (begin >= 0) {
-      a.objName = result[i].substring(0, begin)
-      a.index = result[i].substring(begin + 1, result[i].length - 1)
-      a.index = isNaN(parseInt(a.index, 10)) ? a.index : parseInt(a.index, 10)
-    } else {
-      a.objName = result[i]
-      a.index = false
-    }
-    result[i] = a
-  }
-  return result
-}
-
-// copy from wwclass.js version 1
-// @TODO 改进从path获取vm的方法
-function getVmFromPath (path) {
-  function judge (obj, judgeStr) {
-    /* eslint no-eval: 0 */
-    return eval(judgeStr)
-  }
-  var rootPath = parsingRootPath(path)
-  var rootVm = viewModel
-  if (!rootPath) {
-    return rootVm
-  }
-
-  try {
-    for (var i = 0; i < rootPath.length; i++) {
-      if (rootPath[i].index === false) {
-        rootVm = rootVm[rootPath[i].objName]
-      } else if (typeof rootPath[i].index === 'string') {
-        rootVm = rootVm[rootPath[i].objName]()
-        var linshi = ko.mapping.toJS(rootVm)
-        for (var i1 = 0; i1 < linshi.length; i1++) {
-          if (judge(linshi[i1], rootPath[i].index)) {
-            break
-          }
-        }
-        if (i1 === linshi.length) {
-          throw new Error("can't find rootVm")
-        } else {
-          rootVm = rootVm[i1]
-        }
-      } else {
-        rootVm = rootVm[rootPath[i].objName]()[rootPath[i].index]
-      }
-    }
-  } catch (e) {
-    rootVm = false
-    console.error('get root vm error', e)
-  }
-  return rootVm
-}
 
 /**
 将viewModel重置为初始状态。如果已有绑定，这些绑定会被固化(也就是不再响应数据变动)，重置之后的vm只影响新加入的元素。这个函数在ko就绪时会被调用一次。
@@ -121,54 +41,62 @@ function reset () {
 注意，获取时未考虑未初始化的foreach绑定带来的名称空间计算。如有需要，再加入此特性支持。
 @exports ko/viewmodel
 @method get
-@param {String|Element} [pathOrele] 需要获取的路径，可以传入一个元素，用于获取其对应的ViewModel。默认从根路径下开始获取。
+@param {String|Element} [pathOrEle=''] 需要获取的路径，传入一个元素或Javascript的对象访问语句，用于获取对应的ViewModel。默认从模型的根路径开始。
 @param {String} [format] 需要获取的格式，当前支持`json`,`observable`。如果不给参数，默认返回`observable`格式。
+@param {Element} [parent=$container] 给出父元素。只有在地一个参数为path时才会被使用，用来确定path所指定的根路径。
 @return {Object} 获取到的ViewModel.
 */
-function get (pathOrele, format) {
-  let vm
-  if (pathOrele) {
-    if (pathOrele instanceof Element) {
-      // 元素可能尚未初始化，寻找包含自身在内的地一个包含data-ns元素的父，未考虑未初始化的foreach
-      let elem = pathOrele
-      let $data, nsName, $ctx
-      let path = []
-      for (; elem && elem !== document; elem = elem.parentNode) {
-        $ctx = ko.dataFor(elem)
-        if ($ctx) {
-          $data = $ctx.$data
-        }
-        nsName = elem.getAttribute('data-ns')
-        if (nsName) {
-          path.push(nsName)
-        }
-        if ($data) {
-          break
-        }
+function get (pathOrEle, format, parent) {
+  let vm = viewModel
+  if (pathOrEle instanceof Element) {
+    // 元素可能尚未初始化，寻找包含自身在内的地一个包含data-ns元素的父，未考虑未初始化的foreach
+    let elem = pathOrEle
+    let $data, nsName, $ctx
+    let path = []
+    for (; elem && elem !== document; elem = elem.parentNode) {
+      $ctx = ko.dataFor(elem)
+      if ($ctx) {
+        $data = $ctx.$data
       }
-      $data = $data || viewModel
-      let i = path.length - 1
-      for (; i >= 0; i--) {
-        let $dp = $data[path[i]]
-        if (typeof $dp === 'object') {
-          $data = $dp
-        } else if (typeof ($dp) === 'function') {
-          $data = $dp()
-        } else {
-          $data = undefined
-        }
-        if (!$data) {
-          EE.emit('error', 'vm.get.invalidPath', pathOrele)
-          break
-        }
+      nsName = elem.getAttribute('data-ns')
+      if (nsName) {
+        path.push(nsName)
       }
-      vm = $data
-    } else if (typeof (pathOrele) !== 'string') {
-      vm = getVmFromPath(pathOrele)
+      if ($data) {
+        break
+      }
     }
+    $data = $data || viewModel
+    let i = path.length - 1
+    for (; i >= 0; i--) {
+      let $dp = $data[path[i]]
+      if (typeof $dp === 'object') {
+        $data = $dp
+      } else if (typeof ($dp) === 'function') {
+        $data = $dp()
+      } else {
+        $data = undefined
+      }
+      if (!$data) {
+        EE.emit('error', 'vm.get.invalidPath', pathOrEle)
+        break
+      }
+    }
+    vm = $data
+  } else if (typeof pathOrEle === 'string') {
+    let current = get(parent)
+    const pathParts = ObjectPath.parse(pathOrEle)
+    let i = 0
+    for (; i < pathParts.length; i++) {
+      const part = pathParts[i]
+      current = current[part]
+      if (!current) {
+        break
+      }
+    }
+    vm = current
   }
-  vm = vm || viewModel
-  if (format === 'json') {
+  if (vm && format === 'json') {
     return ko.mapping.toJS(vm)
   }
   return vm

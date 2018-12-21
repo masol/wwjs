@@ -137,6 +137,7 @@
     "knockout": "^3.4.2",
     "lint-staged": "^8.0.4",
     "loadjs": "^3.5.4",
+    "objectpath": "^1.2.2",
     "opn": "^5.4.0",
     "shelljs": "^0.8.2",
     "string-replace-loader": "^2.1.1",
