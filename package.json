@@ -84,7 +84,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "wwjs@scm.spolo.org:/home/source/wwjs/wware.git"
+    "url": "https://gitlab.wware.org/lizhutang/wwjs.git"
   },
   "author": {
     "name": "masol",
