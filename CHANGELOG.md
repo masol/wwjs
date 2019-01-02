@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="2.0.0"></a>
+# [2.0.0](https://gitlab.wware.org/lizhutang/wwjs/compare/v1.9.0...v2.0.0) (2019-01-02)
+
+
+### Features
+
+* loadjs.load方法正确处理bundleName，并管理依赖。 ([efcfe21](https://gitlab.wware.org/lizhutang/wwjs/commit/efcfe21))
+* ns对象中添加template函数，以支持在指定元素对应的名称空间下展开模板。 ([b7d218c](https://gitlab.wware.org/lizhutang/wwjs/commit/b7d218c))
+* wwclass支持了apply,call静态方法，以调用元素对应实例的一个方法。 ([5dd7c3a](https://gitlab.wware.org/lizhutang/wwjs/commit/5dd7c3a))
+* wwclass支持了method方法以添加method,并增加了测试用例来测试这一特性。 ([9abf5da](https://gitlab.wware.org/lizhutang/wwjs/commit/9abf5da))
+* 使用objectpath库来实现viewModel::get函数. ([00f11ec](https://gitlab.wware.org/lizhutang/wwjs/commit/00f11ec))
+* 网络协议的命令执行添加了transform支持，用于处理不同格式的cmd. ([4251282](https://gitlab.wware.org/lizhutang/wwjs/commit/4251282))
+
+
+### BREAKING CHANGES
+
+* 移除str.lib方法，本方法移到loadjs.url.
+
+
+
 <a name="1.9.0"></a>
 # [1.9.0](http://wwjs@scm.spolo.org:/home/source/wwjs/wware/compare/v1.8.0...v1.9.0) (2018-12-18)
 
