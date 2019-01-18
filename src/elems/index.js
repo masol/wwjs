@@ -38,6 +38,12 @@ function construCls (ele, cls) {
       }
     })
     // console.log('ele =', ele, 'cls = ', cls)
+  }).catch((e) => {
+    if (cfg.debug) {
+      // console.log(Target)
+      console.error(`创建元素类${cls}的实例时发生错误:“${e}”`)
+    }
+    EE.emit('error', 'wwclass.constructor', e)
   })
 }
 
