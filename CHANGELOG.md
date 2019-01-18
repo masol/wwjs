@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="1.7.3"></a>
+## [1.7.3](https://gitlab.wware.org/lizhutang/wwjs/compare/v1.9.2...v1.7.3) (2019-01-18)
+
+
+
 <a name="1.9.2"></a>
 ## [1.9.2](https://gitlab.wware.org/lizhutang/wwjs/compare/v2.0.0...v1.9.2) (2019-01-02)
 
