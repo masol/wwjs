@@ -1,6 +1,6 @@
 {
   "name": "wwjs",
-  "version": "1.7.3",
+  "version": "1.8.0",
   "description": "wware browser runtime library",
   "browser": "src/index.js",
   "keywords": [],

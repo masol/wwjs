@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="1.8.0"></a>
+# [1.8.0](https://gitlab.wware.org/lizhutang/wwjs/compare/v1.7.3...v1.8.0) (2019-01-18)
+
+
+### Features
+
+* ui中新增加两个函数，uniq以及uniqId。详见文档。 ([df068e1](https://gitlab.wware.org/lizhutang/wwjs/commit/df068e1))
+
+
+
 <a name="1.7.3"></a>
 ## [1.7.3](https://gitlab.wware.org/lizhutang/wwjs/compare/v1.9.2...v1.7.3) (2019-01-18)
 
