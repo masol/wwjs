@@ -14,6 +14,7 @@
 
 import cfg from './cfg'
 import loadjs from './loadjs'
+import uniqid from 'uniqid'
 
 /**
 UI模块提供了对HTML布局的一些基本假定的Adapter接口。
@@ -389,6 +390,23 @@ function getName ($ele) {
 }
 
 /**
+获取元素的名称，依次获取name,data-name,id,data-id.如果没有，创建唯一id，并返回这一唯一id.返回第一个获取到的。
+@exports utils/ui
+@method uniqId
+@param {JQueryElement} $ele 需要检查是否有id的元素。
+@param {String} [prefix=undefined] prefix
+@return {String} id字符串，如果原始已定义，则返回原始的id。
+*/
+function uniqId ($ele, prefix) {
+  let id = $ele.attr('id')
+  if (!id) {
+    id = uniqid(prefix)
+    $ele.attr('id', id)
+  }
+  return id
+}
+
+/**
 block指定元素．默认实现使用了[waitMe](https://github.com/vadimsva/waitMe)．可以在插件中通过重载`wwjs.ui.block`函数来替换默认方案．
 @exports utils/ui
 @method block
@@ -403,6 +421,15 @@ export default {
   $container: $container,
   currentScript: currentScript,
   block: block,
+  uniqId: uniqId,
+  /**
+  获取基于时间的唯一字符串。详见[uniqid](https://github.com/adamhalasz/uniqid)
+  @exports utils/ui
+  @method uniq
+  @param {String} [prefix=undefined] 如果需要前缀，通过本参数指定。
+  @return {String} 新创建的唯一字符串.
+  */
+  uniq: uniqid,
   createIframe: createIframe,
   showMessage: showMessage,
   getName: getName
