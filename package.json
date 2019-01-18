@@ -5,7 +5,7 @@
   "browser": "src/index.js",
   "keywords": [],
   "scripts": {
-    "release": "standard-version",
+    "release": "echo please use: standard-version -r new-version",
     "lint": "eslint src",
     "clean": "rm -rf dist",
     "check": "npm run lint && npm run test",
