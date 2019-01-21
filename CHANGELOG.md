@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="1.7.5"></a>
+## [1.7.5](https://gitlab.wware.org/lizhutang/wwjs/compare/v1.7.4...v1.7.5) (2019-01-21)
+
+
+### Features
+
+* wwimport导入数组时，回调会在全部选项结束时回调。 ([c63bab4](https://gitlab.wware.org/lizhutang/wwjs/commit/c63bab4))
+
+
+
 <a name="1.7.4"></a>
 ## [1.7.4](https://gitlab.wware.org/lizhutang/wwjs/compare/v1.7.3...v1.7.4) (2019-01-18)
 
