@@ -618,12 +618,14 @@ class Demo extends wwjs.wwclass {
           // console.log(1)
           let item = wwclsMap[name]
           if (item instanceof Promise) {
-            item.then((realItem) => {
-              wwclsMap[name] = realItem
-              resolve(realItem)
-            }).catch((err) => {
-              reject(err)
-            })
+            let regHandler = (clsName, clsdef) => {
+              if (clsName === name) {
+                EE.off('wwclass.reg', regHandler)
+                resolve(clsdef)
+              }
+            }
+            EE.on('wwclass.reg', regHandler)
+            // @TODO: 这里需要设置一个超时，例如5秒，然后发出get失败的事件。
           } else {
             // loadjs.done(bundleName)
             resolve(item)
