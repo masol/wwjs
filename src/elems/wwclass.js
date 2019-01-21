@@ -618,8 +618,12 @@ class Demo extends wwjs.wwclass {
           // console.log(1)
           let item = wwclsMap[name]
           if (item instanceof Promise) {
-            const urlErr = [url]
-            reject(urlErr)
+            item.then((realItem) => {
+              wwclsMap[name] = realItem
+              resolve(realItem)
+            }).catch((err) => {
+              reject(err)
+            })
           } else {
             // loadjs.done(bundleName)
             resolve(item)
