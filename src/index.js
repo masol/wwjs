@@ -115,18 +115,27 @@ id可以使用如下格式，以在内部特定事件发生时，得到通知：
  * @name wwimport
  **/
 function wwimport (id, cb) {
+  if (typeof (cb) !== 'function') {
+    // 允许不传入回调，用于加载后不管的情况。
+    cb = () => {}
+  }
   if ($.isArray(id)) {
+    let allResult = []
+    let respCount = 1
+    let chkAllDone = (idx, r) => {
+      allResult[idx] = r
+      respCount++
+      if (respCount === id.length) {
+        cb(allResult)
+      }
+    }
     for (let i = 0; i < id.length; i++) {
-      wwimport(id[i], cb)
+      wwimport(id[i], chkAllDone.bind(null, id))
     }
     return
   }
   if (typeof (id) !== 'string' || id.length === 0) {
     return
-  }
-  if (typeof (cb) !== 'function') {
-    // 允许不传入回调，用于加载后不管的情况。
-    cb = () => {}
   }
   if (id === 'fullfill') {
     cb(null)
