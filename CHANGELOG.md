@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="1.7.8"></a>
+## [1.7.8](https://gitlab.wware.org/lizhutang/wwjs/compare/v1.7.7...v1.7.8) (2019-01-21)
+
+
+### Bug Fixes
+
+* 修正元素文件异步注册引发的创建错误。 ([a4c234f](https://gitlab.wware.org/lizhutang/wwjs/commit/a4c234f))
+
+
+
 <a name="1.7.7"></a>
 ## [1.7.7](https://gitlab.wware.org/lizhutang/wwjs/compare/v1.7.6...v1.7.7) (2019-01-21)
 
