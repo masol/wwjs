@@ -115,24 +115,60 @@ id可以使用如下格式，以在内部特定事件发生时，得到通知：
  * @name wwimport
  **/
 function wwimport (id, cb) {
+  let loadlib = (newId, newCb) => {
+    loadjs.load(newId, {
+      success: function () {
+        newCb.apply(this, arguments)
+      },
+      error: function (err) {
+        newCb(err)
+      }
+    })
+  }
   if (typeof (cb) !== 'function') {
     // 允许不传入回调，用于加载后不管的情况。
     cb = () => {}
   }
   if ($.isArray(id)) {
     let allResult = []
-    let respCount = 1
+    // 为防止同步回调，resp和expect在所有wwimport发送完毕之前不可能相等。
+    let respCount = 0
+    let expectCount = 1
+    let newLoadId = []
     let chkAllDone = (idx, r) => {
-      allResult[idx] = r
-      respCount++
-      if (respCount === id.length) {
+      if (idx >= 0) {
+        if ($.isArray(r)) {
+          let rr = null
+          for (let i = 0; i < r.length; i++) {
+            if (r[i]) {
+              rr = r
+              break
+            }
+          }
+          r = rr
+        }
+        allResult.push(r)
+        respCount++
+      }
+      if (respCount === expectCount) {
         cb(allResult)
       }
     }
     for (let i = 0; i < id.length; i++) {
-      wwimport(id[i], chkAllDone.bind(null, id))
+      if (id[i] !== 'fullfill' && id[i] !== 'ready') {
+        newLoadId.push(id[i])
+      } else {
+        expectCount++
+        wwimport(id[i], chkAllDone.bind(null, i))
+      }
     }
-    return
+    if (newLoadId.length > 0) {
+      expectCount++
+      loadlib(newLoadId, chkAllDone.bind(null, 1))
+    }
+    expectCount--
+    // 如果只有同步回调，本调用会触发回调。
+    chkAllDone(-1)
   }
   if (typeof (id) !== 'string' || id.length === 0) {
     return
@@ -142,16 +178,7 @@ function wwimport (id, cb) {
   } else if (id === 'ready') {
     ready(cb)
   } else {
-    return loadjs.load(id, {
-      success: function () {
-        let args = Array.prototype.slice(arguments, 0)
-        args.unshift(null)
-        cb.apply(this, args)
-      },
-      error: function (err) {
-        cb(err)
-      }
-    })
+    return loadlib(id, cb)
   }
 }
 
