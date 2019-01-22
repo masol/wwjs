@@ -118,11 +118,14 @@ loadjs.load = function (deps, options) {
     deps = [deps]
   }
   if (!$.isFunction(options)) {
-    options = options || {
-      async: false
-    }
+    options = options || {}
+    // 添加默认的before处理。
     if (!options.before) {
       options.before = defaultBefore
+    }
+    // options.async 默认为false。
+    if (options.async !== true) {
+      options.async = false
     }
   }
 
@@ -132,10 +135,12 @@ loadjs.load = function (deps, options) {
     const bundleTpl = options.bundleTpl
     const bundleName = bundleTpl ? window.Template(bundleTpl, { name: url }) : url
     bundleNameArray.push(bundleName)
-    let newDep = []
     if (!loadjs.isDefined(bundleName)) {
-      newDep.push(loadjs.resolve(url))
-      loadjs(url, bundleName, options)
+      // 这里不能直接传入options.否则其中如果定义了回调的话，与后面ready的回调相叠加，会被调用两次。
+      loadjs(url, bundleName, {
+        before: options.before,
+        async: options.async
+      })
     }
   }
   return loadjs.ready(bundleNameArray, options)
