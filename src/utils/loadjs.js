@@ -88,7 +88,8 @@ const loadChecker = {
 function defaultBefore (path, scriptEl) {
   // debugger
   scriptEl.crossOrigin = 'anonymous'
-  scriptEl.defer = 'defer'
+  scriptEl.setAttribute('defer', 'defer')
+  scriptEl.removeAttribute('async')
   let checker = loadChecker[scriptEl.tagName]
   if ($.isFunction(checker)) {
     return !checker(path)
@@ -116,13 +117,12 @@ loadjs.load = function (deps, options) {
   if (!$.isArray(deps)) {
     deps = [deps]
   }
-  let before
   if (!$.isFunction(options)) {
     options = options || {
       async: false
     }
     if (!options.before) {
-      before = defaultBefore
+      options.before = defaultBefore
     }
   }
 
@@ -135,10 +135,7 @@ loadjs.load = function (deps, options) {
     let newDep = []
     if (!loadjs.isDefined(bundleName)) {
       newDep.push(loadjs.resolve(url))
-      loadjs(url, bundleName, {
-        before: before,
-        async: options.async
-      })
+      loadjs(url, bundleName, options)
     }
   }
   return loadjs.ready(bundleNameArray, options)
