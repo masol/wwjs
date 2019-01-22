@@ -66,10 +66,33 @@ function alldone (deps) {
 
 loadjs.depDone = alldone
 
+function checkLoaded (attrName, eleSet, path) {
+  if (eleSet && eleSet.length) {
+    for (let i = 0; i < eleSet.length; i++) {
+      var ele = eleSet[i]
+      if (ele[attrName] === path) {
+        return true
+      }
+    }
+  }
+  return false
+}
+const loadChecker = {
+  'script': (path) => {
+    return checkLoaded('src', document.scripts, path)
+  },
+  'style': (path) => {
+    return checkLoaded('href', document.styleSheets, path)
+  }
+}
 function defaultBefore (path, scriptEl) {
   // debugger
   scriptEl.crossOrigin = 'anonymous'
   scriptEl.defer = 'defer'
+  let checker = loadChecker[scriptEl.tagName]
+  if ($.isFunction(checker)) {
+    return !checker(path)
+  }
 }
 
 /**
@@ -95,7 +118,9 @@ loadjs.load = function (deps, options) {
   }
   let before
   if (!$.isFunction(options)) {
-    options = options || {}
+    options = options || {
+      async: false
+    }
     if (!options.before) {
       before = defaultBefore
     }
@@ -103,13 +128,16 @@ loadjs.load = function (deps, options) {
 
   const bundleNameArray = []
   for (let i = 0; i < deps.length; i++) {
-    const url = deps[i]
+    const url = loadjs.resolve(deps[i])
     const bundleTpl = options.bundleTpl
     const bundleName = bundleTpl ? window.Template(bundleTpl, { name: url }) : url
     bundleNameArray.push(bundleName)
+    let newDep = []
     if (!loadjs.isDefined(bundleName)) {
-      loadjs(loadjs.resolve(url), bundleName, {
-        before: before
+      newDep.push(loadjs.resolve(url))
+      loadjs(url, bundleName, {
+        before: before,
+        async: options.async
       })
     }
   }
