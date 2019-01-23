@@ -30,12 +30,18 @@ wwjs的元素扩展模块，内建推荐方法是扩展[wwclass](wwclass.html)�
 function construCls (ele, cls) {
   // console.log('in construCls,ele=', ele)
   let delayload = parseInt(ele.getAttribute('data-delay-load') || 0)
+  let onCreated = (inst) => {
+    EE.emit('elems.inst', ele, inst, cls)
+    if (!inst._rid && typeof (inst.doRender) === 'function') {
+      inst.requestRender()
+    }
+  }
   Promise.resolve(wwclass.get(cls, ele.getAttribute('data-classurl'), delayload)).then((Cls) => {
-    Promise.resolve(new Cls(ele)).then((inst) => {
-      EE.emit('elems.inst', ele, inst, cls)
-      if (!inst._rid && typeof (inst.doRender) === 'function') {
-        inst.requestRender()
+    return Promise.resolve(new Cls(ele)).then((inst) => {
+      if ($.isFunction(inst.init)) {
+        return Promise.resolve(inst.init()).then(onCreated.bind(null, inst))
       }
+      return onCreated(inst)
     })
     // console.log('ele =', ele, 'cls = ', cls)
   }).catch((e) => {

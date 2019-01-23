@@ -125,6 +125,48 @@ describe('wwclass元素机制', function () {
     }, 0)
   })
 
+  it('派生类的三次实例化，init函数返回promise正确等待', function (done) {
+    let instCount = 0
+    let resolveCount = 0
+    let t0 = performance.now()
+    class TestInit extends wwjs.wwclass {
+      static version = '1.2.3'
+      constructor (ele) {
+        super(ele)
+        instCount++
+        this.sig = 0
+      }
+      init () {
+        let self = this
+        return new Promise(function (resolve, reject) {
+          setTimeout(() => {
+            // console.log(123)
+            resolveCount++
+            self.sig = 2
+            resolve(true)
+          }, 1000)
+        })
+      }
+      requestRender () {
+        let self = this
+        if (instCount === 3 && resolveCount === 3) {
+          let t1 = performance.now()
+          chai.expect(Math.abs(t1 - t0)).to.be.within(900, 1100, '创建实例没有并行执行？')
+          chai.expect(self.sig).to.be.equal(2, 'init函数没有被调用到？')
+          done()
+        }
+      }
+      doRender () {
+      }
+    }
+    wwjs.wwclass.reg('testinit', TestInit)
+
+    setTimeout(() => {
+      wwjs.ui.$container().append(`<div data-wwclass="testinit"></div><div data-wwclass="testinit"></div><div data-wwclass="testinit"></div>`)
+      // t0 = performance.now()
+    }, 0)
+  })
+
   it('有资源依赖的函数返回promise，解析为原函数返回值．依赖资源未加载时是异步，已加载后成为同步调用', function (done) {
     let sig = 0
     class Test4 extends wwjs.wwclass {
