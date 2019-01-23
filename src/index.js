@@ -115,16 +115,6 @@ id可以使用如下格式，以在内部特定事件发生时，得到通知：
  * @name wwimport
  **/
 function wwimport (id, cb) {
-  let loadlib = (newId, newCb) => {
-    loadjs.load(newId, {
-      success: function () {
-        newCb.apply(this, arguments)
-      },
-      error: function (err) {
-        newCb(err)
-      }
-    })
-  }
   if (typeof (cb) !== 'function') {
     // 允许不传入回调，用于加载后不管的情况。
     cb = () => {}
@@ -132,45 +122,19 @@ function wwimport (id, cb) {
   if ($.isArray(id)) {
     let allResult = []
     // 为防止同步回调，resp和expect在所有wwimport发送完毕之前不可能相等。
-    let respCount = 0
-    let expectCount = 1
-    let newLoadId = []
+    let respCount = 1
     let chkAllDone = (idx, r) => {
-      if (idx >= 0) {
-        if ($.isArray(r)) {
-          let rr = null
-          for (let i = 0; i < r.length; i++) {
-            if (r[i]) {
-              rr = r
-              break
-            }
-          }
-          r = rr
-        }
-        allResult.push(r)
-        respCount++
-      }
-      if (respCount === expectCount) {
+      allResult[idx] = r
+      respCount++
+      if (respCount === id.length) {
         cb(allResult)
       }
     }
     for (let i = 0; i < id.length; i++) {
-      if (id[i] !== 'fullfill' && id[i] !== 'ready') {
-        newLoadId.push(id[i])
-      } else {
-        expectCount++
-        wwimport(id[i], chkAllDone.bind(null, i))
-      }
+      wwimport(id[i], chkAllDone.bind(null, i))
     }
-    if (newLoadId.length > 0) {
-      expectCount++
-      loadlib(newLoadId, chkAllDone.bind(null, 1))
-    }
-    expectCount--
-    // 如果只有同步回调，本调用会触发回调。
-    chkAllDone(-1)
   }
-  if (typeof (id) !== 'string' || id.length === 0) {
+  if (!(id) || typeof (id) !== 'string' || id.length === 0) {
     return
   }
   if (id === 'fullfill') {
@@ -178,7 +142,10 @@ function wwimport (id, cb) {
   } else if (id === 'ready') {
     ready(cb)
   } else {
-    return loadlib(id, cb)
+    return loadjs.load(id, {
+      success: cb,
+      error: cb
+    })
   }
 }
 
