@@ -24,6 +24,7 @@ import polyfillSetup from './utils/polyfills'
 import vm from './ko/viewmodel'
 import wwcls from './elems'
 import net from './net'
+import i18n from './utils/i18n'
 
 // console.log(loadjs)
 
@@ -273,6 +274,14 @@ module.exports = {
    * @name hyper
   **/
   hyper: wwcls.hyper,
+  /**
+  本地化子系统，这只是一个最简的i18n子系统，支持[gettext](https://www.gnu.org/software/gettext/)工作链。如果需要复杂的定制，可以考虑自行使用[i18next](https://www.i18next.com/)。两者可以无缝衔接，只不过i18next支持更多特性——但是这些特性会牺牲页面加载速度。详情参考[i18n](module-utils_i18n.html)子模块
+   * @member wwjs
+   * @constant
+   * @type {object}
+   * @name i18n
+  **/
+  i18n: i18n,
   /**
   [loadjs](https://github.com/muicss/loadjs)暴露到wwjs名称空间下。详细文档查看[loadjs模块](module-utils_loadjs.html)
    * @member wwjs
