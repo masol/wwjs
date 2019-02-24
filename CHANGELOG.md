@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="1.7.9"></a>
+## [1.7.9](https://gitlab.wware.org/lizhutang/wwjs/compare/v1.7.8...v1.7.9) (2019-02-24)
+
+
+### Bug Fixes
+
+* 修正加载脚本默认async=false未起作用的bug.当前版本async配置不再有效，恒定async为false. ([bbd7fd5](https://gitlab.wware.org/lizhutang/wwjs/commit/bbd7fd5))
+* 修正测试用例发现的loadjs.load加载时会回调两次的bug. ([6566e3e](https://gitlab.wware.org/lizhutang/wwjs/commit/6566e3e))
+
+
+### Features
+
+* 支持了i18n子模块。 ([fcd49ee](https://gitlab.wware.org/lizhutang/wwjs/commit/fcd49ee))
+* 派生类可以实现一个init函数，并返回Promise,创建实例时，wwjs在构造函数之后立即调用init，并等待Promise解析之后继续执行其它部分。 ([a0a4f3e](https://gitlab.wware.org/lizhutang/wwjs/commit/a0a4f3e))
+* 默认的加载，1，禁用async。2，禁止重复加载相同url的内容. ([c30d2df](https://gitlab.wware.org/lizhutang/wwjs/commit/c30d2df))
+
+
+
 <a name="1.7.8"></a>
 ## [1.7.8](https://gitlab.wware.org/lizhutang/wwjs/compare/v1.7.7...v1.7.8) (2019-01-21)
 
