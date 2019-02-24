@@ -317,7 +317,8 @@ let cmds = null
 @desc 获取一个命令集对象。
 @param {String} name  命令集的名称。可能是如下三种:
  - 内建命令: 此时命令集中的命令就一个，因此返回的是function对象。
- - 以@开头，默认从libs服务器加载处理器，并以#分割，#之后的部分识别为命令集中需要执行的命令。返回object或function
+ - 以@@开头，省略了@/@wwcmd前缀。
+ - 以@/开头，默认从libs服务器加载处理器，并以#分割，#之后的部分识别为命令集中需要执行的命令。返回object或function
  - 一个url，以#分割，#之后的部分识别为命令集中需要执行的命令。返回object或function
 @param {boolean} [noAutoLoad=false] 不自动加载，默认是false(自动加载)
 @return {Promise<function|object>} 最终解析为加载完毕的处理器——注意处理器可能是对象。
@@ -333,20 +334,14 @@ function getCmd (name, noAutoLoad) {
   if (!name) {
     return undefined
   }
-  if (!cmds) { // 注册内部命令。
-    reg('updatelv', updatelv)
-    reg('eval', evalStr)
-    reg('open', open)
-    reg('vmArrFuc', vmArrFuc)
-  }
   const pkgArray = name.split('#')
   let url, subName
   if (pkgArray.length === 2) {
     url = pkgArray[0]
-    if (url.length > 0 && url[0] === '@') {
-      url = loadjs.url(url.substr(1), '@wwcmd')
+    if (url.length > 1 && url[0] === url[1] === '@') {
+      url = loadjs.url(url.substr(2), '@wwcmd')
     }
-    subName = (pkgArray.length > 2) ? pkgArray.slice(1).join('') : [1]
+    subName = (pkgArray.length > 2) ? pkgArray.slice(1).join('') : pkgArray[1]
   }
   let ret = internalGetCmd(url, subName)
   if (!ret && !noAutoLoad) {
@@ -378,7 +373,7 @@ function getCmd (name, noAutoLoad) {
 function reg (name, handler) {
   cmds = cmds || {}
   let ret = cmds[name]
-  cmds[name] = undefined
+  cmds[name] = handler
   return ret
 }
 
@@ -406,17 +401,29 @@ function run (cmd, refEle, transName) {
       if (cmd.length > 1) {
         params = cmd.slice(1)
       }
+    } else if (typeof cmd === 'string') {
+      name = cmd
+      params = []
     }
     if (!name) {
-      return false
+      throw new TypeError('invalid cmd format')
     }
     return Promise.resolve(getCmd(name)).then((func) => {
       if (typeof func === 'function') {
         return func(params, refEle)
       }
-      return false
+      throw new URIError(`can not get requested command:${name}`)
     })
   })
+}
+
+if (!cmds) { // 注册内部命令。
+  cmds = {
+    updatelv: updatelv,
+    eval: evalStr,
+    open: open,
+    vmArrFuc: vmArrFuc
+  }
 }
 
 export default {
