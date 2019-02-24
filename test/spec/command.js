@@ -7,7 +7,7 @@ describe('net.Command', function () {
     }, (err) => { done(err) })
   })
 
-  it('调用已注册命令函数，正确执行', function (done) {
+  it('调用已注册命令函数，正确执行，并可以正确处理异常', function (done) {
     const testResult = '12312'
     const errorMsg = 'abcd'
     let cmd = {
