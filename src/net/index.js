@@ -326,8 +326,12 @@ let cmds = null
 function getCmd (name, noAutoLoad) {
   const internalGetCmd = (url, subName) => {
     let ret = cmds[url]
-    if (typeof ret === 'object' && subName) {
-      ret = ret[subName]
+    if (typeof ret === 'object') {
+      let result = ret[subName]
+      if (!result && !subName) {
+        result = ret.default || ret.version
+      }
+      ret = result
     }
     return ret
   }
