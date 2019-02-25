@@ -397,14 +397,14 @@ params: []
 function run (cmd, refEle, transName) {
   let name, params
   return Promise.resolve(trans.tran(transName, cmd)).then((cmd) => {
-    if (typeof cmd === 'object') {
-      name = cmd.command
-      params = cmd.params
-    } else if (window.$.isArray(cmd) && cmd.length > 0) {
+    if (window.$.isArray(cmd) && cmd.length > 0) {
       name = cmd[0]
       if (cmd.length > 1) {
         params = cmd.slice(1)
       }
+    } else if (typeof cmd === 'object') {
+      name = cmd.command
+      params = cmd.params
     } else if (typeof cmd === 'string') {
       name = cmd
       params = []
