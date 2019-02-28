@@ -16,6 +16,7 @@ import loadjs from '../utils/loadjs'
 import cfg from '../utils/cfg'
 import vm from '../ko/viewmodel'
 import trans from './trans'
+import EE from '../utils/evt'
 
 /**
 JSON格式的网络命令协议模块。命令协议模块，用于解析可以通过网络传输的可扩展命令。
@@ -378,6 +379,7 @@ function reg (name, handler) {
   cmds = cmds || {}
   let ret = cmds[name]
   cmds[name] = handler
+  EE.emit('command.reg', name, handler)
   return ret
 }
 

@@ -49,6 +49,7 @@ window.EE = EE
 - `vm.get.invalidPath` : 第一个参数是`pathOrele`。参考[viewModel::get](module-ko_viewmodel.html#~get)
 - `elems.inst` : 回调(ele, inst, reqfullclass)，当一个Dom元素被绑定了wwclass类实例时发出．
 - `wwclass.reg`: 回调(name,clsdef),当一个wwclass元素被注册时，发出事件。
+- `command.reg`: 回调(name,handler),当一个命令扩展被注册时，发出事件,包括内建命令。
 
 @example
 <script type="script/wwjs">
