@@ -55,7 +55,7 @@ loadjs.resolve = resolve
 */
 function alldone (deps) {
   if (typeof (deps) === 'string') {
-    loadjs.done(deps)
+    loadjs.done(loadjs.resolve(deps))
   } else if ($.isArray(deps)) {
     let i = 0
     for (i; i < deps.length; i++) {

@@ -109,6 +109,7 @@ id可以使用如下格式，以在内部特定事件发生时，得到通知：
   - !或*必须有一个。通常在主页面只加载model，因此会形如：“!URL”
   - 如果要求加载一对,URL给出的是view的url，而model的url会把view的后缀(建议采用.html)改为.json加载。
   - 当加载模型时，可以通过指定modelpath后缀来指明更新model的路径，如果未加载模型，modelpath从字符串中删除。如果没有给出modelPath,则默认从根路径下开始更新。服务器回应如果指定路径，优先级低于这里指定的modelPath
+- done::XXX : XXX的格式如同上一条，这不是加载，而是指示某个依赖项已经被加载完毕。
  * @method wwimport
  * @param {string|array} id 字符串形式的模块id。也就是url形式。
  * @param {function} [cb] 模块加载成功后的回调函数。接受两个参数，第一个为err对象(null表示无错误)，第二个为mod对象。
@@ -138,10 +139,13 @@ function wwimport (id, cb) {
   if (!(id) || typeof (id) !== 'string' || id.length === 0) {
     return
   }
+  const donePrefix = 'done::'
   if (id === 'fullfill') {
     cb(null)
   } else if (id === 'ready') {
     ready(cb)
+  } else if (String(id).startsWith(donePrefix)) {
+    return loadjs.depDone(String(id).substr(donePrefix.length))
   } else {
     return loadjs.load(id, {
       success: cb,
