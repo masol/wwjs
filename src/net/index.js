@@ -355,7 +355,23 @@ function getCmd (name, noAutoLoad) {
       loadjs.load(url, {
         success: function () {
           ret = internalGetCmd(url, subName)
-          resolve(ret)
+          if (ret) {
+            resolve(ret)
+          } else {
+            let timer = setTimeout(function () {
+              EE.off('command.reg', waiter)
+              EE.emit('error', 'net.invalidCmd', url, name)
+              reject(new Error('net.invalidCmd'))
+            }, 10000)
+            let waiter = (name, handler) => {
+              if (name === url) {
+                clearTimeout(timer)
+                ret = internalGetCmd(url, subName)
+                resolve(ret)
+              }
+            }
+            EE.on('command.reg', waiter)
+          }
         },
         error: function (errFiles) {
           EE.emit('error', 'net.invalidURL', errFiles, name)

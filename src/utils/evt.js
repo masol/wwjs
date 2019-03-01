@@ -30,6 +30,7 @@ window.EE = EE
 - `wwclass.finalize` : 元素析构时发生错误，错误对象是第二个参数。查阅[elems模块](module-elems.html)
 - `wwclass.get` : 获取元素类时发生错误，加载失败的文件名是第二个参数。查阅[wwclass:get](wwclass.html#.get)
 - `net.invalidURL` : 加载网络命令处理器时发生错误，第二个参数是errFiles，第三个参数是请求的命令。
+- `net.invalidCmd` : 当请求的命令文件被加载，但是指定时间内(默认10秒)未能等待到注册事件，发出本事件。
 - `net.invalidData` : 执行`updatelv`时，params参数无效。第二个参数是传入的params.
 - `net.eval` : 执行`eval`指令时发生错误。第二个参数是传入的params
 - `wwclass.constructor` : 创建元素类实例时发生错误，第二个参数是异常对象。
