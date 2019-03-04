@@ -122,6 +122,7 @@ function deepFilter (filterValue, value, $data) {
 @param {object} [$data=null] 更新的对象，默认从根路径(全局viewmodel对象)下开始更新。这个对象可以通过元素的`dataFor(ele)`来获取。
 @param {Boolean} [overwritten=false] 如果目标属性已经存在，是否覆盖？
 @return {Boolean} 如果成功更新，则返回true.
+@TODO 参考(mapping docs)[https://knockoutjs.com/documentation/plugins-mapping.html]以支持Mapping Options.
 */
 function set (value, $data, overwritten) {
   let key, models, v
