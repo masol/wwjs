@@ -3,13 +3,15 @@
 describe('UI数据绑定', function () {
   before(function (done) {
     wwimport('ready', () => {
-      wwjs.ui.$container().html('')
+      // wwjs.ui.$container().html('')
+      $('#wwcontainer').html('')
       done()
     }, (err) => { done(err) })
   })
   after(function (done) {
     wwimport('ready', () => {
-      wwjs.ui.$container().html('')
+      // wwjs.ui.$container().html('')
+      $('#wwcontainer').html('')
       done()
     }, (err) => { done(err) })
   })

@@ -179,6 +179,7 @@ describe('chk', function () {
     })
 
     // 删除刚加入的三个元素
-    wwjs.ui.$container().html('')
+    // wwjs.ui.$container().html('')
+    $('#wwcontainer').html('')
   })
 })
