@@ -25,6 +25,7 @@ const Modernizr = window.Modernizr
 - [Session history management](https://caniuse.com/#search=Session%20history%20management),目标浏览器下，只有ie9不被支持，由于这个特性不支持会导致wwjs无法运行，因此自动打补丁[html5-history-api](https://github.com/devote/HTML5-History-API)
 - [ES6 String](https://caniuse.com/#search=ES6),如果不支持，自动补丁[string-polyfills](https://github.com/Sylvain59650/string-polyfills),注意只是String,不是全部class规范，没有使用[es6-shim](https://github.com/paulmillr/es6-shim)
 - [classlist](https://caniuse.com/#search=classlist)，自动补丁[eligrey-classlist-js-polyfill](https://github.com/englishextra/eligrey-classlist-js-polyfill)
+- [datalist](https://caniuse.com/#search=Datalist%20element)，自动补丁[https://github.com/mfranzke/datalist-polyfill)
 - [Html5 Input Types](https://caniuse.com/#search=input%20types),挨个检查，如果不支持，没有使用[hyperform](https://hyperform.js.org/)，而是按照如下列表安装polyfill.
   - [color](https://caniuse.com/#search=Color%20input%20type),安装
   - [date and time](https://caniuse.com/#search=Date%20and%20time%20input%20types),安装
@@ -69,6 +70,7 @@ Modernizr的一个值组合(chrome Version 70.0.3538.77 (Official Build) snap (6
 beacon: true
 customelements: true
 defprop: true
+datalist: true
 es6string: true
 fetch: true
 jpeg2000: false
@@ -168,6 +170,12 @@ function setup (callback) {
   Modernizr.wasm = (typeof WebAssembly === 'object' && typeof (WebAssembly.instantiate) === 'function')
   Modernizr.defprop = (Object.defineProperty !== 'undefined')
   Modernizr.weakmap = (window.WeakMap !== 'undefined')
+  Modernizr.datalist = false
+  // 测试代码从(https://stackoverflow.com/questions/7048102/check-if-html-element-is-supported)拷贝而来。
+  if ('options' in document.createElement('datalist')) {
+    // supported!
+    Modernizr.datalist = true
+  }
 
   // // 同步方式为Promise做polyfill.
   // if (!Modernizr.promises) {
@@ -188,6 +196,7 @@ function setup (callback) {
       checkFeature('fetch', '@/whatwg-fetch/3.0.0/fetch.umd.js')
     })
     checkFeature('classlist', '@/eligrey-classlist-js-polyfill/1.2.20180112/classList.min.js')
+    checkFeature('datalist', '@/datalist-polyfill/1.23.3/datalist-polyfill.min.js')
     checkFeature('es6string', '@/string-polyfills/0.9.1/String.min.js')
     checkFeature('mutationobserver', '@/mutationobserver-shim/0.3.2/mutationobserver.min.js')
     checkFeature('urlparser', '@/%40webcomponents/url/0.7.1/url.js')
