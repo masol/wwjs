@@ -161,7 +161,7 @@ loadjs.url = function (name, prefix, fname) {
   const version = nameParts[1] || false
   name = nameParts[0]
   // console.log('wwclsMap[name]=', wwclsMap[name])
-  return `@/${prefix || '@wwclass'}/${name}/${version || 'latest'}/${fname || 'index.min.js'}`
+  return `@/${prefix || '@wwclass'}/${name}/${version || 'latest'}/${fname || `${name}.min.js`}`
 }
 
 export default loadjs
