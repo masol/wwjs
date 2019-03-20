@@ -649,7 +649,7 @@ class Demo extends wwjs.wwclass {
     // console.log('wwclsMap[name]=', wwclsMap[name])
     if (!wwclsMap[name]) {
       if (!url) {
-        url = `@/@wwclass/${name}/${version || 'latest'}/index.min.js`
+        url = `@/@wwclass/${name}/${version || 'latest'}/${name}.min.js`
       }
       wwclsMap[name] = new Promise((resolve, reject) => {
         if (!isNaN(delay) && delay > 0) {
