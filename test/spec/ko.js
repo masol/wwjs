@@ -93,6 +93,52 @@ describe('UI数据绑定', function () {
     }, 0)
   })
 
+  it('脚本型bindvar(script[type="text/bindvar"])工作正常，不会覆盖已经定义的值，只会设置未定义的值以用于初始化，可以定义函数类型，并且此时get工作正常', function (done) {
+    wwjs.vm.set({
+      'test': testValue
+    }, '', true)
+    chai.expect(wwjs.vm.get('', 'json').test).to.be.equal(testValue, `vm.set之后立即获取到的值不一致`)
+    let t0
+    let pThis = this
+    let ivid = setInterval(function () {
+      let $wwtest2 = $('#wwtest22')
+      if ($wwtest2.length > 0) {
+        let spans = $wwtest2.find('span')
+        // console.log('$(spans[1]).text()=', $(spans[1]).text())
+        if (spans.length === 2 && $(spans[0]).text() === testValue && $(spans[1]).text() === '32') {
+          wwjs.vm.set({
+            'test23': 33
+          }, '', true)
+          // console.log(wwjs.vm.get('', 'json'))
+          // console.log('wwjs.vm.get().test24=', wwjs.vm.get().test24)
+          // console.log('wwjs.vm.get().test24()=', wwjs.vm.get().test24())
+        } else if (spans.length === 2 && $(spans[0]).text() === testValue && $(spans[1]).text() === '43') {
+          let t1 = performance.now()
+          clearInterval(ivid)
+          // console.log(wwjs.vm.get('', 'json'))
+          // chai.expect(wwjs.vm.get('', 'json')).to.deep.equal({ test: testValue, test2: 22 }, `vm.set之后立即获取到的值不一致`)
+          pThis._runnable.title = `脚本型bindvar(script[type="text/bindvar"])工作正常，不会覆盖已经定义的值，只会设置未定义的值以用于初始化，可以设置computed Observable,并且此时get工作正常。(${t1 - t0}ms延时)`
+          done()
+        }
+      }
+    }, 1)
+    setTimeout(() => {
+      wwjs.ui.$container().append(`<div id="wwtest22">
+      <span data-bind="text : test"></span>
+      <span data-bind="text : test24"></span>
+      <script type="text/bindvar">
+        {"test":11,
+        "test23":22,
+        "test24":function(){
+          // console.log('this=',this)
+          return this.test23() + 10
+        }}
+      </script>
+      </div>`)
+      t0 = performance.now()
+    }, 0)
+  })
+
   it('data-ns元素的子data-bindvar自动归入此名称下，并且一次事件中可以嵌套加入NS', function (done) {
     let t0
     let pThis = this

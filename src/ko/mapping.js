@@ -391,7 +391,17 @@
                 mappedRootObject = updateCallback(rootObject)
               }
             } else {
-              mappedRootObject = rootObject
+              if(ko.isComputed(rootObject) /* || ko.isPureComputed(rootObject) */ ){
+                mappedRootObject = rootObject
+              }else{
+                let opt = {deferEvaluation: true}
+                if(rootObject.length === 0){
+                  opt.pure = true
+                }else{
+                  opt.write = true
+                }
+                mappedRootObject = ko.computed(rootObject,parent,opt)
+              }
             }
             break
           default:

@@ -65,7 +65,7 @@ ko模块的初始化代码，在DomReady之后，由chk模块调用。负责建�
 - 在进行KO处理之前，对每个加入的节点，发出同步事件(koprepare)，如果事件有监听，则监听代码负责预处理节点，如下响应会被加载，以更新attr,更新viewmodel...
   - 检查data-ns,如果有，更新viewmodel,加入对象，并更新元素,加入with绑定。
   - 检查data-bindvar,如果有，使用data-bindvar属性对viewmodel做初始化更新。(符合namespace)
-  - 检查script[type="text/bindvar"],将内容当作viewmodel做初始化更新。(符合namespace,并且可以有函数[computed observer])
+  - 检查script[type="text/bindvar"],将内容当作viewmodel做初始化更新。(符合namespace,并且可以有函数[computed observer]。[计算型](https://knockoutjs.com/documentation/computed-reference.html)数据的定义，可以通过create option来创建，也可以直接在bindvar脚本中创建，此时this为同级{同ns}viewModel，如果接受参数，则write属性设置，否则pure属性设置。默认都会设置deferEvaluation)
   - 检查script[type="text/wwjs"],执行之
 - 对含有data-bind的元素,执行applyBindings
 @exports ko
