@@ -61,17 +61,22 @@ function $container () {
 获取当前脚本执行的script标签．由于[IE11的设计问题](https://github.com/JamesMGreene/document.currentScript#public-service-announcement-psa)，无法[polyfill](https://github.com/JamesMGreene/document.currentScript),因此，我们采用了变通方案，要求传入一个值，也就是文件名以做selector查询．
 @exports utils/ui
 @method currentScript
-@param {string} [srcparts] 传入src中一定包含的可以独立鉴别script标签的字符串用以获取script元素．
+@param {string} [srcparts=''] 传入src中一定包含的可以独立鉴别script标签的字符串用以获取script元素．
 @return {Element} 返回Element或null(null只会在IE浏览器，并且selector错误时才会发生)
 */
 function currentScript (srcparts) {
   if (document.currentScript) {
     return document.currentScript
   }
-  // @TODO 这里是否应该拦截`SyntaxError`异常，并返回null?
-  let eles = document.querySelectorAll(`script[src*=${srcparts}]`)
-  if (eles.length === 1) {
-    return eles[0]
+  if (document._currentScript) {
+    return document._currentScript()
+  }
+  if (srcparts) {
+    // @TODO 这里是否应该拦截`SyntaxError`异常，并返回null?
+    let eles = document.querySelectorAll(`script[src*=${srcparts}]`)
+    if (eles.length === 1) {
+      return eles[0]
+    }
   }
   return null
 }
@@ -386,7 +391,7 @@ function showMessage (message) {
 @return {String} 获取到的名称。
 */
 function getName ($ele) {
-  return $ele.attr('name') || $ele.attr('data-name') || $ele.attr('id') || $ele.attr('data-id') || ($ele.uniqueId(), $ele.attr('id'))
+  return $ele.attr('name') || $ele.attr('data-name') || $ele.attr('id') || $ele.attr('data-id') || $ele.uniqueId()
 }
 
 /**

@@ -14,6 +14,8 @@
 
 import loadjs from '../utils/loadjs'
 import cfg from '../utils/cfg'
+import ui from '../utils/ui'
+import json from '../utils/json'
 import vm from '../ko/viewmodel'
 import trans from './trans'
 import EE from '../utils/evt'
@@ -29,6 +31,50 @@ JSON格式的网络命令协议模块。命令协议模块，用于解析可以�
 */
 
 /**
+<strong><font color="green">内建命令</font></strong>:用于执行任意脚本，并添加vm局部变量。
+@exports net
+@method eval
+@static
+@param {array} params 数组至少一项，为需要eval的值。可以是一个Object，此时定义如下:
+ {
+   str: 'eval string',
+   context: basic context object, 将被refEle的变量覆盖。因此只适合做refEle对应变量不存在时的默认变量。
+ }
+@param {Element|object} [refEle=$container] eval时，VM的局部变量由此DOM元素决定。也可以直接给出JSON对象。注意：VM局部变量的格式是'VM'。
+@exception {net.eval} 如果发生异常，发出error事件，参考[evt模块](module-utils_evt.html)
+@return {any} 返回执行结果。
+*/
+function evalStr (params, refEle) {
+  if (!$.isArray(params) || params.length < 1) {
+    return false
+  }
+  let str = params[0]
+  let context
+  if (typeof str === 'object') {
+    context = str.context
+    str = str.str
+  }
+  if (!str) {
+    return false
+  }
+  let targetVM = vm.get(refEle)
+  if (!context) {
+    context = targetVM
+  } else {
+    context = {}
+    $.extend(context, targetVM)
+  }
+  let result = json.eval(str, context)
+  if (result.error) {
+    if (cfg.debug) {
+      console.error('执行eval命令时，发生错误:', result.error)
+    }
+    EE.emit('error', 'net.eval', params, result.error)
+  }
+  return result.value
+}
+
+/**
 <strong><font color="green">内建命令</font></strong>:用于更新viewModel的值。
 @exports net
 @method updatelv
@@ -38,7 +84,10 @@ JSON格式的网络命令协议模块。命令协议模块，用于解析可以�
 - 如果给出非空字符串的第二个参数，则指示了更新当前名称空间下指定路径，并且支持几个前缀:
  - $root: 指示从根viewModel开始，而不是当前viewModel。
  - $parent: 指示从父名称空间开始，而不是当前viewModel。
-- 如果给出第三个参数，则指示了当前对应更新的extender.
+- 如果给出了Object类型的第二个参数，则默认将其当作mapping option。并支持如下格式:
+ - options: 如果是字符串类型，则将使用eval将其转为object，如果转化失败，则忽略本参数。如果是object类型，直接使用。
+ - path: 字符串类型，含义与第二个参数为字符串时相同。
+ - extender:则指示了当前对应更新的extender.(NOT IMPLEMENT)
 @param {Element} [refEle=$container] 指示本次更新的DOM元素，通常是发起调用的元素自身。如果未指定，从全局viewModel开始。
 @return {boolean|Promise<boolean>} 返回是否更新成功。如果extender需要从网络加载，则返回Promise。
 */
@@ -48,10 +97,11 @@ function updatelv (params, refEle) {
   }
   let dataValid = false
   if (typeof params[0] === 'string') {
-    try {
-      params[0] = JSON.parse(params[0])
+    let result = json.parse(params[0])
+    if (result.value !== undefined) {
       dataValid = true
-    } catch (e) {}
+      params[0] = result.value
+    }
   } else if (typeof params[0] === 'object') {
     dataValid = true
   }
@@ -60,35 +110,50 @@ function updatelv (params, refEle) {
       console.error('更新逻辑视图(updatelv)的参数(params)必须是一个对象。请检查服务器回应的内容，确保返回的对象结构。')
     }
     EE.emit('error', 'net.invalidData', params)
+    return false
   }
-  if (params[1]) { // 指定了根路径。
-    console.error('NOT IMPLEMENT PARTIAL UPDATELV with path')
-  } else {
-    vm.set(params[0], vm.get(refEle), true)
-  }
-}
+  let targetVM
+  const rootPrefix = '$root.'
+  const parentPrefix = '$parent.'
+  let refPath = params[1] ? params[1] : undefined
+  let setOption = {}
+  switch (refPath) {
+    case '$root':
+      targetVM = vm.get()
+      break
+    case '$parent':
+      targetVM = vm.get(refEle, 'vm', true)
+      break
+    default:
+      if (typeof refPath === 'object') {
+        if (typeof refPath.options === 'object') {
+          setOption = refPath.options
+        } else if (typeof refPath.options === 'string') {
+          setOption = json.eval(refPath.options)
+        }
+        refPath = refPath.path
+      }
 
-/**
-<strong><font color="green">内建命令</font></strong>:用于执行任意脚本，并添加vm局部变量。
-@exports net
-@method eval
-@static
-@param {array} params 数组至少一项，为需要eval的值。
-@param {Element} [refEle=$container] eval时，VM的局部变量由此DOM元素决定。
-@exception {net.eval} 如果发生异常，发出error事件，参考[evt模块](module-utils_evt.html)
-@return {any} 返回执行结果。
-*/
-function evalStr (params, refEle) {
-  try {
-    /* eslint-disable */
-    eval(params[0])
-    /* eslint-enable */
-  } catch (e) {
-    if (cfg.debug) {
-      console.error('执行eval命令时，发生错误:', e)
-    }
-    EE.emit('error', 'net.eval', params)
+      if (refPath) {
+        if (refPath.startsWith(rootPrefix)) {
+          targetVM = vm.get(refPath.substr(rootPrefix))
+        } else if (refPath.startsWith(parentPrefix)) {
+          targetVM = vm.get(refPath.substr(parentPrefix), 'vm', vm.get(refEle, 'vm', true))
+        } else {
+          targetVM = vm.get(refPath, 'vm', refEle)
+        }
+      } else {
+        targetVM = vm.get(refEle)
+      }
+      break
   }
+
+  if (!targetVM) {
+    targetVM = vm.get(refEle)
+    console.warn('updatelv未指定targetVM，将内容更新到请求元素对应的路径下。参考请求元素:', refEle)
+  }
+
+  vm.set(params[0], targetVM, true, setOption)
 }
 
 /**
@@ -409,20 +474,23 @@ command: "命令名，例如@xxxx?commandName",
 params: []
 }`
 如果是数组，第一个元素是命令名，之后的是参数。
-@param {Element} [refEle=undefined] 触发此命令的元素。
+@param {Element} [refEle=currentScript] 触发此命令的元素。如果未指定，尝试调用currentScript来获取当前脚本对应的元素对象(如果代码位于回调中或浏览器不支持，currentScript会返回null)。
 @return {any} 如果执行成功，返回值由处理器确定，否则返回false.
 */
 function run (cmd, refEle, transName) {
   let name, params
+  refEle = refEle || ui.currentScript()
   return Promise.resolve(trans.tran(transName, cmd)).then((cmd) => {
     if (window.$.isArray(cmd) && cmd.length > 0) {
       name = cmd[0]
       if (cmd.length > 1) {
         params = cmd.slice(1)
+      } else {
+        params = []
       }
     } else if (typeof cmd === 'object') {
       name = cmd.command
-      params = cmd.params
+      params = cmd.params || []
     } else if (typeof cmd === 'string') {
       name = cmd
       params = []

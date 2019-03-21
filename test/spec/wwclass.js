@@ -49,8 +49,8 @@ describe('wwclass元素机制', function () {
         super(ele)
         const self = this
         chai.expect(ele).to.be.an.instanceof(Element, `构造函数传入错误参数${ele}？`)
+        // console.log(1)
         // 这句调用会出发依赖加载，并导致deperr方法被执行。
-        console.log(1)
         self.test()
       }
       @wwjs.wwclass.dep([notExistFile], 'deperr')

@@ -37,8 +37,32 @@ function parse (text, reviver) {
   }
 }
 
+/**
+使用eval来parsing字符串，这允许JSON中包含function，返回value/error对象以区分是否parse正确。
+@exports utils/json
+@method eval
+@param {string} text 需要解析的字符串
+@param {object} [context={}] 解析text时使用的context,这个对象中定义的变量在text中可以当作全局变量使用。
+@return {object} 如果成功，值保存在{value:XXXX}中，否则错误对象保存在{error:XXXX}中。
+*/
+function evalJSON (text, context) {
+  try {
+    return {
+      value: (function (str) {
+        // eslint-disable-next-line
+        return eval(`(${str})`)
+      }.call(context || {}, text))
+    }
+  } catch (ex) {
+    return {
+      error: ex
+    }
+  }
+}
+
 // @TODO 不使用JSONPath,JsPath之类的库，将viewmodel中的getVmfrompath函数移到这里。或者采用语法更接近的[jmespath.js](https://github.com/jmespath/jmespath.js)来改写(需要支持便利json时，通过函数而不是setter/getter来获取，以可以直接操作viewmodel)。
 
 export default {
-  parse: parse
+  parse: parse,
+  eval: evalJSON
 }

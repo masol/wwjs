@@ -25,7 +25,7 @@ window.EE = EE
 - `script.wwjs` : wwjs类型的脚本执行错误。此时第２个参数是一个`Error`对象。
 - `chk.nocontainer` : chk模块尝试获取container,但是失败了。此时第２个参数为undefined.
 - `vm.typeerror` : 给vm某个变量设置值，但是其类型不同于原始值。此时第２个参数是`TypeError`实例。如果设置了自动转化，则本事件不会发出。参考[utils/cfg模块](module-utils_cfg.html)
-- `bindvar` : 处理`data-bindvar`时发生了错误，错误对象是第二个参数，通常是`SyntaxError`对象。
+- `bindvar` : 处理`data-bindvar`时发生了错误，错误对象是第二个参数，通常是`SyntaxError`对象。第三个参数返回相关的ele对象(dom Element)
 - `elem.depfailed` : 元素dep依赖加载失败，错误对象是第二个参数。
 - `wwclass.finalize` : 元素析构时发生错误，错误对象是第二个参数。查阅[elems模块](module-elems.html)
 - `wwclass.get` : 获取元素类时发生错误，加载失败的文件名是第二个参数。查阅[wwclass:get](wwclass.html#.get)

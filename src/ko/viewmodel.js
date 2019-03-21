@@ -43,20 +43,24 @@ function reset () {
 @method get
 @param {String|Element} [pathOrEle=''] 需要获取的路径，传入一个元素或Javascript的对象访问语句，用于获取对应的ViewModel。默认从模型的根路径开始。
 @param {String} [format] 需要获取的格式，当前支持`json`,`observable`。如果不给参数，默认返回`observable`格式。
-@param {Element} [parent=$container] 给出父元素。只有在地一个参数为path时才会被使用，用来确定path所指定的根路径。
+@param {Element} [parent=$container] 父元素标志。根据地一个参数类型含义不同:
+  - 在第一个参数为path时，用来确定path所索引的根路径(再次递归调用get来获取根)。
+  - 在第一个参数为element时，如果指定为true,则返回元素对应的父vm($parent)，而不是自身。
 @return {Object} 获取到的ViewModel.
 */
 function get (pathOrEle, format, parent) {
   let vm = viewModel
   if (pathOrEle instanceof Element) {
-    // 元素可能尚未初始化，寻找包含自身在内的地一个包含data-ns元素的父，未考虑未初始化的foreach
+    // 元素可能尚未初始化，寻找包含自身在内的第一个包含data-ns元素的父，未考虑未初始化的foreach
     let elem = pathOrEle
     let $data, nsName, $ctx
     let path = []
     for (; elem && elem !== document; elem = elem.parentNode) {
-      $ctx = ko.dataFor(elem)
+      $ctx = ko.contextFor(elem) // ko.dataFor(elem)
       if ($ctx) {
-        $data = $ctx.$data
+        // console.log('ctx=', $ctx)
+        $data = parent ? $ctx.$parent : $ctx.$data
+        // console.log('ctx.$data=', $ctx.$data)
       }
       nsName = elem.getAttribute('data-ns')
       if (nsName) {
@@ -84,7 +88,17 @@ function get (pathOrEle, format, parent) {
     }
     vm = $data
   } else if (typeof pathOrEle === 'string') {
-    let current = get(parent)
+    let current
+    // 如果parent指定为undefined,或者元素或者路径。则获取之。
+    if (parent instanceof Element || typeof parent === 'string' || !parent) {
+      current = get(parent)
+    } else if (typeof parent === 'object') {
+      // 否则parent已经是一个vm了，直接使用。
+      current = parent
+    }
+    // 如果current无效，获取根vm.
+    current = current || get()
+
     const pathParts = ObjectPath.parse(pathOrEle)
     let i = 0
     for (; i < pathParts.length; i++) {
@@ -121,10 +135,11 @@ function deepFilter (filterValue, value, $data) {
 @param {object} value 需要设置的数据。
 @param {object} [$data=null] 更新的对象，默认从根路径(全局viewmodel对象)下开始更新。这个对象可以通过元素的`dataFor(ele)`来获取。
 @param {Boolean} [overwritten=false] 如果目标属性已经存在，是否覆盖？
+@param {object} [option={}] mapping的Mapping options,默认是{}
 @return {Boolean} 如果成功更新，则返回true.
 @TODO 参考(mapping docs)[https://knockoutjs.com/documentation/plugins-mapping.html]以支持Mapping Options.
 */
-function set (value, $data, overwritten) {
+function set (value, $data, overwritten, option) {
   let key, models, v
   $data = $data || get()
   // console.log('$data=', $data)
@@ -137,7 +152,7 @@ function set (value, $data, overwritten) {
 
   try {
     // 输入三个参数,第二个是mapping option，以确保将$data当作target,而不是判定其是否包含`__ko_mapping__`属性。
-    ko.mapping.fromJS(filterValue, {}, $data)
+    ko.mapping.fromJS(filterValue, option || {}, $data)
   } catch (ex) {
     if (cfg.vmtypecvt && ex instanceof TypeError) {
       // console.log(ex)
@@ -165,31 +180,48 @@ function set (value, $data, overwritten) {
   }
 }
 
-function procBindvar () {
-  let ele = this
-  // console.log('data-bindvar=', ele.getAttribute('data-bindvar'))
-  const bindObj = json.parse(ele.getAttribute('data-bindvar'))
+function bindvarImpl (ele, bindObj, targetVM, prompt) {
   // console.log('bindObj=', bindObj)
   if (bindObj.value) {
     // console.log(1, 'get(ele)=', get(ele))
-    set(bindObj.value, get(ele), false)
+    set(bindObj.value, targetVM, false)
     // console.log(get(null, 'json'))
   } else {
     if (cfg.debug) {
-      console.error(`分析data-bindvar的值时发生错误:${bindObj.error}`)
+      console.error(`解析${prompt}的内容时发生错误:${bindObj.error}`)
     }
-    EE.emit('error', 'bindvar', bindObj.error)
+    EE.emit('error', 'bindvar', bindObj.error, ele)
   }
+}
+function procBindvar () {
+  // console.log('data-bindvar=', ele.getAttribute('data-bindvar'))
+  return bindvarImpl(this, json.parse(this.getAttribute('data-bindvar')), get(this), 'data-bindvar')
+}
+
+function procScriptBindvar () {
+  let ele = this
+  let targetVM = get(ele)
+  const bindObj = json.eval(ele.textContent, targetVM)
+  return bindvarImpl(ele, bindObj, targetVM, 'script[type="text/bindvar"]')
 }
 
 EE.on('koprepare', ($ele) => {
-  if ($ele.is('[data-bindvar]')) {
+  const slector = '[data-bindvar]'
+  const scriptSelector = 'script[type="text/bindvar"]'
+  if ($ele.is(slector)) {
     procBindvar.call($ele[0])
   }
-  let nsItems = $ele.find('[data-bindvar]')
+  if ($ele.is(scriptSelector)) {
+    procScriptBindvar.call($ele[0])
+  }
+  let nsItems = $ele.find(slector)
   // console.log('nsItems=', nsItems)
   if (nsItems.length > 0) {
     nsItems.each(procBindvar)
+  }
+  nsItems = $ele.find(scriptSelector)
+  if (nsItems.length > 0) {
+    nsItems.each(procScriptBindvar)
   }
 })
 
