@@ -26,6 +26,7 @@ import wwcls from './elems'
 import net from './net'
 import i18n from './utils/i18n'
 import queryString from 'query-string'
+import getKY from './utils/ky'
 
 // console.log(loadjs)
 
@@ -85,6 +86,13 @@ function Template (templateString, value) {
  暴露在window.Modernizr全局名称空间的特性检查，提供了当前浏览器对各特性支持情况的信息。详情参考[polyfills模块](module-utils_polifills.html)文档。
   * @type {object}
   * @name Modernizr
+**/
+
+/**
+ 暴露在window.ky全局名称空间的ky,在polyfill加载完毕后有效。
+- API文档参考[ky官方文档](https://github.com/sindresorhus/ky)。同时wwjs中提供了[getky](module-wwjs.html#~getky)函数返回相同对象。
+  * @type {function}
+  * @name ky
 **/
 
 /**
@@ -190,6 +198,7 @@ polyfillSetup(() => {
     }
   }
   window.wwimport = wwimport
+  window.ky = getKY()
   window.Promise.all(tasks).then(() => {
     $(document).ready(function () {
       readyState = READY_SUC
@@ -256,6 +265,15 @@ module.exports = {
    * @name EE
   **/
   EE: EE,
+  /**
+  获取ky实例。详情参考[ky模块](module-utils_ky.html)。函数不接受参数
+   * @member wwjs
+   * @constant
+   * @type {function}
+   * @method getky
+   * @return {function} 返回ky实例，实例的用法参考[ky官方文档](https://github.com/sindresorhus/ky)
+  **/
+  getky: getKY,
   /**
   同步检查当前是否已经ready.
    * @method wwjs
