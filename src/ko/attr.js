@@ -27,7 +27,7 @@ export default () => {
       // console.log(attrName)
       // console.log(attrValue)
     })
-    if (!$.isEmptyObject(attrMap)) {
+    if (!Object.isEmpty(attrMap)) {
       // debugger
       ko.utils.registerEventHandler(element, ko.attrChanged, function (event, attrName) {
         let attrValue = attrMap[attrName]

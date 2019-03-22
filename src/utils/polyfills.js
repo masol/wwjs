@@ -215,6 +215,25 @@ function setup (callback) {
     checkFeature('weakmap', '@/weakmap-polyfill/2.0.0/weakmap-polyfill.min.js')
   })
 
+  // @TODO: 这可以安全的移除，只有IE9以下版本不支持这一函数。
+  // @TODO: 将类型检查类代码移到utils/type.js中。
+  if (typeof Array.isArray === 'undefined') {
+    Array.isArray = function (obj) {
+      return Object.prototype.toString.call(obj) === '[object Array]'
+    }
+  }
+  // if (typeof Function.isFunction === 'undefined') {
+  Function.isFunction = function (obj) {
+    // underscore method:
+    // return !!(obj && obj.constructor && obj.call && obj.apply);
+    return !!(typeof obj === 'function')
+  }
+  // }
+
+  Object.isEmpty = function (obj) {
+    return Object.keys(obj).length === 0 && obj.constructor === Object
+  }
+
   // 如果没有equestanimationframe(只有ie9,按照[这里](https://gist.github.com/paulirish/1579671)的方案polyfill)
   if (!Modernizr.equestanimationframe) {
     var lastTime = 0

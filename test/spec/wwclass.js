@@ -35,7 +35,7 @@ describe('wwclass元素机制', function () {
       }
     }
     let deperr = function (errArray) {
-      if ($.isArray(errArray) && errArray.length === 1 && errArray[0].endsWith(notExistBase)) {
+      if (Array.isArray(errArray) && errArray.length === 1 && errArray[0].endsWith(notExistBase)) {
         sig2++
         chai.expect(sig2).to.be.equal(1, `类加载错误的通知有问题？`)
         fullFileTest2 = true
@@ -58,7 +58,7 @@ describe('wwclass元素机制', function () {
         return 1100
       }
       deperr (err) {
-        if ($.isArray(err) && err.length === 1 && err[0].endsWith(notExistBase)) {
+        if (Array.isArray(err) && err.length === 1 && err[0].endsWith(notExistBase)) {
           sig++
           chai.expect(sig).to.be.equal(1, `加载成功，也调用了错误回调？`)
           fullfillTest = true

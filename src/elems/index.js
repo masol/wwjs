@@ -28,6 +28,14 @@ wwjs的元素扩展模块，内建推荐方法是扩展[wwclass](wwclass.html)�
 */
 
 function construCls (ele, cls) {
+  let errHandler = function (e) {
+    if (cfg.debug) {
+      // console.log(Target)
+      console.error(`创建元素类${cls}的实例时发生错误:“${e}”`)
+    }
+    EE.emit('error', 'wwclass.constructor', e)
+  }
+
   // console.log('in construCls,ele=', ele)
   let delayload = parseInt(ele.getAttribute('data-delay-load') || 0)
   let onCreated = (inst) => {
@@ -36,21 +44,15 @@ function construCls (ele, cls) {
       inst.requestRender()
     }
   }
-  Promise.resolve(wwclass.get(cls, ele.getAttribute('data-classurl'), delayload)).then((Cls) => {
+  return Promise.resolve(wwclass.get(cls, ele.getAttribute('data-classurl'), delayload)).then((Cls) => {
     return Promise.resolve(new Cls(ele)).then((inst) => {
-      if ($.isFunction(inst.init)) {
-        return Promise.resolve(inst.init()).then(onCreated.bind(null, inst))
+      if (Function.isFunction(inst.init)) {
+        return Promise.resolve(inst.init()).then(onCreated.bind(null, inst)).catch(errHandler)
       }
       return onCreated(inst)
-    })
+    }).catch(errHandler)
     // console.log('ele =', ele, 'cls = ', cls)
-  }).catch((e) => {
-    if (cfg.debug) {
-      // console.log(Target)
-      console.error(`创建元素类${cls}的实例时发生错误:“${e}”`)
-    }
-    EE.emit('error', 'wwclass.constructor', e)
-  })
+  }).catch(errHandler)
 }
 
 /**

@@ -122,7 +122,7 @@ function wwimport (id, cb) {
     // 允许不传入回调，用于加载后不管的情况。
     cb = () => {}
   }
-  if ($.isArray(id)) {
+  if (Array.isArray(id)) {
     let allResult = []
     // 为防止同步回调，resp和expect在所有wwimport发送完毕之前不可能相等。
     let respCount = 1
@@ -196,7 +196,7 @@ polyfillSetup(() => {
       notifyReady(null)
     })
   }).catch((err) => {
-    console.err(`ready之前发生错误，忽略这一错误，并继续处理，这可能会发生其它问题。错误内容:${err}`)
+    console.error(`ready之前发生错误，忽略这一错误，并继续处理，这可能会发生其它问题。错误内容:${err}`)
     readyState = err
     notifyReady(err)
   })

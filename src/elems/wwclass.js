@@ -114,7 +114,7 @@ function callMethod (self, name) {
     }
     if (!opt.noParamChk) { // 需要检查参数数量。
       let len = 1
-      if ($.isArray(param)) {
+      if (Array.isArray(param)) {
         len = param.length
       }
       if (func.length > len) {
@@ -123,7 +123,7 @@ function callMethod (self, name) {
     }
 
     if (err.length === 0) { // 一切正常，执行函数。
-      if (!$.isArray(param)) {
+      if (!Array.isArray(param)) {
         param = [param]
       }
       const chkCacheReq = () => {

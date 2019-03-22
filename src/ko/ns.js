@@ -40,7 +40,7 @@ function getNs (nsOrEle) {
 */
 function template (params, refEle) {
   let tstr
-  tstr = ($.isArray(params)) ? params.join('') : String(params)
+  tstr = (Array.isArray(params)) ? params.join('') : String(params)
   return (tstr.indexOf('${') >= 0) ? window.Template(tstr, wwjs.vm.get(refEle, 'json')) : tstr
 }
 

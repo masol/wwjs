@@ -13,7 +13,7 @@
 'use strict'
 
 import loadjs from 'loadjs'
-import $ from 'jquery'
+// import $ from 'jquery'
 import cfg from './cfg'
 /**
 加载器模块，基于[loadjs](https://github.com/muicss/loadjs)。基于两个考虑:
@@ -36,7 +36,7 @@ function resolve (deps) {
     } else if (deps.length > 0 && deps[0] === '@') {
       return cfg.libbase + deps.substr(1)
     }
-  } else if ($.isArray(deps)) {
+  } else if (Array.isArray(deps)) {
     let i = 0
     for (i; i < deps.length; i++) {
       deps[i] = resolve(deps[i])
@@ -56,7 +56,7 @@ loadjs.resolve = resolve
 function alldone (deps) {
   if (typeof (deps) === 'string') {
     loadjs.done(loadjs.resolve(deps))
-  } else if ($.isArray(deps)) {
+  } else if (Array.isArray(deps)) {
     let i = 0
     for (i; i < deps.length; i++) {
       deps[i] = alldone(deps[i])
@@ -91,7 +91,7 @@ function defaultBefore (path, scriptEl) {
   scriptEl.setAttribute('defer', 'defer')
   scriptEl.removeAttribute('async')
   let checker = loadChecker[scriptEl.tagName]
-  if ($.isFunction(checker)) {
+  if (Function.isFunction(checker)) {
     return !checker(path)
   }
 }
@@ -114,10 +114,10 @@ function defaultBefore (path, scriptEl) {
 @return {undefined}
 */
 loadjs.load = function (deps, options) {
-  if (!$.isArray(deps)) {
+  if (!Array.isArray(deps)) {
     deps = [deps]
   }
-  if (!$.isFunction(options)) {
+  if (!Function.isFunction(options)) {
     options = options || {}
     // 添加默认的before处理。
     if (!options.before) {

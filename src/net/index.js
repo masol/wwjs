@@ -45,7 +45,7 @@ JSON格式的网络命令协议模块。命令协议模块，用于解析可以�
 @return {any} 返回执行结果。
 */
 function evalStr (params, refEle) {
-  if (!$.isArray(params) || params.length < 1) {
+  if (!Array.isArray(params) || params.length < 1) {
     return false
   }
   let str = params[0]
@@ -92,7 +92,7 @@ function evalStr (params, refEle) {
 @return {boolean|Promise<boolean>} 返回是否更新成功。如果extender需要从网络加载，则返回Promise。
 */
 function updatelv (params, refEle) {
-  if (!$.isArray(params) || params.length < 1) {
+  if (!Array.isArray(params) || params.length < 1) {
     return false
   }
   let dataValid = false
@@ -481,7 +481,7 @@ function run (cmd, refEle, transName) {
   let name, params
   refEle = refEle || ui.currentScript()
   return Promise.resolve(trans.tran(transName, cmd)).then((cmd) => {
-    if (window.$.isArray(cmd) && cmd.length > 0) {
+    if (Array.isArray(cmd) && cmd.length > 0) {
       name = cmd[0]
       if (cmd.length > 1) {
         params = cmd.slice(1)

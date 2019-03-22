@@ -16,7 +16,7 @@ import 'systemjs/dist/s'
 import 'systemjs/dist/extras/amd'
 import cfg from './cfg'
 // import 'systemjs/dist/extras/named-register'
-import $ from 'jquery'
+// import $ from 'jquery'
 
 const System = window.System
 
@@ -233,12 +233,12 @@ systemJSPrototype.resolve = function (_id, source) {
 
 // 为System添加load函数，以load数组形式的多个依赖。
 function load (depArray) {
-  if ($.isArray(depArray)) {
+  if (Array.isArray(depArray)) {
     let i, deps
     deps = []
     for (i = 0; i < depArray.length; i++) {
       let id = depArray[i]
-      if ($.isArray[id]) {
+      if (Array.isArray[id]) {
         deps.push(System.load(id))
       } else {
         deps.push(id)
@@ -248,7 +248,7 @@ function load (depArray) {
       let curs = []
       for (i = 0; i < deps.length; i++) {
         let id = deps[i]
-        if ($.isArray[id]) {
+        if (Array.isArray[id]) {
           curs.push(id)
         } else {
           curs.push(System.import(id))
@@ -262,7 +262,7 @@ function load (depArray) {
 }
 
 systemJSPrototype.import = function (id, parent) {
-  if ($.isArray(id)) {
+  if (Array.isArray(id)) {
     return load(id)
   }
   return origImport.apply(this, arguments)

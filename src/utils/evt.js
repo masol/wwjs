@@ -72,7 +72,7 @@ onNodeAdd事件，是对`EE.on('nodeAdd'...)`的一个扩展，如果监听时�
 */
 
 EE.onNodeAdd = function (cb) {
-  if ($.isFunction(cb)) {
+  if (Function.isFunction(cb)) {
     EE.on('nodeAdd', cb)
     if (EE.alreadyEmitted) {
       setTimeout(() => {

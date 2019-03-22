@@ -45,7 +45,7 @@ function getObjectFromHash () {
 
 function processHashViewModel () {
   let obj = getObjectFromHash()
-  if (!$.isEmptyObject(obj)) {
+  if (!Object.isEmpty(obj)) {
     // console.log('set viewmode=', obj)
     set(obj, null, true)
   }
