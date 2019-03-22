@@ -202,7 +202,7 @@ function setup (callback) {
     checkFeature('urlparser', '@/%40webcomponents/url/0.7.1/url.js')
     checkFeature('objectfit', '@/object-fit-images/3.2.4/ofi.min.js')
     checkFeature('history', '@/html5-history-api/4.2.10/history.min.js')
-    checkFeature('templatestrings', '@/es6tpl/1.0.1/es6tpl.min.js', () => {
+    checkFeature('templatestrings', '@/es6tpl/1.0.2/es6tpl.min.js', () => {
       if (Modernizr.templatestrings) {
         window.Template = require('es6-dynamic-template')
         // see https://gist.github.com/malko/b8a432bbb2198ca5d38cd3dc27d40f24 to implement makeTemplate.
