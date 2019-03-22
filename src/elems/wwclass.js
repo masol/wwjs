@@ -98,7 +98,7 @@ function callMethod (self, name) {
 
   const opt = self._mut.methods[name]
   let err = ''
-  if (typeof opt === 'object' && $.isFunction(self[name])) {
+  if (typeof opt === 'object' && Function.isFunction(self[name])) {
     const func = self[name]
     const defValue = opt.defValue || ''
     const attrName = `${callPrefix}${name}`
@@ -301,7 +301,7 @@ function updateProp (self, newValue, attrName, propName, methodName, options) {
       self.requestRender()
     }
     // 必须在最后调用回调，以确保属性更新完毕，否则回调中可能重新更新属性值，如果属性更新放在后面，会导致回调中设置的值被覆盖．
-    if ($.isFunction(self[methodName])) {
+    if (Function.isFunction(self[methodName])) {
       self[methodName](oldValue, newValue)
     }
   }
