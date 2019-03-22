@@ -76,6 +76,7 @@ module.exports = env => {
       modules: [resolve('src'), resolve('node_modules')],
       alias: {
         // jquery: 'cash-dom',
+        jquery: 'jquery/dist/jquery.slim.min.js',
         knockout: 'knockout/build/output/knockout-latest'
       }
     }

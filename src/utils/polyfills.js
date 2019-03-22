@@ -25,7 +25,8 @@ const Modernizr = window.Modernizr
 - [Session history management](https://caniuse.com/#search=Session%20history%20management),目标浏览器下，只有ie9不被支持，由于这个特性不支持会导致wwjs无法运行，因此自动打补丁[html5-history-api](https://github.com/devote/HTML5-History-API)
 - [ES6 String](https://caniuse.com/#search=ES6),如果不支持，自动补丁[string-polyfills](https://github.com/Sylvain59650/string-polyfills),注意只是String,不是全部class规范，没有使用[es6-shim](https://github.com/paulmillr/es6-shim)
 - [classlist](https://caniuse.com/#search=classlist)，自动补丁[eligrey-classlist-js-polyfill](https://github.com/englishextra/eligrey-classlist-js-polyfill)
-- [datalist](https://caniuse.com/#search=Datalist%20element)，自动补丁[https://github.com/mfranzke/datalist-polyfill)
+- [datalist](https://caniuse.com/#search=Datalist%20element)，自动补丁[datalist-polyfill](https://github.com/mfranzke/datalist-polyfill)
+- [templatestrings](https://caniuse.com/#search=ES6%20Template%20Literals%20(Template%20Strings),提供了`window.Template`函数来支持动态模板。如果不支持，使用[es6-template-strings](https://github.com/medikoo/es6-template-strings)自动polyfill本函数，使用webpack[引入编译](https://scm.spolo.org/scm/index.html#repositoryBrowser;4nRCOxg5E4;null;es6tpl)一次，如果支持，使用本地函数[es6-dynamic-template](https://www.npmjs.com/package/es6-dynamic-template)
 - [Html5 Input Types](https://caniuse.com/#search=input%20types),挨个检查，如果不支持，没有使用[hyperform](https://hyperform.js.org/)，而是按照如下列表安装polyfill.
   - [color](https://caniuse.com/#search=Color%20input%20type),安装
   - [date and time](https://caniuse.com/#search=Date%20and%20time%20input%20types),安装
@@ -38,7 +39,6 @@ const Modernizr = window.Modernizr
 - [WebRTC Peer-to-peer connections](https://caniuse.com/#search=WebRTC%20Peer-to-peer%20connections),如果不支持，需要自行安装[AdapterJS](https://github.com/Temasys/AdapterJS)
 - [Beacon API](https://caniuse.com/#search=Beacon%20API),用于在页面结束前有机会向服务器发送消息，而忽略其回应。
 - [webgl](https://caniuse.com/#search=webgl),如果不支持(只有ie9和ie10不被支持)，可以安装[cwebgl](https://github.com/cimaron/cwebgl)
-- [templatestrings](),提供了`window.pkgs.Template`函数来支持动态模板。如果不支持，自动polyfill本函数，如果支持，使用本地函数[es6-dynamic-template](https://www.npmjs.com/package/es6-dynamic-template)
 - [Web Audio API](https://caniuse.com/#search=Web%20Audio%20API),如果不支持，自行安装[audiolib.js](https://github.com/jussi-kalliokoski/audiolib.js).
 - 图像格式类检查，配合lazyloader,指示请求何种资源：
   - [Webp](https://caniuse.com/#search=WebP%20image%20format),本特性主要用来检查，以明确服务器返回何种格式的图像。配合lazyloader
@@ -202,9 +202,14 @@ function setup (callback) {
     checkFeature('urlparser', '@/%40webcomponents/url/0.7.1/url.js')
     checkFeature('objectfit', '@/object-fit-images/3.2.4/ofi.min.js')
     checkFeature('history', '@/html5-history-api/4.2.10/history.min.js')
-    checkFeature('templatestrings', '@//es6tpl/1.0.1/es6tpl.min.js', () => {
+    checkFeature('templatestrings', '@/es6tpl/1.0.1/es6tpl.min.js', () => {
       if (Modernizr.templatestrings) {
         window.Template = require('es6-dynamic-template')
+        // see https://gist.github.com/malko/b8a432bbb2198ca5d38cd3dc27d40f24 to implement makeTemplate.
+        window.makeTemplate = (templateString) => {
+          // eslint-disable-next-line no-new-func
+          return (templateData) => new Function(`{${Object.keys(templateData).join(',')}}`, 'return `' + templateString + '`')(templateData)
+        }
       }
     })
     checkFeature('weakmap', '@/weakmap-polyfill/2.0.0/weakmap-polyfill.min.js')
