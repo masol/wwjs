@@ -58,10 +58,9 @@ window.ko = ko
 // console.log(attr)
 attr()
 
-VM.reset()
-
 /**
 ko模块的初始化代码，在DomReady之后，由chk模块调用。负责建立事件监听，以监听新节点的插入，并处理新加入的节点。处理过程:
+- 首先检查hash中是否有viewModel串(以#?开头的部分,当作queryString格式)，并使用其内容初始化viewModel,然后建立后续hash变化的相同检查。
 - 在进行KO处理之前，对每个加入的节点，发出同步事件(koprepare)，如果事件有监听，则监听代码负责预处理节点，如下响应会被加载，以更新attr,更新viewmodel...
   - 检查data-ns,如果有，更新viewmodel,加入对象，并更新元素,加入with绑定。
   - 检查data-bindvar,如果有，使用data-bindvar属性对viewmodel做初始化更新。(符合namespace)
@@ -74,6 +73,7 @@ ko模块的初始化代码，在DomReady之后，由chk模块调用。负责建�
 @return undefined
 */
 function setup () {
+  VM.setup()
   EE.on('nodeAdd', function (nodeArray) {
     // console.log('nodeAdded:', nodeArray, 'ko.options=', ko.options)
     let i, j, item, $item

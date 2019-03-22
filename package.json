@@ -103,7 +103,6 @@
     "cash-dom": "^2.3.9",
     "phantomjs-prebuilt": "^2.1.16",
     "systemjs": "^2.1.1",
-    "jquery": "^3.3.1",
     "es6-template-strings": "^2.0.1",
     "whatwg-fetch": "^3.0.0"
   },
@@ -117,6 +116,7 @@
   "license": "WWARE LICENSE",
   "homepage": "https://www.wware.org",
   "devDependencies": {
+    "jquery": "^3.3.1",
     "@babel/core": "^7.1.2",
     "@babel/plugin-proposal-class-properties": "^7.1.0",
     "@babel/plugin-proposal-decorators": "^7.1.6",
@@ -138,6 +138,7 @@
     "loadjs": "^3.5.4",
     "objectpath": "^1.2.2",
     "opn": "^5.4.0",
+    "query-string": "^6.4.0",
     "shelljs": "^0.8.2",
     "string-replace-loader": "^2.1.1",
     "uniqid": "^5.0.3",

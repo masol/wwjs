@@ -25,6 +25,7 @@ import vm from './ko/viewmodel'
 import wwcls from './elems'
 import net from './net'
 import i18n from './utils/i18n'
+import queryString from 'query-string'
 
 // console.log(loadjs)
 
@@ -303,13 +304,21 @@ module.exports = {
   **/
   net: net,
   /**
-  名称空间子模块，通过wwjs暴露到全e局空间。详细文档查看[ko/ns模块](module-ko_ns.html)
+  名称空间子模块，通过wwjs暴露到全局空间。详细文档查看[ko/ns模块](module-ko_ns.html)
    * @member wwjs
    * @constant
    * @type {object}
    * @name ns
   **/
   ns: ns.pub,
+  /**
+  queryString的解析器，通过wwjs暴露到全局空间。详细文档查看[query-string](https://github.com/sindresorhus/query-string)
+  * @member wwjs
+  * @constant
+  * @type {object}
+  * @name qs
+  **/
+  qs: queryString,
   ready: ready,
   /**
   es6模板规范的编译器，用于在es5环境下使用template。API参考[es6-dynamic-template](https://www.npmjs.com/package/es6-dynamic-template)，注意这是利用了babel的编译能力。

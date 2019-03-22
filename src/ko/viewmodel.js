@@ -17,6 +17,7 @@ import EE from '../utils/evt'
 import json from '../utils/json'
 import cfg from '../utils/cfg'
 import ObjectPath from 'objectpath'
+import queryString from 'query-string'
 
 // console.log(ObjectPath)
 
@@ -26,14 +27,38 @@ import ObjectPath from 'objectpath'
 */
 let viewModel
 
+const VMINHASHPREFIX = '#?'
+function getObjectFromHash () {
+  let ret = {}
+  if (window.location.hash) {
+    let idx = window.location.hash.indexOf(VMINHASHPREFIX)
+    if (idx >= 0) {
+      let vmstr = window.location.hash.substr(idx + VMINHASHPREFIX.length)
+      if (vmstr) {
+        $.extend(ret, queryString.parse(vmstr))
+        // console.log('set viewmode1=', ret)
+      }
+    }
+  }
+  return ret
+}
+
+function processHashViewModel () {
+  let obj = getObjectFromHash()
+  if (!$.isEmptyObject(obj)) {
+    // console.log('set viewmode=', obj)
+    set(obj, null, true)
+  }
+}
 /**
-将viewModel重置为初始状态。如果已有绑定，这些绑定会被固化(也就是不再响应数据变动)，重置之后的vm只影响新加入的元素。这个函数在ko就绪时会被调用一次。
+将viewModel重置为初始状态。如果已有绑定，这些绑定会被固化(也就是不再响应数据变动)，重置之后的vm只影响新加入的元素。这个函数在ko就绪时会被调用一次。请不要直接调用。
 @exports ko/viewmodel
-@method reset
+@method setup
 @return {undefined}
 */
-function reset () {
-  viewModel = ko.mapping.fromJS({})
+function setup () {
+  viewModel = ko.mapping.fromJS(getObjectFromHash())
+  $(window).on('hashchange', processHashViewModel)
 }
 
 /**
@@ -228,5 +253,5 @@ EE.on('koprepare', ($ele) => {
 export default {
   get: get,
   set: set,
-  reset: reset
+  setup: setup
 }
