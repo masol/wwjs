@@ -63,21 +63,44 @@ EE.on('error',function(desc,exobj){
 */
 
 /**
-onNodeAdd事件，是对`EE.on('nodeAdd'...)`的一个扩展，如果监听时，事件已经发出，则会将$container的加入事件重新发送一遍，以确保不会遗漏加入事件，用于注册的chk函数。
+onNodeAdd函数，是对`EE.on('nodeAdd'...)`的一个扩展，如果监听时，事件已经发出，则会将$container的加入事件重新发送一遍，以确保不会遗漏加入事件，用于注册的chk函数。
 @exports utils/evt
 @access public
 @param {function} [cb] 接收onNodeAdd事件的回调函数，参考[chk模块](module-chk.html#~setup).
+@param {object} [context=EE] 回调函数的content(this)，默认是EE对象。
 @method onNodeAdd
 @return {undefined}
 */
 
-EE.onNodeAdd = function (cb) {
+EE.onNodeAdd = function (cb, context) {
   if (Function.isFunction(cb)) {
-    EE.on('nodeAdd', cb)
-    if (EE.alreadyEmitted) {
+    EE.on('nodeAdd', cb, context)
+    if (EE.nodeAdded) {
       setTimeout(() => {
-        EE.emit('nodeAdd', [UI.$container()[0]])
+        cb.call(context || EE, 'nodeAdd', [UI.$container()[0]])
       }, 0)
+    }
+  }
+}
+
+/**
+onceCmdReg函数，是对`EE.once('command.reg'...)`的一个扩展，如果监听时，对应的命令已经被注册，则会立即发出事件。
+@exports utils/evt
+@access public
+@param {string} name 命令名称，参考[net模块](module-net.html#~reg)
+@param {function} cb 接收'command.reg'事件的回调函数，参考[net模块](module-net.html).
+@param {object} [context=EE] 回调函数的content(this)，默认是EE对象。
+@method onCmdReg
+@return {undefined}
+*/
+
+EE.onceCmdReg = function (name, cb, context) {
+  if (typeof name === 'string' && Function.isFunction(cb)) {
+    let cmd = wwjs.net.cmd(name, true)
+    if (cmd) {
+      cb.call(context || EE, name, cmd)
+    } else {
+      EE.once('command.reg', cb, context)
     }
   }
 }

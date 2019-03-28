@@ -130,7 +130,7 @@ function setup () {
     // 伪造事件不需要等待下一次绘制(RequestAnimationFrame)
     EE.emit('nodeAdd', [$container[0]])
     // rafProc([$container[0]], 'nodeAdd')
-    EE.alreadyEmitted = true
+    EE.nodeAdded = true
   } else {
     if (cfg.debug) {
       console.error('没有获取到有效的$container节点，无法构建Mutation监听')
