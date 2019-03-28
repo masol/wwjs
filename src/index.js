@@ -27,6 +27,7 @@ import net from './net'
 import i18n from './utils/i18n'
 import queryString from 'query-string'
 import getKY from './utils/ky'
+import AnimEvent from 'anim-event'
 
 // console.log(loadjs)
 
@@ -56,6 +57,13 @@ if (!window.$) {
  * @type {object}
  * @name wwjs
  **/
+
+/**
+ 暴露在window.AnimEvent全局名称空间的[AnimEvent](https://github.com/anseki/anim-event)。用于简化对rquestAnimation的调用，类似于[lodash#throttle](https://lodash.com/docs/4.17.10#throttle)。
+  * @type {object}
+  * @name AnimEvent
+ **/
+window.AnimEvent = AnimEvent
 
 /**
 暴露在window.Template全局名称空间的[Template](module-wwjs.html#~Template)函数。等同于`wwjs.Template`。

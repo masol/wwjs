@@ -29,7 +29,9 @@ function frameProc (evtName/*, timeStamp */) {
   // console.log('enter frameProc:', arguments)
   let raf = evtRaf[evtName]
   evtRaf[evtName] = undefined
-  cancelAnimationFrame(raf.id)
+  if (raf.id) {
+    cancelAnimationFrame(raf.id)
+  }
   EE.emit(evtName, raf.nl)
   // console.log('in framePro', evtName, raf)
 }
@@ -39,16 +41,17 @@ function rafProc (nodelist, evtName) {
   // console.log('oldRaf=', oldRaf)
   if (typeof oldRaf === 'object') {
     oldRaf.nl = Array.prototype.concat.call(oldRaf.nl, nodelist)
-    if (oldRaf.id) {
-      cancelAnimationFrame(oldRaf.id)
-    }
+    // 不清理oldRaf的回调调度，否则会引发连续节点加入阶段，处理得不到调用。
+    // if (oldRaf.id) {
+    //   cancelAnimationFrame(oldRaf.id)
+    // }
   } else {
     oldRaf = {
       nl: nodelist
     }
     evtRaf[evtName] = oldRaf
+    oldRaf.id = requestAnimationFrame(frameProc.bind(null, evtName))
   }
-  oldRaf.id = requestAnimationFrame(frameProc.bind(null, evtName))
 }
 
 /**
