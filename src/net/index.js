@@ -63,12 +63,12 @@ function getCmd (name, noAutoLoad) {
   if (pkgArray.length >= 2) {
     subName = (pkgArray.length > 2) ? pkgArray.slice(1).join('') : pkgArray[1]
   }
-  if (url.length > 1 && url[0] === url[1] === '@') {
-    url = loadjs.url(url.substr(2), '@wwcmd')
-  }
   let ret = internalGetCmd(url, subName)
   if (!ret && !noAutoLoad) {
-  // try loading functor.
+    if (url.length > 1 && url[0] === url[1] === '@') {
+      url = loadjs.url(url.substr(2), '@wwcmd')
+    }
+    // try loading functor.
     return new Promise((resolve, reject) => {
       loadjs.load(url, {
         success: function () {

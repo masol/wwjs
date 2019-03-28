@@ -95,12 +95,18 @@ onceCmdReg函数，是对`EE.once('command.reg'...)`的一个扩展，如果监�
 */
 
 EE.onceCmdReg = function (name, cb, context) {
+  let dummyCB = function (nameParam, handler) {
+    if (nameParam === name) {
+      cb.call(context || EE, name, handler)
+      EE.off(dummyCB)
+    }
+  }
   if (typeof name === 'string' && Function.isFunction(cb)) {
     let cmd = wwjs.net.cmd(name, true)
     if (cmd) {
       cb.call(context || EE, name, cmd)
     } else {
-      EE.once('command.reg', cb, context)
+      EE.on('command.reg', dummyCB, context)
     }
   }
 }
