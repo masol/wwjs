@@ -26,41 +26,30 @@ import vm from '../ko/viewmodel'
 @exports net
 @method eval
 @static
-@param {array} params 数组至少一项，为需要eval的值。可以是一个Object，此时定义如下:
+@param {array|object} params 至少一项，为需要eval的值。定义如下:
  {
-   str: 'eval string',
-   context: basic context object, 将被refEle的变量覆盖。因此只适合做refEle对应变量不存在时的默认变量。
+   str|0: 'eval string',
+   context|1: basic context object, 将被refEle的变量覆盖。因此只适合做refEle对应变量不存在时的默认变量。
  }
 @param {Element|object} [refEle=$container] eval时，VM的局部变量由此DOM元素决定。也可以直接给出JSON对象。注意：VM局部变量的格式是'VM'。
 @exception {net.eval} 如果发生异常，发出error事件，参考[evt模块](module-utils_evt.html)
 @return {any} 返回执行结果。
 */
 function evalStr (params, refEle) {
-  if (!Array.isArray(params) || params.length < 1) {
-    return false
-  }
-  let str = params[0]
-  let context
-  if (typeof str === 'object') {
-    context = str.context
-    str = str.str
-  }
+  let { str, context } = wwjs.net.extract(params, ['str', 'context'])
   if (!str) {
-    return false
+    return
   }
+  context = context || {}
   let targetVM = vm.get(refEle)
-  if (!context) {
-    context = targetVM
-  } else {
-    context = {}
-    $.extend(context, targetVM)
-  }
+  $.extend(context, targetVM)
   let result = json.eval(str, context)
   if (result.error) {
     if (cfg.debug) {
       console.error('执行eval命令时，发生错误:', result.error)
     }
     EE.emit('error', 'net.eval', params, result.error)
+    throw result.error
   }
   return result.value
 }
@@ -70,30 +59,30 @@ function evalStr (params, refEle) {
 @exports net
 @method updatelv
 @static
-@param {array} params 数组至少一项，最多三项，含义如下：
-- 第一个是当前viewModel对应的JSON对象。必须是一个对象。
-- 如果给出非空字符串的第二个参数，则指示了更新当前名称空间下指定路径，并且支持几个前缀:
- - $root: 指示从根viewModel开始，而不是当前viewModel。
- - $parent: 指示从父名称空间开始，而不是当前viewModel。
-- 如果给出了Object类型的第二个参数，则默认将其当作mapping option。并支持如下格式:
- - options: 如果是字符串类型，则将使用eval将其转为object，如果转化失败，则忽略本参数。如果是object类型，直接使用。
- - path: 字符串类型，含义与第二个参数为字符串时相同。
- - extender:则指示了当前对应更新的extender.(NOT IMPLEMENT)
+@param {array|object} params 数组至少一项，最多三项，含义如下：
+- content|0: 第一个是当前viewModel对应的JSON对象。必须是一个对象。如果不是对象，尝试JSON.parse将其转为对象。
+- options|1: 此参数可以是一个字符串或对象。
+  如果给出非空字符串的options参数，则指示了更新当前名称空间下指定路径，并且支持几个前缀:
+   - $root: 指示从根viewModel开始，而不是当前viewModel。
+   - $parent: 指示从父名称空间开始，而不是当前viewModel。
+  如果给出了Object类型的options参数，则默认将其当作mapping option。并支持如下格式:
+   - options: 如果是字符串类型，则将使用eval将其转为object，如果转化失败，则忽略本参数。如果是object类型，直接使用。
+   - path: 字符串类型，含义与options参数为字符串时相同。
+   - extender:则指示了当前对应更新的extender.(NOT IMPLEMENT)
 @param {Element} [refEle=$container] 指示本次更新的DOM元素，通常是发起调用的元素自身。如果未指定，从全局viewModel开始。
 @return {boolean|Promise<boolean>} 返回是否更新成功。如果extender需要从网络加载，则返回Promise。
 */
 function updatelv (params, refEle) {
-  if (!Array.isArray(params) || params.length < 1) {
-    return false
-  }
+  let { content, options } = wwjs.net.extract(params, ['content', 'options'])
+
   let dataValid = false
-  if (typeof params[0] === 'string') {
-    let result = json.parse(params[0])
+  if (typeof content === 'string') {
+    let result = json.parse(content)
     if (result.value !== undefined) {
       dataValid = true
-      params[0] = result.value
+      content = result.value
     }
-  } else if (typeof params[0] === 'object') {
+  } else if (content === 'object') {
     dataValid = true
   }
   if (!dataValid) {
@@ -104,11 +93,11 @@ function updatelv (params, refEle) {
     return false
   }
   let targetVM
+  let refPath = options
+  let setOption = {}
   const rootPrefix = '$root.'
   const parentPrefix = '$parent.'
-  let refPath = params[1] ? params[1] : undefined
-  let setOption = {}
-  switch (refPath) {
+  switch (options) {
     case '$root':
       targetVM = vm.get()
       break
@@ -116,13 +105,13 @@ function updatelv (params, refEle) {
       targetVM = vm.get(refEle, 'vm', true)
       break
     default:
-      if (typeof refPath === 'object') {
-        if (typeof refPath.options === 'object') {
-          setOption = refPath.options
-        } else if (typeof refPath.options === 'string') {
-          setOption = json.eval(refPath.options)
+      if (typeof options === 'object') {
+        if (typeof options.options === 'object') {
+          setOption = options.options
+        } else if (typeof options.options === 'string') {
+          setOption = json.eval(options.options)
         }
-        refPath = refPath.path
+        refPath = options.path
       }
 
       if (refPath) {
@@ -144,7 +133,7 @@ function updatelv (params, refEle) {
     console.warn('updatelv未指定targetVM，将内容更新到请求元素对应的路径下。参考请求元素:', refEle)
   }
 
-  vm.set(params[0], targetVM, true, setOption)
+  vm.set(content, targetVM, true, setOption)
 }
 
 /**
@@ -152,15 +141,15 @@ function updatelv (params, refEle) {
 @exports net
 @method open
 @static
-@param {array} params 数组至少一项，最多三项:
-- 第一项为URL。如果未给出，默认为`about:blank`。如果url等于当前url,则刷新本页面。
-- 第二项为target,如下几个值中的一个(默认为_self):
+@param {array|object} params
+1. url|0 : 请求打开的URL。如果未给出，默认为`about:blank`。如果url等于当前url,则刷新本页面。
+2. target|1 如下几个值中的一个(默认为_self):
  - **_self**: 目标文档载入并显示在相同的框架或者窗口中作为源文档
  - _blank: 在新窗口中打开被链接文档。
  - _parent: 在父框架集中打开被链接文档。
  - _top: 在整个窗口中打开被链接文档。
  - framename: 在指定的框架中打开被链接文档。如果framename指示了一个view,则更新此view的src属性.
-- 第三项如果给出，并且第一项未给出，则被当作HTML内容注入到targt中去.
+3. 第三项如果给出，并且第一项未给出，则被当作HTML内容注入到targt中去.
 @param {Element} [refEle=$container] 寻找name时，名称空间范围。
 @return {boolean} 返回处理结果。
 */
