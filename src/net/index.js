@@ -25,17 +25,36 @@ import getopts from 'getopts'
 
 二、模块说明:
 
-  网络命令传输模块，用于通过网络传输命令(通常从服务器传输到客户端，当然，wwjs的客户端逻辑也依赖本模块)，由于一个命令会调用特定环境的代码，因此本模块的重点在于依赖解耦。为了解决依赖解藕问题，net模块所有的函数调用，除了浏览器支持的代码外，依赖环节的函数调用被自动加载并执行。因此，所有依赖的函数调用，都是Promise Style的。
+  “可网络传输的命令”模块，用于通过网络传输命令(通常从服务器传输到客户端，当然，wwjs的客户端逻辑也依赖本模块)，由于一个命令会调用特定环境的代码，因此本模块的重点在于依赖解耦。为了解决依赖解藕问题，net模块所有的函数调用，除了浏览器支持的代码外，依赖环节的函数调用被自动加载并执行。因此，所有依赖的函数调用，都是Promise Style的。
 
-三、参数格式
+  net模块假设所有的函数都是无状态的(stateless)，如果需要维护状态，需要通过[依赖注入](https://en.wikipedia.org/wiki/Dependency_injection)的方式来解决，在无注入时也需要提供默认值。wwjs中，如果需要页面生存期，默认存储可以使用wwjs.state[ACTIONNAME]来维护自己的状态(伪单页刷新会自动清空)，应用打开生存期可以使用window.state[ACTIONNAME],session生存期可以使用localstorage，当然也可以使用其它服务器端存储点——这完全是由函数实现者维护的。
 
-  常见的参数格式有两种格式:
+三、其它技术框架对比:
+
+  1. 与ROUTE的对比:
+  wwjs将action、route更明确的分离。现有的route库是从服务器端移植过来的，其选择器为URL(而不是浏览器中的css selector)，通过编码URL为类似`#/actonName/param1:XX/param2:XX`的格式，来指定一个命令调用。这种语法更类似于cmdline的变形。也被wwjs所支持。但是这里缺少了浏览器里真正的ROUTE，当哪些元素的何种事件发生时，执行“ROUTE”指定的命令。这种真正的ROUTE语法，可以参考[Backbone.View's events object](https://backbonejs.org/#View-delegateEvents)，以'click .btn'的格式来指定何种元素发生何种事件时，mapping到一个动作。概念上，net模块只维护命令集，关于ROUTE部分，浏览器端由evtmap模块(通过chk变为全自动)维护，服务器端没有额外维护，只是提供了一组命令原语维护。<br>
+  现有的ROUTE库，无论[path-to-regexp](https://github.com/pillarjs/path-to-regexp)、[route-parser](https://github.com/rcs/route-parser)、[path-parser](https://github.com/troch/path-parser)都需要提前设置模板(regex)，这与wwjs中无限action的理念是冲突的，因此wwjs提供的urlstr函数对route风格字符串的格式设计与现行route类似但有区别:
+   - /分割的最后一个(文件名)是命令，前面的都被解析为参数。
+   - 参数部分使用:做分割符，在路径中指明参数名称。
+   - 参数部分如果没有提供分割符，则自动将其转化为数组，转为标准COMMAND格式。
+
+  2. JQuery事件绑定:
+  JQuery事件绑定风格的action映射，包括上文提及的backbone中的抽象，由于执行环境的变化，对库开发者不友好——或者换言之，对库使用者不友好，因为需要处理一大堆依赖，自动解决依赖也是requirejs之类依赖包管理器被引入的一个重要原因。wwjs尝试让action可以通过网络传输，从而彻底分离两者。这使得通过HTML标准的属性标签来描述事件成为可能(类似a>href这样的内建属性)以及bootstrap扩展的data-toggle属性。wwjs这样的处理机制更为通用，同时保持了(a>href)的便利性。
+
+四、安全考虑:
+
+  由于代码可以通过网络任意分发，代码源(提供代码下载的服务器)成为一个重要的安全问题。如果从第三方引入库，那么理论上，第三方服务器可以任意修改你的程序逻辑。wwjs通过引入默认代码源服务器(@,通过wwjs.cfg来修改，参考[utils/cfg模块](module-utils_cfg.html))来集中管理代码源，您可以自建代码源服务器，设置客户端程序只能引入这里的代码来确保安全问题。需要注意的是:这并不能避免代理人攻击，此类攻击手段依然可以篡改您的客户端代码，因此，传统防代理人攻击的技术不能被取代。
+
+五、格式
+
+  wwj支持的命令及其参数的编码格式有三种:
   1. 命令行模式(bash兼容格式，适合人输入，例如在a>href中使用)
   2. JSON(适合程序之间交换数据)
+  3. URL格式(route中使用的“/参数１/参数２/命令名”格式)<br>
 
-  本模块默认格式为JSON,但是提供了格式转化器，将bash命令行格式转为JSON。当然，您可以实现自己的转化器，提供统一代码资源地址(code URI)，其他人就可以无缝调用您提供的命令。模块提供了一个方法[extract]()，方便方法实现代码从输入的参数中提取对应的变量。
+net模块默认格式为JSON(调用run等函数时传入的参数格式),但是提供了格式转化器，通过[cmdline](#~cmdline)将bash命令行格式转为JSON，通过[urlstr](#~urlstr)将URL格式转化为JSON。当然，您可以实现自己的转化器，提供统一代码资源地址(code URI)，其他人就可以无缝调用您提供的命令。模块提供了一个方法[extract]()，方便方法实现代码从输入的参数中提取对应的变量。
 
-四、内建支持的命令:
+六、内建支持的命令:
 
  - [eval](module-net_commands.html#.eval)
  - [open](module-net_commands.html#.open)

@@ -29,6 +29,7 @@ import queryString from 'query-string'
 import getKY from './utils/ky'
 import AnimEvent from 'anim-event'
 
+let state = {}
 // console.log(loadjs)
 
 // 这是[jQuery 3.3.1](https://jquery.com/)，并被绑定到window.jQuery以及window.$
@@ -346,6 +347,13 @@ module.exports = {
   **/
   qs: queryString,
   ready: ready,
+  /**
+  保存应用状态的存储空间。页面生存期，即使使用伪单页程序，页面伪刷新时，这里的数据会被清空。
+   * @member wwjs
+   * @type {object}
+   * @name state
+  **/
+  state: state,
   /**
   es6模板规范的编译器，用于在es5环境下使用template。API参考[es6-dynamic-template](https://www.npmjs.com/package/es6-dynamic-template)，注意这是利用了babel的编译能力。
    * @member wwjs
