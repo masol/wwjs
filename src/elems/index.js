@@ -76,6 +76,9 @@ function finalizeInstance (inst) {
   if (inst._rid) {
     cancelAnimationFrame(inst._rid)
   }
+  if (inst._renderInst) {
+    inst._renderInst = undefined
+  }
   inst._p = undefined
   inst.props = undefined
 }
