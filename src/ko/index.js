@@ -79,40 +79,73 @@ function setup () {
   EE.on('koprepare', VM.check)
 }
 
+let depTasks = []
+/**
+ko可以从如下几个角度扩展:
+- 增加新的[自定义绑定](https://knockoutjs.com/documentation/custom-bindings.html)。
+- [extender](https://knockoutjs.com/documentation/extenders.html)扩展绑定变量的语义。
+- [component](https://knockoutjs.com/documentation/component-binding.html#component-lifecycle)扩展。
+以上几个层面的扩展都被wwjs所支持，为了确保绑定之前，绑定所依赖的资源已经被加载，通常我们在[wwjs script](module-chk_script.html)中来加载所需的依赖。并在加载代码中调用ko.dep(Promise)来让ko绑定动作延迟到Promise就绪。
+@exports ko
+@access public
+@method dep
+@param {Promise} [task=undefined] 指定需要加入ko依赖池的任务。
+@return {array<Promise>} 返回任务依赖池。
+*/
+ko.dep = function (task) {
+  if (task instanceof Promise) {
+    depTasks.push(task)
+  }
+  return depTasks
+}
+
 /**
 ko相关的检查及处理函数。按照如下顺序检查并处理:
+- 如果depTask不为空，等待其信号。
 - ns#check::检查是否有[data-ns]，如果有处理之。
 - VM#check::检查是否有[data-bindvar]属性。
 - VM#check::检查是否有[script[type="text/bindvar"]]节点，如果有，处理之。
 - self::检查是否有[data-bind]节点，如果有，应用绑定。
 @exports ko
 @access private
-@method setup
+@method check
 @return undefined
 */
 function check (nodeArray) {
-  // console.log('nodeAdded:', nodeArray, 'ko.options=', ko.options)
-  let i, item, $item
-  // let Notifiers = EE.listeners('koprepare')
-  // console.log('Notifiers=', Notifiers)
-  for (i = 0; i < nodeArray.length; i++) {
-    item = nodeArray[i]
-    $item = $(item)
-    // if (item.nodeType !== 1) { continue }  //不再需要，已经被chk实现。
-    // 2019-3-30之后，不再需要，调用顺序已经被保障。
-    EE.emit('koprepare', $item)
-    // 为确保执行顺序，手动调用ns.check,而不是由ns.check注册事件。
-    // ns.check($item)
-    // for (j = 0; j < Notifiers.length; j++) {
-    //   Notifiers[j]($item)
-    // }
-    // console.log(VM.get('', 'json'))
-    if ($item.is('[data-bind]') || $item.find('[data-bind]').length > 0) {
-    // console.log(VM, nodeArray[i])
-      ko.applyBindings(VM.get(), nodeArray[i])
+  let procBind = (nodeArray) => {
+    let i, item, $item
+    // let Notifiers = EE.listeners('koprepare')
+    // console.log('Notifiers=', Notifiers)
+    for (i = 0; i < nodeArray.length; i++) {
+      item = nodeArray[i]
+      $item = $(item)
+      // if (item.nodeType !== 1) { continue }  //不再需要，已经被chk实现。
+      // 2019-3-30之后，不再需要，调用顺序已经被保障。
+      EE.emit('koprepare', $item)
+      // 为确保执行顺序，手动调用ns.check,而不是由ns.check注册事件。
+      // ns.check($item)
+      // for (j = 0; j < Notifiers.length; j++) {
+      //   Notifiers[j]($item)
+      // }
+      // console.log(VM.get('', 'json'))
+      if ($item.is('[data-bind]') || $item.find('[data-bind]').length > 0) {
+      // console.log(VM, nodeArray[i])
+        ko.applyBindings(VM.get(), nodeArray[i])
+      }
     }
   }
+  // console.log('nodeAdded:', nodeArray, 'ko.options=', ko.options)
+  if (depTasks.length > 0) {
+    return Promise.all(depTasks).then(() => {
+      procBind(nodeArray)
+    }).catch((err) => {
+      console.error(`无法处理KO绑定，因为其依赖处理失败:${err}`)
+      EE.emit('ko.dep', err, depTasks)
+    })
+  }
+  return procBind(nodeArray)
 }
+
 setup.check = check
 
 export default setup
