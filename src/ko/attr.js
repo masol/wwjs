@@ -14,7 +14,7 @@
 
 export default () => {
   ko.attrChanged = 'attrChanged'
-  // 改写ko中attr.js，将其改写为双向绑定．
+  // 改写ko中attr.js，将其改写为双向绑定。
   // 保持update不变，类似event以及value绑定，添加init方法．
   ko.bindingHandlers.attr.init = function (element, valueAccessor, allBindings) {
     // console.log('in attr.init', arguments)

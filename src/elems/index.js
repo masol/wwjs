@@ -103,11 +103,12 @@ function finalizeCls (ele, cls) {
 }
 
 function wwclsssChk (cbFunc, nodeArray) {
-  let i, ele
+  let i; let ele; let count = 0
   const procEle = (ele) => {
     const cls = ele.getAttribute('data-wwclass')
     if (cls) {
       cbFunc(ele, cls)
+      count++
     }
   }
   for (i = 0; i < nodeArray.length; i++) {
@@ -116,13 +117,14 @@ function wwclsssChk (cbFunc, nodeArray) {
     const nodeList = ele.querySelectorAll('[data-wwclass]')
     Array.prototype.forEach.call(nodeList, procEle)
   }
+  return count++
 }
 
-// data-wwclass的监听事件是nodeBeforeAdd，这是为了提高后续可能的加载效率。
-EE.on('nodeBeforeAdd', wwclsssChk.bind(null, construCls))
+// EE.on('nodeBeforeAdd', wwclsssChk.bind(null, construCls))
 EE.on('nodeRm', wwclsssChk.bind(null, finalizeCls))
 
 export default {
   hyper: hyper,
-  wwclass: wwclass
+  wwclass: wwclass,
+  check: wwclsssChk.bind(null, construCls)
 }

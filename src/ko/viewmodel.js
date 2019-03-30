@@ -51,14 +51,17 @@ function processHashViewModel () {
   }
 }
 /**
-将viewModel重置为初始状态。如果已有绑定，这些绑定会被固化(也就是不再响应数据变动)，重置之后的vm只影响新加入的元素。这个函数在ko就绪时会被调用一次。请不要直接调用。
+将viewModel重置为初始状态。如果已有绑定，这些绑定会被固化(也就是不再响应数据变动)，重置之后的vm只影响新加入的元素。这个函数在ko就绪时会被调用一次，伪单页跳转时也会被调用一次。请不要直接调用。
 @exports ko/viewmodel
 @method setup
 @return {undefined}
 */
 function setup () {
   viewModel = ko.mapping.fromJS(getObjectFromHash())
-  $(window).on('hashchange', processHashViewModel)
+  if (!ko.hashBinding) {
+    ko.hashBinding = true
+    $(window).on('hashchange', processHashViewModel)
+  }
 }
 
 /**
@@ -230,27 +233,34 @@ function procScriptBindvar () {
   return bindvarImpl(ele, bindObj, targetVM, 'script[type="text/bindvar"]')
 }
 
-EE.on('koprepare', ($ele) => {
+function check ($ele) {
   const slector = '[data-bindvar]'
   const scriptSelector = 'script[type="text/bindvar"]'
+  let count = 0
   if ($ele.is(slector)) {
     procBindvar.call($ele[0])
+    count++
   }
   if ($ele.is(scriptSelector)) {
     procScriptBindvar.call($ele[0])
+    count++
   }
   let nsItems = $ele.find(slector)
   // console.log('nsItems=', nsItems)
   if (nsItems.length > 0) {
     nsItems.each(procBindvar)
+    count++
   }
   nsItems = $ele.find(scriptSelector)
   if (nsItems.length > 0) {
     nsItems.each(procScriptBindvar)
+    count++
   }
-})
+  return count
+}
 
 export default {
+  check: check,
   get: get,
   set: set,
   setup: setup

@@ -231,6 +231,7 @@ function getE2Iwmap () {
   return ele2inst
 }
 
+// 仅内部使用，用于在elems::finalizeInstance时移除对应的weakmap入口。
 function rm (ele) {
   getE2Iwmap().delete(ele)
 }
@@ -278,7 +279,10 @@ function frameProc (/*, timeStamp */) {
     cancelAnimationFrame(wwInst._rid)
     wwInst._rid = undefined
     // if (typeof (wwInst.doRender) === 'function') {
-    wwInst.doRender()
+    // 只有wwInst已经初始化并且尚未删除才调用doRender方法。
+    if (wwInst.$ele) {
+      wwInst.doRender()
+    }
     // }
   }
 }
@@ -749,7 +753,12 @@ class Demo extends wwjs.wwclass {
     **/
     Object.defineProperty(self, 'render', {
       get () { // [HyperHTML的实现](https://github.com/WebReflection/hyperHTML/blob/master/index.js)，非常轻量，每次直接调用无问题,无需利用一个变量缓冲．
-        return hyper.bind(self.$ele[0])
+        // console.log('123123')
+        if (!self._renderInst) {
+          // console.log('aaaa')
+          self._renderInst = self.$ele ? hyper.bind(self.$ele[0]) : Function.dummy
+        }
+        return self._renderInst
       },
       enumerable: false
     })

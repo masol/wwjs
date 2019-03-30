@@ -229,6 +229,7 @@ function setup (callback) {
     return !!(typeof obj === 'function')
   }
   // }
+  Function.dummy = function () {}
 
   Object.isEmpty = function (obj) {
     return Object.keys(obj).length === 0 && obj.constructor === Object

@@ -74,27 +74,45 @@ ko模块的初始化代码，在DomReady之后，由chk模块调用。负责建�
 */
 function setup () {
   VM.setup()
-  EE.on('nodeAdd', function (nodeArray) {
-    // console.log('nodeAdded:', nodeArray, 'ko.options=', ko.options)
-    let i, j, item, $item
-    let Notifiers = EE.listeners('koprepare')
-    // console.log('Notifiers=', Notifiers)
-    for (i = 0; i < nodeArray.length; i++) {
-      item = nodeArray[i]
-      $item = $(item)
-      // if (item.nodeType !== 1) { continue }  //不再需要，已经被chk实现。
-      // 为确保执行顺序，首先调用ns.procElem
-      ns.procElem($item)
-      for (j = 0; j < Notifiers.length; j++) {
-        Notifiers[j]($item)
-      }
-      // console.log(VM.get('', 'json'))
-      if ($item.is('[data-bind]') || $item.find('[data-bind]').length > 0) {
-      // console.log(VM, nodeArray[i])
-        ko.applyBindings(VM.get(), nodeArray[i])
-      }
-    }
-  })
+  // 构建事件监听，以保障事件响应顺序。
+  EE.on('koprepare', ns.check)
+  EE.on('koprepare', VM.check)
 }
+
+/**
+ko相关的检查及处理函数。按照如下顺序检查并处理:
+- ns#check::检查是否有[data-ns]，如果有处理之。
+- VM#check::检查是否有[data-bindvar]属性。
+- VM#check::检查是否有[script[type="text/bindvar"]]节点，如果有，处理之。
+- self::检查是否有[data-bind]节点，如果有，应用绑定。
+@exports ko
+@access private
+@method setup
+@return undefined
+*/
+function check (nodeArray) {
+  // console.log('nodeAdded:', nodeArray, 'ko.options=', ko.options)
+  let i, item, $item
+  // let Notifiers = EE.listeners('koprepare')
+  // console.log('Notifiers=', Notifiers)
+  for (i = 0; i < nodeArray.length; i++) {
+    item = nodeArray[i]
+    $item = $(item)
+    // if (item.nodeType !== 1) { continue }  //不再需要，已经被chk实现。
+    // 2019-3-30之后，不再需要，调用顺序已经被保障。
+    EE.emit('koprepare', $item)
+    // 为确保执行顺序，手动调用ns.check,而不是由ns.check注册事件。
+    // ns.check($item)
+    // for (j = 0; j < Notifiers.length; j++) {
+    //   Notifiers[j]($item)
+    // }
+    // console.log(VM.get('', 'json'))
+    if ($item.is('[data-bind]') || $item.find('[data-bind]').length > 0) {
+    // console.log(VM, nodeArray[i])
+      ko.applyBindings(VM.get(), nodeArray[i])
+    }
+  }
+}
+setup.check = check
 
 export default setup

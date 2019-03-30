@@ -51,7 +51,7 @@ function procNS () {
   let ele = this
   let nsName = ele.getAttribute('data-ns')
   // console.log('nsName=', nsName)
-  if (nsName === 'foreach') { // 已经使用了foreach作为名称空间构建，不再处理。
+  if (nsName === 'foreach' || typeof nsName !== 'string') { // 已经使用了foreach作为名称空间构建，不再处理。
     return
   }
   if (!nsName || nsName === 'unique') {
@@ -71,7 +71,7 @@ function procNS () {
   ele.setAttribute('data-bind', bindStr)
 }
 
-/** 由于ns的处理必须在bindvar以及script之前。为确保顺序，这里暴露一个内部函数，而不是响应'koprepare'。处理过程:
+/** ns的处理必须在bindvar以及script之前。处理过程:
 - 首先检查是否有data-ns名称空间。如果有，调用procNS执行如下处理:
   - 如果有，获取其名称(如果是unique，则自动换算为全局唯一名称`wwjs${suffix}`)
   - 获取元素当前的ko context,进一步获取到$data.
@@ -79,20 +79,24 @@ function procNS () {
   - 在$item上增加with的data-bind.
 @exports ko/ns
 @access private
-@method procElem
+@method check
 @param {$Element} $item 要处理的Item.
-@return {undefined}
+@return {number} $item中符合条件的元素数量。
 */
 
-function procElem ($item) {
+function check ($item) {
   // console.log('data-ns')
+  let count = 0
   if ($item.is('[data-ns]')) {
     procNS.call($item[0])
+    count++
   }
   let nsItems = $item.find('[data-ns]')
   if (nsItems.length > 0) {
     nsItems.each(procNS)
+    count++
   }
+  return count
 }
 
 export default {
@@ -100,5 +104,5 @@ export default {
     getNs: getNs,
     template: template
   },
-  procElem: procElem
+  check: check
 }

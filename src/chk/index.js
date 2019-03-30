@@ -16,10 +16,11 @@ import EE from '../utils/evt'
 import kosetup from '../ko'
 import cfg from '../utils/cfg'
 import UI from '../utils/ui'
-import './script'
+import scriptChecker from './script'
+import wwclass from '../elems'
 
 /**
-chk模块提供了在html代码插入时，检查插入的Node,并加以处理的能力。这一检查是在Node第一次被绘制时调用的(requestAnimationFrame)，因此，需要自行处理好平滑过程。
+chk模块提供了在html代码插入时，检查插入的Node,并加以处理的能力。这一检查是在Node第一次被绘制时调用的(requestAnimationFrame)，因此，需要自行处理好平滑过程。这是一个内部模块，外部无法调用到。
 @module chk
 */
 
@@ -74,6 +75,10 @@ function rafProc (nodelist, evtName) {
 */
 function setup () {
   kosetup()
+  EE.on('nodeBeforeAdd', scriptChecker)
+  // @TODO data-wwclass的监听事件是nodeBeforeAdd，这是因为wwclass通常涉及进一步的资源加载，为了提高这一后续可能的加载效率，特响应nodeBeforeAdd
+  EE.on('nodeAdd', wwclass.check)
+  EE.on('nodeAdd', kosetup.check)
 
   var MutationObserver = window.MutationObserver || window.WebKitMutationObserver
   if (!MutationObserver) {
@@ -140,5 +145,19 @@ function setup () {
 
   // document.getElementById('PreLoaderBar').style.display = 'none'
 }
+
+/**
+chk模块支持的**部分**检查函数，内部预处理时会使用到。所有预处理函数，返回其处理的元素数量。
+ * @member chk
+ * @constant
+ * @type {object}
+ * @name checkers
+**/
+setup.checkers = {
+  // 'ns': kosetup.checkers.ns,
+  // 'vm': kosetup.checkers.vm,
+  'script': scriptChecker
+}
+// console.log('setup.checkers=', setup.checkers)
 
 export default setup
