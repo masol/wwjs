@@ -28,8 +28,8 @@ import i18n from './utils/i18n'
 import queryString from 'query-string'
 import getKY from './utils/ky'
 import AnimEvent from 'anim-event'
+import state from './utils/state'
 
-let state = {}
 // console.log(loadjs)
 
 // 这是[jQuery 3.3.1](https://jquery.com/)，并被绑定到window.jQuery以及window.$
@@ -350,7 +350,7 @@ module.exports = {
   /**
   保存应用状态的存储空间。页面生存期，即使使用伪单页程序，页面伪刷新时，这里的数据会被清空。
    * @member wwjs
-   * @type {object}
+   * @type {State}
    * @name state
   **/
   state: state,

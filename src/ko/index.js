@@ -23,6 +23,7 @@ import EE from '../utils/evt'
 import VM from './viewmodel'
 import ns from './ns'
 import attr from './attr'
+import state from '../utils/state'
 
 ko.mapping = mapping
 // @see https://knockoutjs.com/documentation/deferred-updates.html
@@ -136,11 +137,14 @@ function check (nodeArray) {
   }
   // console.log('nodeAdded:', nodeArray, 'ko.options=', ko.options)
   if (depTasks.length > 0) {
+    state.push(nodeArray)
     return Promise.all(depTasks).then(() => {
       procBind(nodeArray)
+      state.pop(nodeArray)
     }).catch((err) => {
       console.error(`无法处理KO绑定，因为其依赖处理失败:${err}`)
       EE.emit('ko.dep', err, depTasks)
+      state.pop(nodeArray)
     })
   }
   return procBind(nodeArray)
