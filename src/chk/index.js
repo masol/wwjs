@@ -17,6 +17,7 @@ import kosetup from '../ko'
 import cfg from '../utils/cfg'
 import UI from '../utils/ui'
 import scriptChecker from './script'
+import action from './action'
 import wwclass from '../elems'
 
 /**
@@ -76,7 +77,7 @@ function rafProc (nodelist, evtName) {
 function setup () {
   kosetup()
   EE.on('nodeBeforeAdd', scriptChecker)
-  // @TODO data-wwclass的监听事件是nodeBeforeAdd，这是因为wwclass通常涉及进一步的资源加载，为了提高这一后续可能的加载效率，特响应nodeBeforeAdd
+  EE.on('nodeAdd', action.check)
   EE.on('nodeAdd', wwclass.check)
   EE.on('nodeAdd', kosetup.check)
 
