@@ -4,7 +4,7 @@
 <head>
   <meta charset=utf-8>
   <title>WWJS测试</title>
-  <link rel="stylesheet" href="//libs.wware.org/mocha/5.2.0/mocha.css">
+  <link rel="stylesheet" href="//libs.wware.org/mocha/5.2.0/mocha.css" crossorigin="anonymous">
   <script>
     window.wwimport = function(mod, callback) {
       window.wwimcache = window.wwimcache || [];
@@ -14,24 +14,12 @@
       });
     }
   </script>
-
-</head>
-
-<body>
-  <div> 其它关联测试：
-    <ul>
-      <li><a href="compatible.html">兼容性测试</a></li>
-    </ul>
-  </div>
-  <div id="mocha"></div>
-  <script src="//libs.wware.org/mocha/5.2.0/mocha.js"></script>
-  <script src="//libs.wware.org/chai/4.2.0/chai.js"></script>
-  <script src="//libs.wware.org/sinon/7.1.1/pkg/sinon.js"></script>
+  <script src="//libs.wware.org/mocha/5.2.0/mocha.js" crossorigin="anonymous"></script>
+  <script src="//libs.wware.org/chai/4.2.0/chai.js" crossorigin="anonymous"></script>
+  <script src="//libs.wware.org/sinon/7.1.1/pkg/sinon.js" crossorigin="anonymous"></script>
   <script>
     mocha.setup('bdd')
   </script>
-  <div id="wwcontainer"></div>
-
   <!-- wwjs spec -->
   <script src="spec/bootstrap.js"></script>
   <script src="spec/chk.js"></script>
@@ -51,7 +39,20 @@
     });
   })
   </script>
-  <script src="../dist/wwjs.min.js"></script>
+  <script defer src="//libs.wware.org/jquery/3.3.1/jquery.slim.min.js" crossorigin="anonymous"></script>
+  <script defer src="//libs.wware.org/knockout/3.5.0/knockout-latest.js" crossorigin="anonymous"></script>
+  <script defer src="../dist/wwjs.min.js"></script>
+
+</head>
+
+<body>
+  <div> 其它关联测试：
+    <ul>
+      <li><a href="compatible.html">兼容性测试</a></li>
+    </ul>
+  </div>
+  <div id="mocha"></div>
+  <div id="wwcontainer"></div>
 </body>
 
 </html>

@@ -17,7 +17,7 @@ ko模块利用[knockoutjs](https://knockoutjs.com/)来分离元素及数据逻�
 @module ko
 */
 
-import ko from 'knockout'
+// import ko from 'knockout'
 import mapping from './mapping'
 import EE from '../utils/evt'
 import VM from './viewmodel'

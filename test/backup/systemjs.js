@@ -16,7 +16,6 @@ import 'systemjs/dist/s'
 import 'systemjs/dist/extras/amd'
 import cfg from './cfg'
 // import 'systemjs/dist/extras/named-register'
-// import $ from 'jquery'
 
 const System = window.System
 

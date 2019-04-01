@@ -12,7 +12,7 @@
 
 'use strict'
 
-import $ from 'jquery'
+// import $ from 'jquery'
 import loadjs from './utils/loadjs'
 import cfg from './utils/cfg'
 import ns from './ko/ns'
@@ -34,14 +34,18 @@ import state from './utils/state'
 
 // 这是[jQuery 3.3.1](https://jquery.com/)，并被绑定到window.jQuery以及window.$
 
-/**
-内建的jQuery支持。注意这不是[jQuery](https://jquery.com/),而是[cash-dom](https://github.com/kenwheeler/cash)
- * @type {jQuery}
- * @name $
- **/
-if (!window.$) {
-  window.$ = window.jQuery = $
+// /**
+// 内建的jQuery支持。注意这不是[jQuery](https://jquery.com/),而是[cash-dom](https://github.com/kenwheeler/cash)
+//  * @type {jQuery}
+//  * @name $
+//  **/
+
+if (!window.jQuery || !window.ko) {
+  console.error('wwjs的运行需要依赖jQuery以及knockout.js。请确保包含wwjs之前，已经引入了jquery及knockout')
 }
+// if (!window.$) {
+//   window.$ = window.jQuery = $
+// }
 // 为了更多兼容
 // $.fn.jquery = '3.0.0'
 // $.fn.support = ''

@@ -76,14 +76,18 @@ module.exports = env => {
         ]
       }]
     },
+    externals: {
+      jquery: 'jQuery',
+      knockout: 'ko'
+    },
     resolve: {
       // symlinks: false,
       modules: [resolve('src'), resolve('node_modules')],
       alias: {
         // jquery: 'cash-dom',
         // jquery: 'umbrellajs',
-        jquery: 'jquery/dist/jquery.slim.min.js',
-        knockout: 'knockout/build/output/knockout-latest'
+        // jquery: 'jquery/dist/jquery.slim.min.js',
+        // knockout: 'knockout/build/output/knockout-latest'
       }
     }
   }

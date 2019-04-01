@@ -14,7 +14,7 @@
 
 import strUtils from '../utils/str'
 import ui from '../utils/ui'
-import jQuery from 'jquery'
+// import jQuery from 'jquery'
 
 /**
 ### 1. 概念
@@ -53,7 +53,7 @@ data-action的处理，在wwjs之后，在wwclass检查之前。可以在action�
       item.append(' (' + item.attr('href') + ')')
     })
   }
-}(jQuery))
+}(window.jQuery))
 
 // Usage example:
 // $('a').showLinkLocation()

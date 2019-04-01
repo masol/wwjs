@@ -11,7 +11,7 @@
 // Created At : 2018-11-19T05:50:52.931Z by masol (masol.li@gmail.com)
 
 'use strict'
-import $ from 'jquery'
+// import $ from 'jquery'
 import loadjs from '../utils/loadjs'
 import cfg from '../utils/cfg'
 import json from '../utils/json'

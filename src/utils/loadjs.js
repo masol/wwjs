@@ -13,7 +13,6 @@
 'use strict'
 
 import loadjs from 'loadjs'
-// import $ from 'jquery'
 import cfg from './cfg'
 /**
 加载器模块，基于[loadjs](https://github.com/muicss/loadjs)。基于两个考虑:

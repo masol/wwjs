@@ -16,10 +16,6 @@
 
   <!-- 测试 -->
   <!--  -->
-</head>
-
-<body>
-  <div id="wwcontainer"><p id="waitfinish">请等待本句消失，长时间不消失，说明基础环境未构建，请打开console查看详情...</p></div>
   <script>
     wwimport("ready",function(){
       window.alert('基础兼容性通过测试，请检查console.log了解详情!')
@@ -31,7 +27,13 @@
     // mocha.run(function() {
     // });
   </script>
-  <script async src="../dist/wwjs.min.js"></script>
+  <script defer src="//libs.wware.org/jquery/3.3.1/jquery.slim.min.js"  crossorigin="anonymous"></script>
+  <script defer src="//libs.wware.org/knockout/3.5.0/knockout-latest.js"  crossorigin="anonymous"></script>
+  <script defer src="../dist/wwjs.min.js"></script>
+</head>
+
+<body>
+  <div id="wwcontainer"><p id="waitfinish">请等待本句消失，长时间不消失，说明基础环境未构建，请打开console查看详情...</p></div>
 </body>
 
 </html>

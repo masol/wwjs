@@ -12,7 +12,7 @@
 
 'use strict'
 
-import ko from 'knockout'
+// import ko from 'knockout'
 import EE from '../utils/evt'
 import json from '../utils/json'
 import cfg from '../utils/cfg'
