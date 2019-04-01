@@ -14,7 +14,7 @@
 
 import strUtils from '../utils/str'
 import ui from '../utils/ui'
-// import jQuery from 'jquery'
+import net from '../net'
 
 /**
 ### 1. 概念
@@ -40,26 +40,14 @@ data-action概念上是一个action mapping的数组。每个action mapping包�
 常见特殊值说明,通常data-action的值可能是如下两种:
 - 空,此时只是通知本元素需要做默认的事件响应和处理。
 - 字符串，此时是针对当前元素的默认触发的命令字符串。
+- 如果需要加入data-action，但是不期望执行默认处理，则需要加上属性`data-action-default=no|false`
 
 ### 3. 处理
 data-action的处理，在wwjs之后，在wwclass检查之前。可以在action中立即响应随后的wwclass初始化事件，但是额外缺点是，wwclass动态修改data-action属性，将不会有效果。需要通过调用action模块的对应函数来处理。
 @module chk/action
 */
 
-(function ($) {
-  $.fn.wwaction = function (option) {
-    return this.each(function () {
-      var item = $(this)
-      item.append(' (' + item.attr('href') + ')')
-    })
-  }
-}(window.jQuery))
-
-// Usage example:
-// $('a').showLinkLocation()
-
 function getDefaultTrigger ($ele) {
-
 }
 
 function mergeAction (action, key, actionArray) {
@@ -67,15 +55,29 @@ function mergeAction (action, key, actionArray) {
     return
   }
   let value = action[key] || []
-  action[key] = value.concat(actionArray)
+  let cmdArray = []
+  for (let i = 0; i < actionArray.length; i++) {
+    let cmd = net.cmdline(actionArray[i])
+    if (cmd) {
+      cmdArray.push(cmd)
+    }
+  }
+  action[key] = value.concat(cmdArray)
 }
 
 const ACTIONKEY = 'wwaction'
 const ACTIONATTR = 'data-action'
+/**
+@exports action
+@method cache
+@desc 返回一个元素对应的action对象。action对象为一个pure object.其中key是事件名，value是一个数组，包含了可以直接调用net.run的params。
+@param {jQueryElement} $ele 需要检查的元素。
+@param {object|undefined} 返回元素对应的action对象，如果不存在，否则返回undefined。
+*/
 function cache ($ele) {
-  let action = $ele.data(ACTIONKEY)
-  if (typeof action !== 'object') {
-    action = {}
+  let retAction = $ele.data(ACTIONKEY)
+  if (typeof retAction !== 'object') {
+    let action = {}
     let actArray = strUtils.split($ele.attr(ACTIONATTR), ';;', '\\')
     for (let i = 0; i < actArray.length; i++) {
       // 调整顺序为: command,trigger,selector
@@ -95,30 +97,41 @@ function cache ($ele) {
         console.warn(`data-action字符串内容不合法:${actArray[i]}，无法更新action。`)
       }
     }
-    $ele.data(ACTIONKEY, action)
+    if (!Object.isEmpty(action)) {
+      $ele.data(ACTIONKEY, action)
+      retAction = action
+    }
   }
-  return action
+  return retAction
 }
 
-// function procLink (event) {
-// }
-//
-// function procSubmit (event) {
-// }
+function procLink (event) {
+}
 
-function applyHandler () {
-/** $target = $(this.eventTarget)
- let action = cache($ele)
- for(let i = 0; i < action.length; i++) {
-   let mapper = action[i]
-   if(!mapper[SELECTORIDX] || $target.is(mapper[SELECTORIDX])){
-   //run command($target,mapper[COMMANDIDX])
-   }
-   if(event.isPreventDefault() || event.isStopProganation()){
-     break
-   }
- }
-// */
+function procSubmit (event) {
+}
+
+function applyHandler (event) {
+  let $target = $(event.target)
+  let action = cache($target)
+  // let handled = false
+  if (action) {
+    let commands = action[event.type]
+    if (Array.isArray(commands)) {
+      for (let i = 0; i < commands.length; i++) {
+        net.run(commands[i], $target.get(0))
+        // handled = true
+      }
+    }
+  }
+  let defAction = $target.attr('data-action-default')
+  if (defAction !== 'false' && defAction !== 'no') {
+    if (event.target.tagName === 'A' && event.type === 'click') {
+      procLink.apply(this, arguments)
+    } else if (event.target.tagName === 'FORM' && event.type === 'submit') {
+      procSubmit.apply(this, arguments)
+    }
+  }
 }
 
 let routeCache = {}
@@ -175,6 +188,59 @@ function check (nodeArray) {
   }
   return count
 }
+
+/**
+@param {string} cmd 需要执行的命令:
+- append
+- replace
+- remove
+@example $('a').wwaction('append',{'click','switchPage'})
+*/
+(function ($) {
+  $.fn.wwaction = function (cmd, param) {
+    return this.each(function () {
+      var $item = $(this)
+      let action = $item.data(ACTIONKEY) || {}
+      let store = false
+      if (typeof param === 'object') {
+        for (let key in param) {
+          switch (cmd) {
+            case 'append':
+            case 'replace':
+              let value = param[key]
+              let pushValue = []
+              if (Array.isArray(value)) {
+                for (let i = 0; i < value.length; i++) {
+                  pushValue.push((typeof value[i] === 'string') ? net.cmdline(value[i]) : value[i])
+                }
+              }
+              if (pushValue.length > 0) {
+                if (cmd === 'append') {
+                  let preValue = action[key] || []
+                  action[key] = preValue.concat(pushValue)
+                } else {
+                  action[key] = pushValue
+                }
+                store = true
+              }
+              break
+            case 'remove':
+              delete action[key]
+              store = true
+              break
+          }
+        }
+      }
+      if (store) {
+        if (Object.isEmpty(action)) {
+          $item.removeData(ACTIONKEY)
+        } else {
+          $item.data(ACTIONKEY, action)
+        }
+      }
+    })
+  }
+}(window.jQuery))
 
 export default {
   attr: ACTIONATTR,

@@ -14,6 +14,7 @@
 
 import loadjs from '../utils/loadjs'
 import ui from '../utils/ui'
+import str from '../utils/str'
 import EE from '../utils/evt'
 import commands from './commands'
 import getopts from 'getopts'
@@ -162,7 +163,7 @@ function reg (name, handler) {
 */
 function cmdline (commandline) {
   if (commandline && typeof commandline === 'string') {
-    let param = getopts(commandline.split(' '))
+    let param = getopts(str.split(commandline, ' ', '\\'))
     if (typeof param === 'object' && param._) {
       let ret = {
         command: param._,

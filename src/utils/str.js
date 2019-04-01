@@ -29,9 +29,9 @@
 */
 function split (str, sep, escape) {
   let ret = []
-  sep = sep || ' '
-  escape = escape || '\\'
   if (typeof str === 'string') {
+    sep = sep || ' '
+    escape = escape || '\\'
     let tmpArray = str.split(sep)
     for (let i = 0; i < tmpArray.length; i++) {
       let s = tmpArray[i] || ''
