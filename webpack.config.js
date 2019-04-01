@@ -49,6 +49,11 @@ module.exports = env => {
     },
     output: output,
     plugins: plugins,
+    // optimization: {
+    //   splitChunks: {
+    //     chunks: 'all'
+    //   }
+    // },
     mode: isProd ? 'production' : 'development',
     devtool: isProd ? 'source-map' : (!env ? 'cheap-module-eval-source-map' : false),
     devServer: { headers: { 'Access-Control-Allow-Origin': '*' } },

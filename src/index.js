@@ -257,7 +257,7 @@ function ready (cb) {
   }
 }
 
-module.exports = {
+let wwjs = {
   /**
   当前的wwjs的配置。注意这里的属性是只读的，修改之后无效。API文档参考[utils/cfg模块](module-utils_cfg.html)
    * @member wwjs
@@ -275,14 +275,14 @@ module.exports = {
   **/
   EE: EE,
   /**
-  获取ky实例。详情参考[ky模块](module-utils_ky.html)。函数不接受参数
+  ky实例。详情参考[ky模块](module-utils_ky.html)。实例的用法参考[ky官方文档](https://github.com/sindresorhus/ky)。
+
+  注意:由于ky依赖fetch，因此，如果浏览器不支持fetch，需要等到fetch polyfill安装完毕之后ky才就绪。因此这一属性直到polyfill安装完毕才会就绪。
    * @member wwjs
    * @constant
-   * @type {function}
-   * @method getky
-   * @return {function} 返回ky实例，实例的用法参考[ky官方文档](https://github.com/sindresorhus/ky)
+   * @type {object}
+   * @name ky
   **/
-  getky: getKY,
   /**
   同步检查当前是否已经ready.
    * @method wwjs
@@ -395,3 +395,12 @@ module.exports = {
   **/
   wwclass: wwcls.wwclass
 }
+
+Object.defineProperty(wwjs, 'ky', {
+  get () {
+    return getKY()
+  },
+  enumerable: true
+})
+
+module.exports = wwjs

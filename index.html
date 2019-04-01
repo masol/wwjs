@@ -17,26 +17,12 @@
       vmtypecvt : true
     }
   </script>
-</head>
-
-<body>
-  <div> 其它关联测试：
-    <ul>
-      <li><a href="test/compatible.html">兼容性测试</a></li>
-    </ul>
-    <ul>
-      <li><a href="test/runner.html">特性测试</a></li>
-    </ul>
-  </div>
-  <div id="mocha"></div>
-  <div id="wwcontainer"></div>
   <script src="//libs.wware.org/mocha/5.2.0/mocha.js"></script>
   <script src="//libs.wware.org/chai/4.2.0/chai.js"></script>
   <script src="//libs.wware.org/sinon/7.1.1/pkg/sinon.js"></script>
   <script>
     mocha.setup('bdd')
   </script>
-
   <!-- wwjs spec -->
   <script src="test/spec/bootstrap.js"></script>
   <script src="test/spec/command.js"></script>
@@ -56,7 +42,21 @@
     });
   })
   </script>
-  <script async src="dist/wwjs.min.js"></script>
+  <script defer src="dist/vendors~wwjs.min.js"></script>
+  <script defer src="dist/wwjs.min.js"></script>
+</head>
+
+<body>
+  <div> 其它关联测试：
+    <ul>
+      <li><a href="test/compatible.html">兼容性测试</a></li>
+    </ul>
+    <ul>
+      <li><a href="test/runner.html">特性测试</a></li>
+    </ul>
+  </div>
+  <div id="mocha"></div>
+  <div id="wwcontainer"></div>
 </body>
 
 </html>

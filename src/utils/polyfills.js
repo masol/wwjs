@@ -13,6 +13,8 @@ const Modernizr = window.Modernizr
 
 /**
 ***本函数只是内部使用，这里只是为了说明安装了哪些polyfill，方便检索。我们目标支持版本为ie10+(ie9只是基础支持，确保可以运行，部分特效可能缺失——例如css动画)。<font color="red">预取机制不会早于polyfill执行：如果需要安装polyfill,则预取机制会在polyfill加载后开始工作,表现就是旧版IE加载速度略低，这是正常的</font>**
+IE9的注意事项:
+- [IE9的defer bug](https://github.com/h5bp/lazyweb-requests/issues/42),导致加载wwjs不能使用defer，这样出于性能考虑，需要放在body的末尾加载。如果放在head通过defer加载，IE9下可能会无法加载wwjs，这是IE9的bug，不是wwjs的bug。
 
 本函数检查浏览器环境，如果缺少依赖特性，按照下面对特性的定义，从网络下载polyfill并安装。执行完毕之后，在window下安装了对象window.Modernizr，可以使用这个对象来检查浏览器支持。
 
