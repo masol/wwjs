@@ -119,17 +119,19 @@ function applyHandler (event) {
     let commands = action[event.type]
     if (Array.isArray(commands)) {
       for (let i = 0; i < commands.length; i++) {
-        net.run(commands[i], $target.get(0))
+        net.run(commands[i], $target.get(0), event)
         // handled = true
       }
     }
   }
-  let defAction = $target.attr('data-action-default')
-  if (defAction !== 'false' && defAction !== 'no') {
-    if (event.target.tagName === 'A' && event.type === 'click') {
-      procLink.apply(this, arguments)
-    } else if (event.target.tagName === 'FORM' && event.type === 'submit') {
-      procSubmit.apply(this, arguments)
+  if (!event.isDefaultPrevented()) {
+    let defAction = $target.attr('data-action-default')
+    if (defAction !== 'false' && defAction !== 'no') {
+      if (event.target.tagName === 'A' && event.type === 'click') {
+        procLink.apply(this, arguments)
+      } else if (event.target.tagName === 'FORM' && event.type === 'submit') {
+        procSubmit.apply(this, arguments)
+      }
     }
   }
 }

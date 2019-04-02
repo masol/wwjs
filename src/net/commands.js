@@ -35,7 +35,7 @@ import vm from '../ko/viewmodel'
 @exception {net.eval} 如果发生异常，发出error事件，参考[evt模块](module-utils_evt.html)
 @return {any} 返回执行结果。
 */
-function evalStr (params, refEle) {
+function evalStr (params, refEle, evt) {
   let { str, context } = wwjs.net.extract(params, ['str', 'context'])
   if (!str) {
     return
@@ -72,7 +72,7 @@ function evalStr (params, refEle) {
 @param {Element} [refEle=$container] 指示本次更新的DOM元素，通常是发起调用的元素自身。如果未指定，从全局viewModel开始。
 @return {boolean|Promise<boolean>} 返回是否更新成功。如果extender需要从网络加载，则返回Promise。
 */
-function updatelv (params, refEle) {
+function updatelv (params, refEle, evt) {
   let { content, options } = wwjs.net.extract(params, ['content', 'options'])
 
   let dataValid = false
@@ -153,7 +153,7 @@ function updatelv (params, refEle) {
 @param {Element} [refEle=$container] 寻找name时，名称空间范围。
 @return {boolean} 返回处理结果。
 */
-function open (params, refEle) {
+function open (params, refEle, evt) {
   let newURL = wwjs.ns.template(params, refEle)
   if (newURL && window.location.href !== newURL) {
     window.location.href = newURL
@@ -171,7 +171,7 @@ function open (params, refEle) {
 @param {Element} [refEle=$container] 寻找name时，名称空间范围。
 @return {boolean} 返回处理结果。
 */
-function vmArrFuc (params, refEle) {
+function vmArrFuc (params, refEle, evt) {
   var sortCompareSet = {
     'numDesc': function (b, a) {
       return parseFloat(a) - parseFloat(b)

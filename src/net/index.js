@@ -13,7 +13,6 @@
 'use strict'
 
 import loadjs from '../utils/loadjs'
-import ui from '../utils/ui'
 import str from '../utils/str'
 import EE from '../utils/evt'
 import commands from './commands'
@@ -186,12 +185,12 @@ command: "命令名，例如@@xxxx#commandName",
 params: []|{}
 }`
 如果是数组，第一个元素是命令名，之后的是参数。
-@param {Element} [refEle=currentScript] 触发此命令的元素。如果未指定，尝试调用currentScript来获取当前脚本对应的元素对象(如果代码位于回调中或浏览器不支持，currentScript会返回null)。
+@param {Element} [refEle=undefined] 此命令涉及的元素。如果未指定，无法确定vm分支。
+@param {Event} [evt=undefined] 触发本次命令的event对象，如果不是从action中触发,evt未定义。
 @return {any} 如果执行成功，返回值由处理器确定，否则返回false.
 */
-function run (cmd, refEle) {
+function run (cmd, refEle, evt) {
   let name, params
-  refEle = refEle || ui.currentScript()
   if (Array.isArray(cmd) && cmd.length > 0) {
     name = cmd[0]
     if (cmd.length > 1) {
@@ -211,7 +210,7 @@ function run (cmd, refEle) {
   }
   return Promise.resolve(getCmd(name)).then((func) => {
     if (typeof func === 'function') {
-      return func(params, refEle)
+      return func(params, refEle, evt)
     }
     throw new URIError(`can not get requested command:${name}`)
   })
