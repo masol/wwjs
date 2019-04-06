@@ -135,7 +135,7 @@ function createIframe ($ele, htmlstr) {
 }
 
 /**
-显示消息提醒，是对[bootstrap-notify](https://github.com/mouse0270/bootstrap-notify)的一个封装，并且API针对WIDE1.0做了改进，并不兼容1.0的格式。在net.run中有对应的
+显示消息提醒，是对[bootstrap-notify](https://github.com/mouse0270/bootstrap-notify)的一个封装，并且API针对WIDE1.0做了改进，并不兼容1.0的格式。在net.run中有对应的[message命令](module-net_commands.html#.message)
   @exports utils/ui
   @method showMessage
   @param {object|array|string} message - 消息对象,格式如下:
