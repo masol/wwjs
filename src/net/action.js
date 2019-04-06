@@ -137,12 +137,9 @@ function procURL (url, ctx) {
           // @TODO 这里拦截错误，并给出友好提示。
           if (!ctx.noerror) {
             ui.showMessage({
-              'global': [{
-                'text': `忽略对${url}的请求:${err}`,
-                'layout': 'top',
-                'type': 'warning',
-                'mint': 'bootstrap-v4'
-              }]
+              'text': `忽略对${url}的请求:${err}`,
+              'layout': 'top',
+              'type': 'warning'
             })
           }
           // throw err

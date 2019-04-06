@@ -16,6 +16,7 @@ import cfg from '../utils/cfg'
 import json from '../utils/json'
 import vm from '../ko/viewmodel'
 import actionCmd from './action'
+import ui from '../utils/ui'
 
 /**
 @module net/commands
@@ -53,6 +54,20 @@ function evalStr (params, refEle, evt) {
     throw result.error
   }
   return result.value
+}
+
+/**
+<strong><font color="green">内建命令</font></strong>:用于在指定元素(默认为body)上显示提示内容。内建支持的为[bootstrap-notify](https://github.com/mouse0270/bootstrap-notify),其它风格的提示元素，请使用net命令机制扩展，例如toast.
+@exports net
+@method message
+@static
+@param {array|object} params 数组参数的含义，见[ui.showMessage](module-utils_ui.html#~showMessage)。
+@param {Element} [refEle=$container] 被忽略。
+@param {Event} [evt=undefined] 被忽略。
+@return {boolean|Promise<boolean>} 返回是否显示成功。
+*/
+function message (params, refEle, evt) {
+  return ui.showMessage(params)
 }
 
 /**
@@ -334,6 +349,7 @@ function vmArrFuc (params, refEle, evt) {
 export default {
   updatelv: updatelv,
   eval: evalStr,
+  message: message,
   open: actionCmd.open,
   submit: actionCmd.submit,
   vmArrFuc: vmArrFuc

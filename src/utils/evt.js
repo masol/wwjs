@@ -35,6 +35,7 @@ window.EE = EE
 - `net.invalidData` : 执行`updatelv`时，params参数无效。第二个参数是传入的params.
 - `net.eval` : 执行`eval`指令时发生错误。第二个参数是传入的params
 - `wwclass.constructor` : 创建元素类实例时发生错误，第二个参数是异常对象。
+- `ui.message.dep`: ui.showMessage的依赖无法被加载。第二个参数是无法加载的依赖文件，第三个参数是当前调用的message对象。
 
 系统所有的警告机制，可以通过调用`EE.on("warn",function(desc,exobj){})`的方式来拦截，提供了如下警告:
 - `elems.verMismatch` : 回调(type, name, RequestVer, RegVer)请求实例化元素，但是元素版本与当前注册表中的版本不匹配，这说明当前页面请求了不同版本的相同元素.

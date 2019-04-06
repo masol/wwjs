@@ -9,7 +9,7 @@ describe('action', function () {
   })
 
   it('click正确派遣到默认处理器，并正确添加了"#waitfinish子节点"', function (done) {
-    wwjs.ui.$container().append(`<div><a id="action_test_1" href="/test/compatible.html" data-action>TEST1</a></div>`)
+    wwjs.ui.$container().append(`<div><a id="action_test_1" href="/test1/compatible.html" data-action>TEST1</a></div>`)
     let event = jQuery.Event('click')
     console.log($('#action_test_1').length)
     $('#action_test_1').trigger(event)
