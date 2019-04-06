@@ -107,7 +107,9 @@
     "es6-template-strings": "^2.0.1",
     "whatwg-fetch": "^3.0.0"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@webcomponents/template": "^1.4.0"
+  },
   "files": [
     "CHANGELOG.md",
     "dist/*",

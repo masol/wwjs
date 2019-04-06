@@ -105,9 +105,6 @@ function cache ($ele) {
   return retAction
 }
 
-function procLink (event) {
-}
-
 function procSubmit (event) {
 }
 
@@ -127,9 +124,10 @@ function applyHandler (event) {
   if (!event.isDefaultPrevented()) {
     let defAction = $target.attr('data-action-default')
     if (defAction !== 'false' && defAction !== 'no') {
-      if (event.target.tagName === 'A' && event.type === 'click') {
-        procLink.apply(this, arguments)
-      } else if (event.target.tagName === 'FORM' && event.type === 'submit') {
+      if (event.target.tagName.toUpperCase() === 'A' && event.type.toLowerCase() === 'click') {
+        net.run('open', event.target, event)
+        event.preventDefault()
+      } else if (event.target.tagName.toUpperCase() === 'FORM' && event.type.toLowerCase() === 'submit') {
         procSubmit.apply(this, arguments)
       }
     }

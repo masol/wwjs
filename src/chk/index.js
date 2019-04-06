@@ -76,6 +76,7 @@ function rafProc (nodelist, evtName) {
 */
 function setup () {
   kosetup()
+  action.setupDefault()
   EE.on('nodeBeforeAdd', scriptChecker)
   EE.on('nodeAdd', action.check)
   EE.on('nodeAdd', wwclass.check)

@@ -58,6 +58,25 @@ function $container () {
 }
 
 /**
+获取指定名称的template.wwjs默认template从body > div#wwtemplates下开始的template元素。其名称为指定名称的template.
+@exports utils/ui
+@method $template
+@param {string} name 需要返回的模板名称。
+@param {Element} [context = body] 需要返回的模板名称。
+@return {$Element} 返回Jquery封装的Element Collection(期望长度为0或1)
+*/
+function $template (name, context) {
+  if (typeof name !== 'string') {
+    return null
+  }
+  if (name.startsWith('#')) {
+    name = name.substr(1)
+  }
+  context = context || document.body
+  return $('#wwtemplates', context).children(`template[name="${name}"]`)
+}
+
+/**
 获取当前脚本执行的script标签．由于[IE11的设计问题](https://github.com/JamesMGreene/document.currentScript#public-service-announcement-psa)，无法[polyfill](https://github.com/JamesMGreene/document.currentScript),因此，我们采用了变通方案，要求传入一个值，也就是文件名以做selector查询．
 @exports utils/ui
 @method currentScript
@@ -79,6 +98,20 @@ function currentScript (srcparts) {
     }
   }
   return null
+}
+
+/**
+检查当前页面是否在IFrame中被加载。
+@exports utils/ui
+@method inIframe
+@return {Boolean} true表示位于iframe中。
+*/
+function inIframe () {
+  try {
+    return window.self !== window.top
+  } catch (e) {
+    return true
+  }
 }
 
 /**
@@ -108,18 +141,18 @@ function createIframe ($ele, htmlstr) {
   @param {object} message - 消息对象,格式如下:
  - {array} message.global - 全局消息列表
    - {object} message.global[] - 全局消息列表项
-   - {string} message.global[].text - 全局消息提示文本, 必填
-   - {string} [message.global[].type] - 全局消息提示文本, 默认 error, 可选 alert, success, error, warning, info
-   - {string} [message.global[].layout] - 全局消息提示文本, 默认 topRight, 可选 top, topLeft, topCenter, topRight, center, centerLeft, centerRight, bottom, bottomLeft, bottomCenter, bottomRight
-   - {string} [message.global[].mint] - 全局消息提示文本, 默认 mint, 可选 relax, mint, sunset, metroui, semanticui, bootstrap-v3, bootstrap-v4, nest
-   - {number|boolean} [message.global[].timeout] - 全局消息提示文本, 默认 3500, 毫秒数或false
+     - {string} message.global[].text - 全局消息提示文本, 必填
+     - {string} [message.global[].type] - 全局消息提示文本, 默认 error, 可选 alert, success, error, warning, info
+     - {string} [message.global[].layout] - 全局消息提示文本, 默认 topRight, 可选 top, topLeft, topCenter, topRight, center, centerLeft, centerRight, bottom, bottomLeft, bottomCenter, bottomRight
+     - {string} [message.global[].mint] - 全局消息提示文本, 默认 mint, 可选 relax, mint, sunset, metroui, semanticui, bootstrap-v3, bootstrap-v4, nest
+     - {number|boolean} [message.global[].timeout] - 全局消息提示文本, 默认 3500, 毫秒数或false
  - {array} message.element - 元素消息列表
    - {object} message.element[] - 元素消息列表项
-   - {string} message.element[].text - 元素消息提示文本, 必填
-   - {string} message.element[].className - 元素消息提示文本, 必填, 元素name
-   - {string} [message.element[].layout] - 元素消息提示文本, 默认error, 提示类型success/error/warn/info
-   - {string} [message.element[].mint] - 元素消息提示文本, 默认 "bottom left", 提示位置 "top", "middle" or "bottom";  "left", "center" or "right"
-   - {number|boolean} [message.element[].timeout] - 元素消息提示文本, 默认 3000, 自动关闭, 或毫秒数
+     - {string} message.element[].text - 元素消息提示文本, 必填
+     - {string} message.element[].className - 元素消息提示文本, 必填, 元素name
+     - {string} [message.element[].layout] - 元素消息提示文本, 默认error, 提示类型success/error/warn/info
+     - {string} [message.element[].mint] - 元素消息提示文本, 默认 "bottom left", 提示位置 "top", "middle" or "bottom";  "left", "center" or "right"
+     - {number|boolean} [message.element[].timeout] - 元素消息提示文本, 默认 3000, 自动关闭, 或毫秒数
  */
 function showMessage (message) {
   /**
@@ -301,18 +334,23 @@ function showMessage (message) {
     var loadDependence = function (fncallback) {
       const notyURL = loadjs.resolve('@/noty/3.2.0-beta/noty.min.js')
       const notyCSS = loadjs.resolve('css!@/noty/3.2.0-beta/noty.css')
+      const notyTheme = loadjs.resolve('css!@/noty/3.2.0-beta/themes/bootstrap-v4.css')
       if (!loadjs.isDefined(notyURL)) {
         loadjs([notyURL], notyURL)
       }
       if (!loadjs.isDefined(notyCSS)) {
         loadjs([notyCSS], notyCSS)
       }
-      loadjs.ready([notyURL, notyCSS], {
+      if (!loadjs.isDefined(notyTheme)) {
+        loadjs([notyTheme], notyTheme)
+      }
+      loadjs.ready([notyURL, notyCSS, notyTheme], {
         success: fncallback,
         error: () => {
         }
       })
 
+      window.wwload = window.wwload || {}
       if (!window.wwload.noty) {
         window.wwload.noty = 'wait'
         loadjs.load(['@/noty/3.2.0-beta/noty.min.js', 'css!@/noty/3.2.0-beta/noty.css'], function () {
@@ -372,12 +410,14 @@ function showMessage (message) {
   for (i = 0; i < message.global.length; i++) {
     noty(message.global[i])
   }
-  for (i = 0; i < message.element.length; i++) {
-    $nameEles = searchTheNameEles(message.element[i].name, $('body'), false)
-    if ($nameEles.length > 0) {
-      notify($nameEles.first(), message.element[i].text, false, message.element[i])
-    } else {
-      notify($, message.element[i].text, false, message.element[i])
+  if (message.element) {
+    for (i = 0; i < message.element.length; i++) {
+      $nameEles = searchTheNameEles(message.element[i].name, $('body'), false)
+      if ($nameEles.length > 0) {
+        notify($nameEles.first(), message.element[i].text, false, message.element[i])
+      } else {
+        notify($, message.element[i].text, false, message.element[i])
+      }
     }
   }
   return true
@@ -412,6 +452,22 @@ function uniqId ($ele, prefix) {
 }
 
 /**
+设置页面的title以及meta[name="description"].
+@exports utils/ui
+@method title
+@param {string} newTitle 设置为新的title.
+@param {string} [desc=newTitle] 设置新的description,默认设置为title.
+@return {undefined}
+*/
+function title (newTitle, desc) {
+  if (typeof newTitle === 'string' && document.title !== newTitle) {
+    document.title = newTitle
+    desc = desc || newTitle
+    $('meta[name="description"]').attr('content', desc)
+  }
+}
+
+/**
 block指定元素．默认实现使用了[waitMe](https://github.com/vadimsva/waitMe)．可以在插件中通过重载`wwjs.ui.block`函数来替换默认方案．
 @exports utils/ui
 @method block
@@ -424,8 +480,10 @@ function block ($ele, block, opt) {}
 
 export default {
   $container: $container,
+  $template: $template,
   currentScript: currentScript,
   block: block,
+  title: title,
   uniqId: uniqId,
   /**
   获取基于时间的唯一字符串。详见[uniqid](https://github.com/adamhalasz/uniqid)
@@ -436,6 +494,7 @@ export default {
   */
   uniq: uniqid,
   createIframe: createIframe,
+  inIframe: inIframe,
   showMessage: showMessage,
   getName: getName
 }

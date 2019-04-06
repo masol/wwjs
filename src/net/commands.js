@@ -15,6 +15,7 @@
 import cfg from '../utils/cfg'
 import json from '../utils/json'
 import vm from '../ko/viewmodel'
+import actionCmd from './action'
 
 /**
 @module net/commands
@@ -137,34 +138,8 @@ function updatelv (params, refEle, evt) {
 }
 
 /**
-<strong><font color="green">内建命令</font></strong>:用于打开指定页面。
-@exports net
-@method open
-@static
-@param {array|object} params
-1. url|0 : 请求打开的URL。如果未给出，默认为`about:blank`。如果url等于当前url,则刷新本页面。
-2. target|1 如下几个值中的一个(默认为_self):
- - **_self**: 目标文档载入并显示在相同的框架或者窗口中作为源文档
- - _blank: 在新窗口中打开被链接文档。
- - _parent: 在父框架集中打开被链接文档。
- - _top: 在整个窗口中打开被链接文档。
- - framename: 在指定的框架中打开被链接文档。如果framename指示了一个view,则更新此view的src属性.
-3. 第三项如果给出，并且第一项未给出，则被当作HTML内容注入到targt中去.
-@param {Element} [refEle=$container] 寻找name时，名称空间范围。
-@return {boolean} 返回处理结果。
-*/
-function open (params, refEle, evt) {
-  let newURL = wwjs.ns.template(params, refEle)
-  if (newURL && window.location.href !== newURL) {
-    window.location.href = newURL
-  } else {
-    window.location.reload()
-  }
-}
-
-/**
 <strong><font color="green">内建命令</font></strong>:执行数组更新
-@exports net
+@exports net/commands
 @method vmArrFuc
 @static
 @param {array} params
@@ -359,6 +334,7 @@ function vmArrFuc (params, refEle, evt) {
 export default {
   updatelv: updatelv,
   eval: evalStr,
-  open: open,
+  open: actionCmd.open,
+  submit: actionCmd.submit,
   vmArrFuc: vmArrFuc
 }

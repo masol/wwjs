@@ -28,12 +28,13 @@ import queryString from 'query-string'
 let viewModel
 
 const VMINHASHPREFIX = '#?'
-function getObjectFromHash () {
+function getObjectFromHash (hashString) {
   let ret = {}
-  if (window.location.hash) {
-    let idx = window.location.hash.indexOf(VMINHASHPREFIX)
+  hashString = hashString || window.location.hash || ''
+  if (hashString) {
+    let idx = hashString.indexOf(VMINHASHPREFIX)
     if (idx >= 0) {
-      let vmstr = window.location.hash.substr(idx + VMINHASHPREFIX.length)
+      let vmstr = hashString.substr(idx + VMINHASHPREFIX.length)
       if (vmstr) {
         $.extend(ret, queryString.parse(vmstr))
         // console.log('set viewmode1=', ret)
@@ -261,6 +262,8 @@ function check ($ele) {
 
 export default {
   check: check,
+  objFromHash: getObjectFromHash,
+  VMINHASHPREFIX: VMINHASHPREFIX,
   get: get,
   set: set,
   setup: setup
