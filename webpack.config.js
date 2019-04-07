@@ -48,7 +48,7 @@ module.exports = env => {
   plugins.push(new MiniCssExtractPlugin({
     // Options similar to the same options in webpackOptions.output
     // both options are optional
-    filename: 'dist/[name].css',
+    filename: 'dist/[name].min.css',
     chunkFilename: '[id].css'
   }))
   process.env.NODE_ENV = isProd ? 'production' : 'development'
