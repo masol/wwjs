@@ -206,6 +206,116 @@ function showMessage (message) {
 }
 
 /**
+对指定的元素添加，移除基于CSS的动画，以[animate.css](https://github.com/daneden/animate.css)的规范为准。如果动画的开始/移除都使用本函数，则维护了data('transitioning',true)——当动画进行时。参考[这里的说明](https://stackoverflow.com/questions/9736919/check-if-element-is-being-animated-css3)
+@exports utils/ui
+@method animateCSS
+@param {jQueryElement} $ele 需要设置动画效果的元素。
+@param {string} [effectName=''] 动画效果的名称，如果名称为空，则立即停止元素上的任意动画效果。
+@param {object} [options={iteration:1, duration:1000, delay:0, block:true, unhide:false, moveto:false}] 动画效果的扩展配置。可能的配置如下:
+ - iteration: 数字或'infinite' 动画循环的次数，默认是1。
+ - duration: faster(500ms),fast(800ms),slower(3s),slow(2s)。或者数字用于指示持续时间。默认1秒。
+ - delay: 动画启动的延迟可以是'2s','2000ms'这样的字符串，默认立即启动。
+ - block: *true* 检查元素是否是inline,如果是inline,修改display为inline-block。默认为true,因为animate.css很多效果依赖block显示状态。
+ - unhide: 检查元素是否处于隐藏状态，如果是，显示之。
+ - moveto: 检查元素是否在页面可视区域中，如果不在，滚动到元素位置之后，才开始动画。（NOT IMPLEMENT)
+@param {object} [beforecss={}] 动画开始之前为$ele添加的属性。
+@param {object} [aftercss={}] 动画结束之后为$ele添加的属性。
+@return {Promise} 当动画执行结束时，被解析。
+*/
+const transitioning = 'transitioning'
+const removeClasses = ['animated', 'infinite', 'delay-2s', 'delay-3s', 'delay-4s', 'delay-5s', 'faster', 'fast', 'slower', 'slow'].join(' ')
+function cssAnimate ($ele, effectName, options, beforecss, aftercss) {
+  options = options || {}
+  if (typeof options.block !== 'boolean') {
+    options.block = true
+  }
+  return new Promise(function (resolve, reject) {
+    let handleAnimationEnd = function (evt, bNotResolve) {
+      $ele.removeClass(removeClasses)
+      if (effectName) {
+        $ele.removeClass(effectName)
+      }
+      $ele.css({
+        'animation-duration': '',
+        'animation-delay': '',
+        'animation-iteration-count': ''
+      })
+      if (typeof aftercss === 'object' && !Object.isEmpty(aftercss)) {
+        $ele.css(aftercss)
+      }
+      $ele.removeData(transitioning)
+      if (!bNotResolve) {
+        resolve(true)
+      }
+    }
+    if (effectName) {
+      if ($ele.data(transitioning)) {
+        handleAnimationEnd(true)
+      }
+      if (options.unhide) {
+        if ($ele.css('visibility') === 'hidden') {
+          $ele.css('visibility', 'visible')
+        }
+        if ($ele.is(':hidden')) {
+          $ele.show()
+        }
+      }
+      let extraInlineCSS = {}
+      let addedClasses = [
+        effectName,
+        'animated'
+      ]
+      if (options.block && $ele.css('display') === 'inline') {
+        $ele.css('display', 'inline-block')
+      }
+      if (options.iteration === 'infinite') {
+        addedClasses.push('infinite')
+      } else if (typeof options.iteration === 'number' && options.iteration !== 1) {
+        extraInlineCSS['animation-iteration-count'] = options.iteration
+      }
+      if (options.delay) {
+        switch (options.delay) {
+          case '2s':
+          case '3s':
+          case '4s':
+          case '5s':
+            addedClasses.push(`delay-${options.delay}`)
+            break
+          default:
+            extraInlineCSS['animation-delay'] = options.delay
+        }
+      }
+      if (options.duration) {
+        switch (options.duration) {
+          case 'faster':
+          case 'fast':
+          case 'slower':
+          case 'slow':
+            addedClasses.push(options.duration)
+            break
+          default:
+            extraInlineCSS['animation-duration'] = options.duration
+        }
+      }
+      if (!Object.isEmpty(extraInlineCSS)) {
+        $ele.css(extraInlineCSS)
+      }
+      if (typeof beforecss === 'object' && !Object.isEmpty(beforecss)) {
+        $ele.css(beforecss)
+      }
+      $ele.addClass(addedClasses.join(' '))
+      $ele.data(transitioning, true)
+      $ele.one('webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend', handleAnimationEnd)
+    } else {
+      if ($ele.data(transitioning)) {
+        return handleAnimationEnd()
+      }
+      resolve(false)
+    }
+  })
+}
+
+/**
 获取元素的名称，依次获取name,data-name,id,data-id.如果没有，创建唯一id，并返回这一唯一id.返回第一个获取到的。
 @exports utils/ui
 @method getName
@@ -266,6 +376,7 @@ export default {
   currentScript: currentScript,
   block: block,
   title: title,
+  cssAnimate: cssAnimate,
   uniqId: uniqId,
   /**
   获取基于时间的唯一字符串。详见[uniqid](https://github.com/adamhalasz/uniqid)

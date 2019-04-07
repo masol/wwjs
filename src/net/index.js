@@ -217,6 +217,26 @@ function run (cmd, refEle, evt) {
 }
 
 /**
+@exports net
+@method pipe
+@desc 给定一个cmdArray，顺序执行其中的每条命令(pipe)。如果不是数组，等效于[run](#~run)。
+@param {object|array|string} cmdArray  命令数组，如果是一个数组，其内部有效元素为[run](#~run)函数的cmd参数的格式。或者这里可以是一个非数组的cmd参数。此时pipe等效于[run](#~run)。
+@param {Element} [refEle=undefined] 此命令涉及的元素。如果未指定，无法确定vm分支。
+@param {Event} [evt=undefined] 触发本次命令的event对象，如果不是从action中触发,evt未定义。
+@return {Promise|any} 如果cmdArray是数组，返回Promise，值解析为pipe中的函数依次执行后，最后一条命令的返回值。
+*/
+function pipe (cmdArray, refEle, evt) {
+  if (Array.isArray(cmdArray)) {
+    let pipeTask = []
+    for (let i = 0; i < cmdArray.length; i++) {
+      pipeTask.push(wwjs.net.run.bind(this, cmdArray[i], refEle, evt))
+    }
+    return Promise.pipe(pipeTask)
+  }
+  return wwjs.net.run(cmdArray, refEle, evt)
+}
+
+/**
 给定params对象，以及变量位置数组，提取其中的变量，并转化为对象返回。如果params不是一个对象，则将其当作位置变量中的第一个返回对象。
 @exports net
 @method extract
@@ -253,6 +273,7 @@ export default {
   cmd: getCmd,
   reg: reg,
   run: run,
+  pipe: pipe,
   extract: extract,
   cmdline: cmdline
 }

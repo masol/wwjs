@@ -8,14 +8,14 @@ describe('action', function () {
     }, (err) => { done(err) })
   })
 
-  it('click正确派遣到默认处理器，并正确添加了"#waitfinish子节点"', function (done) {
-    wwjs.ui.$container().append(`<div><a id="action_test_1" href="/test1/compatible.html" data-action>TEST1</a></div>`)
+  it('click正确派遣到默认处理器，正确添加了"#waitfinish子节点,并正确播放动画"', function (done) {
+    wwjs.ui.$container().append(`<div><a id="action_test_1" href="/test/compatible.html" data-action>TEST1</a></div>`)
     let event = jQuery.Event('click')
     console.log($('#action_test_1').length)
     $('#action_test_1').trigger(event)
     intvalCount = 0
     let intvalID = setInterval(function () {
-      if (event.isDefaultPrevented() && $('#waitfinish').length === 1) {
+      if (intvalCount >= 120 && event.isDefaultPrevented() && $('#waitfinish').length === 1) {
         clearInterval(intvalID)
         done()
       }
@@ -31,5 +31,5 @@ describe('action', function () {
         // done()
       }
     }, 10)
-  })
+  }).timeout(5000)
 })

@@ -109,8 +109,13 @@ function procHashURL (url, ctx, context) {
   }
   let $tpl = ui.$template(url.substr(1), context)
   if ($tpl && $tpl.length > 0) {
-    ctx.$target.html($tpl.html())
-    return true
+    return Promise.pipe([
+      ctx.beforePromise,
+      function () {
+        ctx.$target.html($tpl.html())
+        return true
+      }
+    ])
   }
   return false
 }
@@ -169,24 +174,28 @@ function procURL (url, ctx) {
                   if (hashStr) {
                     return procHashURL(hashStr, ctx, $body)
                   } else {
-                    if (ctx.mode === OPENPAGE) {
-                      // If there's a <title> tag in the header, use it as
-                      // the page's title.
-                      let title = findAll($head, 'title').last().text()
-                      let desc = findAll($head, 'meta[name="description"]').last().attr('content')
-                      if (title) {
-                        ui.title(title, desc)
+                    return Promise.pipe([
+                      ctx.beforePromise,
+                      function () {
+                        if (ctx.mode === OPENPAGE) {
+                          // If there's a <title> tag in the header, use it as
+                          // the page's title.
+                          let title = findAll($head, 'title').last().text()
+                          let desc = findAll($head, 'meta[name="description"]').last().attr('content')
+                          if (title) {
+                            ui.title(title, desc)
+                          }
+                        }
+                        if (fullDocument) {
+                          let tmpBody = findAll($body, '#wwcontainer').first()
+                          if (tmpBody.length > 0) {
+                            $body = tmpBody
+                          }
+                        }
+                        ctx.$target.empty()
+                        ctx.$target.append($body.children())
                       }
-                    }
-                    if (fullDocument) {
-                      let tmpBody = findAll($body, '#wwcontainer').first()
-                      if (tmpBody.length > 0) {
-                        $body = tmpBody
-                      }
-                    }
-                    // @TODO wait before animation stop here?
-                    ctx.$target.empty()
-                    ctx.$target.append($body)
+                    ])
                   }
                 }
               ])
@@ -198,13 +207,12 @@ function procURL (url, ctx) {
                 },
                 function (obj) {
                   if (typeof obj === 'object' && typeof obj._runCommand === 'object') {
-                    if (Array.isArray(obj._runCommand)) {
-                      for (let i = 0; i < obj._runCommand.length; i++) {
-                        wwjs.net.run(obj._runCommand[i], ctx.$target.get(0))
+                    return Promise.pipe([
+                      ctx.beforePromise,
+                      function () {
+                        wwjs.net.pipe(obj._runCommand, ctx.$target.get(0))
                       }
-                    } else {
-                      wwjs.net.run(obj._runCommand, ctx.$target.get(0))
-                    }
+                    ])
                   }
                 }
               ])
@@ -238,9 +246,11 @@ function disableElePair (bEnable, ctx) {
           ui.block(ctx.$refEle, bEnable)
         } else if ($.contains(ctx.$target.get(0), ctx.$refEle.get(0))) {
           ui.block(ctx.$target, bEnable)
-        } else {
+        } else if (ctx.$target.is(ctx.$refEle)) {
           ui.block(ctx.$target, bEnable)
+        } else {
           ui.block(ctx.$refEle, bEnable)
+          ui.block(ctx.$target, bEnable)
         }
         break
     }
@@ -314,16 +324,10 @@ function open (params, refEle, evt) {
   }
   return Promise.pipe([
     function () {
-      // parse url info to context.
-      //
-      // 检查是否需要从网络获取内容。
+      return disableElePair(true, context)
     },
     function () {
-      disableElePair(true, context)
-    },
-    function () {
-      if (context.before) {
-      }
+      context.beforePromise = ui.cssAnimate(context.$target, context.before || 'flipOutX', { duration: 'faster' })
     },
     function () {
       // do replace.
@@ -343,12 +347,10 @@ function open (params, refEle, evt) {
       }
     },
     function () {
-      if (context.after) {
-
-      }
+      return ui.cssAnimate(context.$target, context.after || 'flipInX', { duration: 'faster' })
     },
     function () {
-      disableElePair(false, context)
+      return disableElePair(false, context)
     }
   ])
 }
