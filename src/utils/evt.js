@@ -13,7 +13,6 @@
 'use strict'
 
 import EventEmitter from 'eventemitter3'
-import UI from './ui'
 
 const EE = new EventEmitter()
 window.EE = EE
@@ -79,7 +78,7 @@ EE.onNodeAdd = function (cb, context) {
     EE.on('nodeAdd', cb, context)
     if (EE.nodeAdded) {
       setTimeout(() => {
-        cb.call(context || EE, 'nodeAdd', [UI.$container()[0]])
+        cb.call(context || EE, 'nodeAdd', [wwjs.ui.$container()[0]])
       }, 0)
     }
   }

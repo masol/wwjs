@@ -43,6 +43,10 @@ import state from './utils/state'
 if (!window.jQuery || !window.ko) {
   console.error('wwjs的运行需要依赖jQuery以及knockout.js。请确保包含wwjs之前，已经引入了jquery及knockout')
 }
+
+// 设置和获取baseurl
+ui.baseurl()
+
 // if (!window.$) {
 //   window.$ = window.jQuery = $
 // }

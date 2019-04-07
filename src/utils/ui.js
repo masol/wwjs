@@ -15,6 +15,7 @@
 import cfg from './cfg'
 import loadjs from './loadjs'
 import uniqid from 'uniqid'
+import './waitme'
 
 /**
 UI模块提供了对HTML布局的一些基本假定的Adapter接口。
@@ -98,6 +99,39 @@ function currentScript (srcparts) {
     }
   }
   return null
+}
+
+/**
+获取当前wwjs的base url地址。在wwjs初始化后通过ui.currentScript来获取并设置在这里。
+@exports utils/ui
+@method baseurl
+@return {string} 当前wwjs的脚本URL地址。
+**/
+let base
+function baseurl () {
+  if (!base) {
+    let baseEle = currentScript('wwjs.min.js')
+    if (baseEle && typeof baseEle.src === 'string') {
+      let src = baseEle.src
+      let idx = src.indexOf('?')
+      if (idx > -1) {
+        src = src.substr(0, idx)
+      }
+      idx = src.lastIndexOf('/')
+      if (idx > -1) {
+        src = src.substring(0, idx + 1)
+      }
+      if (!src.endsWith('/')) {
+        src += '/'
+      }
+      if (baseEle.src.startsWith('/') || baseEle.src.startsWith('http://') || baseEle.src.startsWith('https://')) {
+        base = src
+      } else {
+        base = `${window.location.protocol}//${window.location.host}${window.location.pathname}${src}`
+      }
+    }
+  }
+  return base
 }
 
 /**
@@ -378,6 +412,7 @@ export default {
   title: title,
   cssAnimate: cssAnimate,
   uniqId: uniqId,
+  baseurl: baseurl,
   /**
   获取基于时间的唯一字符串。详见[uniqid](https://github.com/adamhalasz/uniqid)
   @exports utils/ui

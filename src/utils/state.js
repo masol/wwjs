@@ -45,9 +45,9 @@ class State {
     this.pageStore = {}
     this.loadmap = (this.loadmap && Function.isFunction(this.loadmap.clear)) ? this.loadmap.clear() : new WeakMap()
     this.loadSize = 0
-    if (this.rafID) {
-      cancelAnimationFrame(this.rafID)
-      this.rafID = undefined
+    if (this.timeID) {
+      clearTimeout(this.timeID)
+      this.timeID = undefined
     }
   }
   /**
@@ -63,12 +63,17 @@ class State {
       EE.emit('state:loading', this.cLodevt)
       // console.log('state:loading:', this.cLodevt)
     }
+    if (this.timeID) {
+      clearTimeout(this.timeID)
+      this.timeID = undefined
+    }
     this.loadmap.set(ele, this.pgCount)
     this.loadSize++
   }
   delayLoaded () {
+    // console.log('call to delayLoaded with ', this.cLodevt)
     if (this.loadSize === 0) {
-      this.rafID = undefined
+      this.timeID = undefined
       this.lodflag = false
       // console.log('state:loaded:', this.cLodevt)
       EE.emit('state:loaded', this.cLodevt++)
@@ -97,10 +102,10 @@ class State {
       this.loadSize--
       if (this.lodflag && this.loadSize === 0) {
         // 延迟一帧发出事件，以忽略同步加载引发的加载事件泛滥。
-        if (this.rafID) {
-          cancelAnimationFrame(this.rafID)
+        if (this.timeID) {
+          clearTimeout(this.timeID)
         }
-        this.rafID = requestAnimationFrame(this.delayLoaded.bind(this))
+        this.timeID = setTimeout(this.delayLoaded.bind(this), 100)
       }
     }
   }

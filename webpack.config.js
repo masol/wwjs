@@ -3,6 +3,9 @@ const pkg = require('./package.json')
 const webpack = require('webpack')
 const path = require('path')
 const CompressionPlugin = require('compression-webpack-plugin')
+const MiniCssExtractPlugin = require('mini-css-extract-plugin')
+const TerserJSPlugin = require('terser-webpack-plugin')
+const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin')
 const fs = require('fs')
 let plugins = []
 
@@ -42,6 +45,21 @@ module.exports = env => {
   //   Backbone: 'backbone'
   // }))
 
+  plugins.push(new MiniCssExtractPlugin({
+    // Options similar to the same options in webpackOptions.output
+    // both options are optional
+    filename: 'dist/[name].css',
+    chunkFilename: '[id].css'
+  }))
+  process.env.NODE_ENV = isProd ? 'production' : 'development'
+  let optimization = {}
+  if (isProd) {
+    optimization.minimizer = [
+      new TerserJSPlugin({}),
+      new OptimizeCSSAssetsPlugin({})
+    ]
+  }
+
   return {
     entry: {
       wwjs: './src/index.js',
@@ -54,6 +72,7 @@ module.exports = env => {
     //     chunks: 'all'
     //   }
     // },
+    optimization: optimization,
     mode: isProd ? 'production' : 'development',
     devtool: isProd ? 'source-map' : (!env ? 'cheap-module-eval-source-map' : false),
     devServer: { headers: { 'Access-Control-Allow-Origin': '*' } },
@@ -73,6 +92,27 @@ module.exports = env => {
           resolve('src'),
           require.resolve('hyperhtml/cjs'),
           resolve('test', 'spec')
+        ]
+      }, {
+        test: /\.css$/,
+        use: [
+          {
+            loader: MiniCssExtractPlugin.loader
+          },
+          {
+            loader: 'css-loader'
+          }
+        ]
+      }, {
+        test: /\.(jpe?g|png|gif|svg|ico)$/i,
+        use: [
+          {
+            loader: 'url-loader',
+            options: {
+              name: 'dist/img/[name].[ext]',
+              limit: 1024
+            }
+          }
         ]
       }]
     },
