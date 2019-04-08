@@ -19,6 +19,7 @@ import UI from '../utils/ui'
 import scriptChecker from './script'
 import action from './action'
 import wwclass from '../elems'
+import state from '../utils/state'
 
 /**
 chk模块提供了在html代码插入时，检查插入的Node,并加以处理的能力。这一检查是在Node第一次被绘制时调用的(requestAnimationFrame)，因此，需要自行处理好平滑过程。这是一个内部模块，外部无法调用到。
@@ -132,12 +133,15 @@ function setup () {
       characterDataOldValue: false
     }
     containerObserver.observe($container[0], config)
+    // 如果没有任意特殊元素，为了发出state:loaded事件，这里需要push/pop伪造元素。
+    state.push($container)
     // 发出第一次的元素加入事件。
     EE.emit('nodeBeforeAdd', [$container[0]])
     // 伪造事件不需要等待下一次绘制(RequestAnimationFrame)
     EE.emit('nodeAdd', [$container[0]])
     // rafProc([$container[0]], 'nodeAdd')
     EE.nodeAdded = true
+    state.pop($container)
   } else {
     if (cfg.debug) {
       console.error('没有获取到有效的$container节点，无法构建Mutation监听')

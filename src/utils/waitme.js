@@ -9,6 +9,7 @@ Github: https://github.com/vadimsva/waitMe
 import './waitme.css'
 import img from './img.svg'
 import EE from './evt'
+import cfg from './cfg'
 
 // console.log(console)
 // console.log(console.log(img))
@@ -320,12 +321,58 @@ function getDefImgURL(){
 
 /* eslint-enable */
 
+let indicatorID
+function removeIndicator () {
+  indicatorID = undefined
+  $('body.waitMe_body').addClass('hideMe')
+  setTimeout(function () {
+    $('body.waitMe_body').find('.waitMe_container:not([data-waitme_id])').remove()
+    $('body.waitMe_body').removeClass('waitMe_body hideMe')
+  }, 10)
+}
 EE.on('state:loaded', function (loadedCount) {
-  if (loadedCount === 0) { // 只在第一次加载完毕时，移除页面的加载状态。
-    $('body.waitMe_body').addClass('hideMe')
-    setTimeout(function () {
-      $('body.waitMe_body').find('.waitMe_container:not([data-waitme_id])').remove()
-      $('body.waitMe_body').removeClass('waitMe_body hideMe')
-    }, 200)
+  let $body = $('body.waitMe_body')
+  if ($body.length > 0) { // 有加载进度指示条。
+    if (!indicatorID) {
+      indicatorID = setTimeout(removeIndicator, 100)
+    }
   }
 })
+
+if (cfg.indicator !== false) {
+  EE.on('state:loading', function (loadedCount) {
+    let $body = $('body')
+    if ($body.hasClass('waitMe_body') || $body.hasClass('hideMe')) {
+      // already has indicator. 清除当前的移除indicator的缓冲。
+      if (indicatorID) {
+        clearTimeout(indicatorID)
+        indicatorID = undefined
+      }
+    } else {
+      let bgcolor = '#fff0'
+      let style = 'working'
+      let color = '#000'
+      let text = ''
+      let imgurl = ''
+      if (typeof cfg.indicator === 'object') {
+        bgcolor = cfg.indicator.bgcolor || bgcolor
+        style = cfg.indicator.style || style
+        color = cfg.indicator.color || color
+        text = cfg.indicator.text || text
+        imgurl = cfg.indicator.imgurl || imgurl
+      } else if (typeof cfg.indicator === 'string') {
+        bgcolor = cfg.indicator
+      }
+      if (style === 'img' && !imgurl) {
+        imgurl = getDefImgURL()
+      }
+      if (style === 'text' && !text) {
+        text = wwjs.i18n('加载中...')
+      }
+      $body.addClass('waitMe_body')
+      $body.prepend(`<div class="waitMe_container ${style}" style="background:${bgcolor}">
+      <div style="${(style === 'text') ? 'color' : 'background'}:${(style === 'img') ? `url('${imgurl}')` : color}">${text}</div>
+      </div>`)
+    }
+  })
+}

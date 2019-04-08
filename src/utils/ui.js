@@ -244,7 +244,7 @@ function showMessage (message) {
 @exports utils/ui
 @method animateCSS
 @param {jQueryElement} $ele 需要设置动画效果的元素。
-@param {string} [effectName=''] 动画效果的名称，如果名称为空，则立即停止元素上的任意动画效果。
+@param {string} [effectName=''] 动画效果的名称，如果名称为空，则立即停止元素上的任意动画效果。可用名称内建支持[animate.css](https://github.com/daneden/animate.css)+'none'(不执行任何动画，立即返回)。其它扩展名称，需要自行包含对应的css文件。
 @param {object} [options={iteration:1, duration:1000, delay:0, block:true, unhide:false, moveto:false}] 动画效果的扩展配置。可能的配置如下:
  - iteration: 数字或'infinite' 动画循环的次数，默认是1。
  - duration: faster(500ms),fast(800ms),slower(3s),slow(2s)。或者数字用于指示持续时间。默认1秒。
@@ -262,6 +262,9 @@ function cssAnimate ($ele, effectName, options, beforecss, aftercss) {
   options = options || {}
   if (typeof options.block !== 'boolean') {
     options.block = true
+  }
+  if (effectName === 'none') {
+    return
   }
   return new Promise(function (resolve, reject) {
     let handleAnimationEnd = function (evt, bNotResolve) {
@@ -394,15 +397,57 @@ function title (newTitle, desc) {
 }
 
 /**
-block指定元素．默认实现使用了[waitMe](https://github.com/vadimsva/waitMe)．可以在插件中通过重载`wwjs.ui.block`函数来替换默认方案．
+block指定元素．默认实现使用了[waitMe](https://github.com/vadimsva/waitMe)．可以通过重载`wwjs.ui.block`函数来替换默认方案。不同于showMessage的依赖可以运行期动态加载。由于页面初次加载时就有加载状态，因此将waitme内置包含。
 @exports utils/ui
 @method block
 @param {JQueryElement} [$ele] block指定元素．
-@param {boolean} [block=false] block或unblock指定元素.
-@param {object} [opt={}] 配置细节信息，这些配置同时可以同名从ele中获取．这里的配置优先级高于ele的配置.
-@return {Promise} 解析为指定元素是否被block.
+@param {boolean} [benable=false] block或unblock指定元素.
+@param {object} [opt={}] 配置细节信息，这些配置同时可以同名从ele中获取．这里的配置优先级高于ele的配置。支持的配置参考[waitMe文档](https://vadimsva.github.io/waitMe/):
+- effect: 指定动画效果，默认为*bounce*，其它有效值为:'none', 'rotateplane', 'stretch', 'orbit', 'roundBounce', 'win8', 'win8_linear', 'ios', 'facebook', 'rotation', 'timer', 'pulse', 'progressBar', 'bouncePulse', 'img'。
+- text: 在效果动画下放置文本，默认为空字符串(不放置文本)
+- bg: 容器元素的背景，默认为'rgba(255,255,255,0.7)',也可以传入'false'不改变容器背景。
+- color: 动画及文字的背景，默认为'#000'，可以使用['','',...]来指定多个颜色。
+- maxSize: 最大尺寸，可以设置为40等数字(单位为px)。默认为空，意味着根据容器当前尺寸来设置。
+- waitTime: 设置毫秒为单位的等待时间，时间到达后自动取消禁用状态，默认为-1(无限时间)。
+- textPos: 文本位置，只有指定了text属性这一属性才有意义。默认为垂直‘vertical’放置，另外有效值为水平放置'horizontal'
+- fontSize: 设置文本字号，只有指定了text属性才有意义。默认使用容器的字体设置。可以设置为'18px'这样的css有效的值。
+- source: 图片地址，只有效果设置为img才有意义。默认采用内部的img/img.svg。
+- onClose: 在禁用状态被关闭时的回调函数，等效于响应'close'事件。这里指定的是bash格式的命令字符串。(尚未实现)
+@return {undefined}
 */
-function block ($ele, block, opt) {}
+function assignValue ($ele, opt, suffix) {
+  if (!opt[suffix]) {
+    let value = $ele.attr(`data-disable-${suffix}`)
+    if (value) {
+      opt[suffix] = value
+    }
+  }
+}
+function block ($ele, benable, opt) {
+  if (benable) {
+    opt = opt || {}
+    assignValue($ele, opt, 'effect')
+    assignValue($ele, opt, 'text')
+    assignValue($ele, opt, 'bg')
+    assignValue($ele, opt, 'color')
+    assignValue($ele, opt, 'maxSize')
+    assignValue($ele, opt, 'waitTime')
+    assignValue($ele, opt, 'textPos')
+    assignValue($ele, opt, 'fontSize')
+    assignValue($ele, opt, 'source')
+    assignValue($ele, opt, 'onClose')
+
+    if (!opt.maxSize) {
+      opt.maxSize = Math.min($ele.outerWidth(true), $ele.outerHeight(true))
+    }
+    // if (typeof opt.onClose === 'string') { // 将opt.onClose转化为函数。
+    //
+    // }
+    $ele.waitMe(opt)
+  } else {
+    $ele.waitMe('hide')
+  }
+}
 
 export default {
   $container: $container,

@@ -21,6 +21,12 @@
 - nsprefix : "XXXX"  //如果未定义，默认为`wwns`，详情参考[ko/ns模块](module-ko_ns.html)
 - container : "Selector" //定义第一顺位选择器，详情查看[utils/ui模块](module-utils_ui.html#~$container)
 - vmtypecvt : false //设置给vm某个变量设置值时，当类型不同时，是否允许转换？默认是不允许类型转化的，设置为true可以自动转化。
+- indicator : false|bgcolorstr|object // 设置indicator的背景颜色，默认为“#fff0”。如果设置为false,则禁用indicator。如果是object，内容如下：
+ - bgcolor: 等同于indicator的bgcolorstr。
+ - style : 用于设置indicator的style，默认为“working”。有效值为'progress','img','text'。
+ - color: 用于设置indicator条或文字的颜色。
+ - text: 只有类型为text时才有效，设置文本内容。
+ - imgurl: 只有类型为img时才有效，设置img的URL地址。
 @example
 <script>
 window.wwcfg  = {
