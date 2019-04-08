@@ -13,7 +13,7 @@
 'use strict'
 
 const httpServer = require('http-server')
-const opn = require('opn')
+const opn = require('open')
 let isPhantom = false
 
 let i
@@ -34,8 +34,8 @@ server.listen(9999)
 server.server.on('listening', function () {
   // Opens the url in the default browser
   if (!isPhantom) {
-    opn('http://localhost:9999/test/runner.html').then(() => {
-      console.log('页面已打开，测试完毕之后，请按Ctrl+C关闭测试程序。')
+    opn('http://localhost:9999/test/runner.html', { wait: true }).then(() => {
+      console.log('编译完成，执行最后一步:打开测试页面，测试完毕之后，请按Ctrl+C关闭本次编译程序。')
     }).catch(function (err) {
       console.error(`执行测试时发生错误:${require('util').inspect(err)}`)
       process.exit(1)
