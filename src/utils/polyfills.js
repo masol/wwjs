@@ -66,6 +66,12 @@ IE9的注意事项:
 - defprop : [ES5 Object](https://caniuse.com/#search=ECMAScript%205)中的`defineProperty`，Modernizr提供的`es5object`检查尺寸太大(minimize之后增加330字节),如果没有，添加[fix-ie](https://github.com/Alhadis/Fix-IE)，而不是[es5-shim](https://github.com/es-shims/es5-shim)。这一特性视实际使用情况可能作出调整。
 - weakmap : [WeakMap](https://kangax.github.io/compat-table/es6/#test-WeakMap)，如果浏览器不支持，自动安装[weakmap-polyfill](https://github.com/polygonplanet/weakmap-polyfill)
 
+额外提供的基础类型扩充,如果浏览器已经支持，不再扩充:
+- Array.isArray(param) : 检查一个对象是否是一个Array。(只有ie9不支持)
+- Function.isFunction(param) : 检查给定参数是否是一个函数。
+- Function.dummy : dummy函数，方便需要dummy的地方使用。
+- Object.isEmpty(obj) : 判断给定对象是否为空，如果不是对象，抛出异常。
+
 Modernizr的一个值组合(chrome Version 70.0.3538.77 (Official Build) snap (64-bit)):
 @example
 {
