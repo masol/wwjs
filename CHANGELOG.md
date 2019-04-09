@@ -2,6 +2,32 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="1.8.1"></a>
+## [1.8.1](https://gitlab.wware.org/lizhutang/wwjs/compare/v1.7.9...v1.8.1) (2019-04-09)
+
+
+### Bug Fixes
+
+* 修正doRender回调时，元素可能已销毁的bug——销毁的元素,doRender调用被忽略。同时缓冲了render属性返回的函数。 ([9ddc3bb](https://gitlab.wware.org/lizhutang/wwjs/commit/9ddc3bb))
+
+
+### Features
+
+* ko支持了依赖等待，可以通过wwjs脚本来扩展ko. ([8b8766f](https://gitlab.wware.org/lizhutang/wwjs/commit/8b8766f))
+* wwimport可以使用`done:XXXX`来手动完成依赖指定。 ([edadea3](https://gitlab.wware.org/lizhutang/wwjs/commit/edadea3))
+* 在polyfill中添加了Array.isArray以及Object.isEmpty以及Function.isFunction支持，并从对jQuery的调用中移到polyfill中。 ([9df02e1](https://gitlab.wware.org/lizhutang/wwjs/commit/9df02e1))
+* 开始支持action，并添加了utils/str保存便捷函数。 ([035bcf5](https://gitlab.wware.org/lizhutang/wwjs/commit/035bcf5))
+* 支持了hash串中更新viewModel(#?之后的内容) ([9cd5b67](https://gitlab.wware.org/lizhutang/wwjs/commit/9cd5b67))
+* 支持了script[type="text/bindvar"]用于可以有函数定义(computed observer)初始化。 ([4eb7214](https://gitlab.wware.org/lizhutang/wwjs/commit/4eb7214))
+* 支持了state维护，以检查页面是否处于元素依赖加载状态(dom chk)中. ([60e72b5](https://gitlab.wware.org/lizhutang/wwjs/commit/60e72b5))
+* 支持了window.makeTemplate来动态makeTemplate. ([f7714b2](https://gitlab.wware.org/lizhutang/wwjs/commit/f7714b2))
+* 改进mapping.js。支持自动mapping function类型到computedObserver。并添加测试用例来测试之。 ([a04f3d6](https://gitlab.wware.org/lizhutang/wwjs/commit/a04f3d6))
+* 改进net模块及其描述，将trans作为net模块的一个特殊应用。 ([d5389f4](https://gitlab.wware.org/lizhutang/wwjs/commit/d5389f4))
+* 检查datalist是否被支持，如果未被支持，自动polyfill. ([36e059a](https://gitlab.wware.org/lizhutang/wwjs/commit/36e059a))
+* 调整net模块，更清晰的语义。 ([5e06400](https://gitlab.wware.org/lizhutang/wwjs/commit/5e06400))
+
+
+
 <a name="1.7.9"></a>
 ## [1.7.9](https://gitlab.wware.org/lizhutang/wwjs/compare/v1.7.8...v1.7.9) (2019-02-24)
 
