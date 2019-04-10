@@ -1,0 +1,14 @@
+.lazyload,
+.lazyloading {
+	opacity: 0;
+}
+.lazyloaded {
+	opacity: 1;
+	transition: opacity 300ms;
+}
+
+@media only screen and (min-width: 767px) {
+  html {
+    overflow-y: scroll;
+  }
+}

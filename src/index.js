@@ -29,6 +29,7 @@ import queryString from 'query-string'
 import getKY from './utils/ky'
 import AnimEvent from 'anim-event'
 import state from './utils/state'
+import './utils/lazysizes'
 
 // console.log(loadjs)
 

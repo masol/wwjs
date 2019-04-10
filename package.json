@@ -108,7 +108,8 @@
     "whatwg-fetch": "^3.0.0"
   },
   "dependencies": {
-    "@webcomponents/template": "^1.4.0"
+    "@webcomponents/template": "^1.4.0",
+    "lazysizes": "^4.1.7"
   },
   "files": [
     "CHANGELOG.md",
