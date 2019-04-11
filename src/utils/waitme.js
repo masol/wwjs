@@ -379,5 +379,5 @@ EE.on('state:loading', function (loadedCount) {
 })
 
 export default {
-  defImg: getDefImgURL
+  img: getDefImgURL
 }
