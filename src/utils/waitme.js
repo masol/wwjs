@@ -14,11 +14,18 @@ import cfg from './cfg'
 // console.log(console)
 // console.log(console.log(img))
 let imgurl
+const distParts = 'dist/'
 function getDefImgURL(){
   if(!imgurl){
-    imgurl = `${wwjs.ui.baseurl()}${img}`
+    // console.log(1)
+    // console.log(img)
+    if(img.startsWith(distParts)){
+      imgurl = `${wwjs.ui.baseurl()}${img.substr(distParts.length)}`
+    }else{
+      imgurl = img
+    }
   }
-  console.log(imgurl)
+  // console.log('imgurl=',imgurl)
   return imgurl
 }
 
