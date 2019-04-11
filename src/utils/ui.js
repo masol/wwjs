@@ -15,7 +15,7 @@
 import cfg from './cfg'
 import loadjs from './loadjs'
 import uniqid from 'uniqid'
-import './waitme'
+import waitme from './waitme'
 
 /**
 UI模块提供了对HTML布局的一些基本假定的Adapter接口。
@@ -457,6 +457,7 @@ export default {
   title: title,
   cssAnimate: cssAnimate,
   uniqId: uniqId,
+  loadImg: waitme.img,
   baseurl: baseurl,
   /**
   获取基于时间的唯一字符串。详见[uniqid](https://github.com/adamhalasz/uniqid)
