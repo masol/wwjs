@@ -16,7 +16,7 @@ import cfg from './cfg'
 let imgurl
 function getDefImgURL(){
   if(!imgurl){
-    imgurl = `${wwjs.ui.baseurl()}img`
+    imgurl = `${wwjs.ui.baseurl()}${img}`
   }
   console.log(imgurl)
   return imgurl
