@@ -102,36 +102,57 @@ function currentScript (srcparts) {
 }
 
 /**
+获取当前调用者脚本的根路径(全路径)。必须在脚本引入的主文件中调用，不能在回调函数中使用，否则无法返回正确结果。
+@exports utils/ui
+@method currentBase
+@param {string|Element} [scriptName=undefined] 参数可以是如下含义:
+- 提供scriptName,用于在IE11版本下currentScript不工作时，可以正常返回路径。
+- 如果是Element，则利用其来判定路径。
+- 如果是其它值，则使用currentScript来获取脚本元素。
+@return {string|undefined} 调用者脚本的URL地址。如果在回调函数而不是主入口中调用，否则返回undefined。
+**/
+function currentBase (scriptName) {
+  let ret
+  let baseEle
+  if (scriptName instanceof HTMLScriptElement) {
+    baseEle = scriptName
+  } else {
+    baseEle = currentScript(scriptName)
+  }
+  if (baseEle && typeof baseEle.src === 'string') {
+    let src = baseEle.src
+    let idx = src.indexOf('?')
+    if (idx > -1) {
+      src = src.substr(0, idx)
+    }
+    idx = src.lastIndexOf('/')
+    if (idx > -1) {
+      src = src.substring(0, idx + 1)
+    }
+    if (!src.endsWith('/')) {
+      src += '/'
+    }
+    if (baseEle.src.startsWith('/') || baseEle.src.startsWith('http://') || baseEle.src.startsWith('https://')) {
+      ret = src
+    } else {
+      ret = `${window.location.protocol}//${window.location.host}${window.location.pathname}${src}`
+    }
+  }
+  return ret
+}
+
+/**
 获取当前wwjs的base url地址。在wwjs初始化后通过ui.currentScript来获取并设置在这里。
 @exports utils/ui
 @method baseurl
 @return {string} 当前wwjs的脚本URL地址。
 **/
-let base
+let wwjsBase
 function baseurl () {
-  if (!base) {
-    let baseEle = currentScript('wwjs.min.js')
-    if (baseEle && typeof baseEle.src === 'string') {
-      let src = baseEle.src
-      let idx = src.indexOf('?')
-      if (idx > -1) {
-        src = src.substr(0, idx)
-      }
-      idx = src.lastIndexOf('/')
-      if (idx > -1) {
-        src = src.substring(0, idx + 1)
-      }
-      if (!src.endsWith('/')) {
-        src += '/'
-      }
-      if (baseEle.src.startsWith('/') || baseEle.src.startsWith('http://') || baseEle.src.startsWith('https://')) {
-        base = src
-      } else {
-        base = `${window.location.protocol}//${window.location.host}${window.location.pathname}${src}`
-      }
-    }
+  if (!wwjsBase) {
+    wwjsBase = currentBase('wwjs.min.js')
   }
-  return base
+  return wwjsBase
 }
 
 /**
@@ -147,26 +168,26 @@ function inIframe () {
     return true
   }
 }
-
-/**
-ref: #22051 从wwclass.js V1.7中拷贝．
-@exports utils/ui
-@method createIframe
-@param {JQueryElement} $ele iframe的父元素
-@param {string} htmlsrc HTML的正文内容．
-@return {Element} 返回新创建的IFrame元素．
-*/
-function createIframe ($ele, htmlstr) {
-  $ele.addClass('embed-responsive embed-responsive-4by3')
-  let parent = $ele.get(0)
-  let iframe = document.createElement('iframe')
-  parent.appendChild(iframe)
-  $(iframe).addClass('embed-responsive-item').attr('width', '100%').css('width', '100%').attr('frameborder', '0')
-  iframe.contentWindow.document.open('text/htmlreplace')
-  iframe.contentWindow.document.write(htmlstr)
-  iframe.contentWindow.document.close()
-  return iframe
-}
+//
+// /**
+// ref: #22051 从wwclass.js V1.7中拷贝．
+// @exports utils/ui
+// @method createIframe
+// @param {JQueryElement} $ele iframe的父元素
+// @param {string} htmlsrc HTML的正文内容．
+// @return {Element} 返回新创建的IFrame元素．
+// */
+// function createIframe ($ele, htmlstr) {
+//   $ele.addClass('embed-responsive embed-responsive-4by3')
+//   let parent = $ele.get(0)
+//   let iframe = document.createElement('iframe')
+//   parent.appendChild(iframe)
+//   $(iframe).addClass('embed-responsive-item').attr('width', '100%').css('width', '100%').attr('frameborder', '0')
+//   iframe.contentWindow.document.open('text/htmlreplace')
+//   iframe.contentWindow.document.write(htmlstr)
+//   iframe.contentWindow.document.close()
+//   return iframe
+// }
 
 /**
 显示消息提醒，是对[bootstrap-notify](https://github.com/mouse0270/bootstrap-notify)的一个封装，并且API针对WIDE1.0做了改进，并不兼容1.0的格式。在net.run中有对应的[message命令](module-net_commands.html#.message)
@@ -453,6 +474,7 @@ export default {
   $container: $container,
   $template: $template,
   currentScript: currentScript,
+  currentBase: currentBase,
   block: block,
   title: title,
   cssAnimate: cssAnimate,
@@ -467,7 +489,7 @@ export default {
   @return {String} 新创建的唯一字符串.
   */
   uniq: uniqid,
-  createIframe: createIframe,
+  // createIframe: createIframe,
   inIframe: inIframe,
   showMessage: showMessage,
   getName: getName
