@@ -385,7 +385,7 @@ class wwclass {
    - noSyncKO : 任意代码对元素属性this[promName]改变时，不将变动更新回KO属性绑定对应的变量(如果有的话)，默认是同步的.
    - render : 属性变动是否触发render方法．默认是不触发的.
   @param {string} [propName=RemoveDataPrefix(attrName)] 暴露在对象上的属性名.只有更新这一属性才会触发自动更新KO或Element。直接访问_p[propName]是不会触发自动更新的。
-  @param {string} [methodName=`on${propName}Changed`] 属性值发生变化时，自动回调的函数`(oldValue, newValue)`，进入回调函数之后，`this.prop[propName] === newValue`一定成立．
+  @param {string} [methodName=`on${propName}Changed`] 属性值发生变化时，自动回调的函数`(oldValue, newValue)`，进入回调函数之后，`this[propName] === newValue`一定成立。因此，this._p[propName]也已经更新为newValue了: this._p[propName]就是this[propName]的属性存放地，this[propName]额外根据配置执行了部分更新关联元素/KO的代码。
   @inner
   @access private
   @example
