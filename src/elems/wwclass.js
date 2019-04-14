@@ -381,10 +381,10 @@ class wwclass {
   @memberof wwclass
   @param {string} attrName 要监听的属性名.
   @param {object} [options={noSyncEle:false,noSyncKO:false,render: false}] 选项．当前支持如下三个选项:
-   - noSyncEle :  不将值同步到元素属性上．默认是同步的．
-   - noSyncKO : 不将变动更新回KO属性绑定对应的变量(如果有的话)，默认是同步的.
+   - noSyncEle :  任意代码对元素属性this[promName]改变时，不将变化同步到元素属性上．默认是同步的．
+   - noSyncKO : 任意代码对元素属性this[promName]改变时，不将变动更新回KO属性绑定对应的变量(如果有的话)，默认是同步的.
    - render : 属性变动是否触发render方法．默认是不触发的.
-  @param {string} [propName=RemoveDataPrefix(attrName)] 暴露在对象上的属性名.
+  @param {string} [propName=RemoveDataPrefix(attrName)] 暴露在对象上的属性名.只有更新这一属性才会触发自动更新KO或Element。直接访问_p[propName]是不会触发自动更新的。
   @param {string} [methodName=`on${propName}Changed`] 属性值发生变化时，自动回调的函数`(oldValue, newValue)`，进入回调函数之后，`this.prop[propName] === newValue`一定成立．
   @inner
   @access private
