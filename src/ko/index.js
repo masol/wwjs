@@ -68,6 +68,9 @@ ko模块的初始化代码，在DomReady之后，由chk模块调用。负责建�
   - 检查script[type="text/bindvar"],将内容当作viewmodel做初始化更新。(符合namespace,并且可以有函数[computed observer]。[计算型](https://knockoutjs.com/documentation/computed-reference.html)数据的定义，可以通过create option来创建，也可以直接在bindvar脚本中创建，此时this为同级{同ns}viewModel，如果接受参数，则write属性设置，否则pure属性设置。默认都会设置deferEvaluation)
   - 检查script[type="text/wwjs"],执行之
 - 对含有data-bind的元素,执行applyBindings
+- 更新ko的attr，提供如下两个改进:
+ - 定义了'ko.attrChanged'事件，可以在一个元素上$ele.trigger(ko.attrChanged, infoName[, value])来触发attr更新内部值并notify。
+ - 定义了'ko.attrMapper'对象，key为属性名,值为形如(element,value,toRemove)的回调函数。——这一特性目前只供内部使用，不要使用插件扩展。
 @exports ko
 @access private
 @method setup
