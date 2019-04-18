@@ -378,22 +378,11 @@ function cssAnimate ($ele, effectName, options, beforecss, aftercss) {
 @exports utils/ui
 @method getName
 @param {JQueryElement} $ele 需要获取名称的元素。
+@param {String} [prefix=undefined] prefix
 @return {String} 获取到的名称。
 */
-function getName ($ele) {
-  return $ele.attr('name') || $ele.attr('data-name') || $ele.attr('id') || $ele.attr('data-id') || $ele.uniqueId()
-}
-
-/**
-获取元素的名称，依次获取name,data-name,id,data-id.如果没有，创建唯一id，并返回这一唯一id.返回第一个获取到的。
-@exports utils/ui
-@method uniqId
-@param {JQueryElement} $ele 需要检查是否有id的元素。
-@param {String} [prefix=undefined] prefix
-@return {String} id字符串，如果原始已定义，则返回原始的id。
-*/
-function uniqId ($ele, prefix) {
-  let id = $ele.attr('id')
+function getName ($ele, prefix) {
+  let id = $ele.attr('name') || $ele.attr('data-name') || $ele.attr('id') || $ele.attr('data-id') || $ele.uniqueId()
   if (!id) {
     id = uniqid(prefix)
     $ele.attr('id', id)
@@ -478,7 +467,6 @@ export default {
   block: block,
   title: title,
   cssAnimate: cssAnimate,
-  uniqId: uniqId,
   loadImg: waitme.img,
   baseurl: baseurl,
   /**
