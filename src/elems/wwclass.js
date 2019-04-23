@@ -790,6 +790,20 @@ class Demo extends wwjs.wwclass {
       }
     }
   }
+
+  /**
+  请求内部元素的ID，这会调用wwjs.ui.ensureId在没有id时，创建唯一id.
+  @function ensureId
+  @memberof wwclass
+  @instance
+  @return {string} 返回id字符串，如果实例未绑定Dom元素，返回空字符串。
+  **/
+  ensureId () {
+    if (this.$ele && this.$ele.get(0)) {
+      return wwjs.ui.ensureId(this.$ele.get(0))
+    }
+    return ''
+  }
 }
 
 export default { wwclass, rm }
