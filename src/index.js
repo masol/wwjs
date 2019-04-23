@@ -308,7 +308,9 @@ let wwjs = {
   **/
   JSON: json,
   /**
-  hyperHtml暴露到wwjs名称空间下。详细文档查看[wwclass模块](module-wwclass.html)
+  hyperHtml暴露到wwjs名称空间下。详细文档查看[wwclass模块](wwclass.html)。主要提供了两个函数:
+  - wwjs.hyper.bind(DomElement)\'Template String\'
+  - wwjs.hyper.wire(Object)\`Template String\`
    * @member wwjs
    * @constant
    * @type {object}

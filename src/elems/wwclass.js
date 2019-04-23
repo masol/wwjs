@@ -363,6 +363,7 @@ wwclass元素只处理客户端展示与逻辑，无需处理任意的数据源�
   })}</ul>`
 }```
   但是，这引发一个问题．如果我们变动DATA中的值，然后重新渲染，会发现每次都删除全部li元素，然后再新建.如何维持Dom元素与DATA数组中的关系？确保只新增DATA中新加的，删除DATA中新删除的．这一特性就称为增量更新．
+- 除了在wwclass中使用之外，可以直接使用`wwjs.hyper.bind(DomElement)`来返回一个调用es6 string template的函数，例如:"wwjs.hyper(DomA)\`template string\`"
 - 增量更新唯一需要注意的是在循环中，需要利用`wwjs.hyper.wire(Object)`来维护Object是否变化，如果是新的Object则新建Dom元素，否则更新原Dom节点.因此，循环体中，必须`wire`到一个Object上，由这个Object来控制是否需要删除旧元素并新建，还是直接在对应的旧元素上更新．参考测试用例关于wwclass的部分,有测试此特性的代码，摘抄如下：
 ```
 doRender(){
