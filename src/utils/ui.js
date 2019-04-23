@@ -374,15 +374,15 @@ function cssAnimate ($ele, effectName, options, beforecss, aftercss) {
 }
 
 /**
-获取元素的名称，依次获取name,data-name,id,data-id.如果没有，创建唯一id，并返回这一唯一id.返回第一个获取到的。
+确保元素有id，并返回id。如果没有id，创建唯一id，并返回这一唯一id.返回第一个获取到的。
 @exports utils/ui
-@method getName
+@method endureId
 @param {JQueryElement} $ele 需要获取名称的元素。
 @param {String} [prefix=undefined] prefix
 @return {String} 获取到的名称。
 */
-function getName ($ele, prefix) {
-  let id = $ele.attr('name') || $ele.attr('data-name') || $ele.attr('id') || $ele.attr('data-id') || $ele.uniqueId()
+function ensureId ($ele, prefix) {
+  let id = $ele.attr('id')
   if (!id) {
     id = uniqid(prefix)
     $ele.attr('id', id)
@@ -480,5 +480,5 @@ export default {
   // createIframe: createIframe,
   inIframe: inIframe,
   showMessage: showMessage,
-  getName: getName
+  ensureId: ensureId
 }
