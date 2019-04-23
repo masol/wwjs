@@ -372,7 +372,7 @@ doRender(){
   })}</ul>`
 }```
 
-与DomElement的互相获取:
+wwclass实例对象与DomElement的互相获取:
 - 有了wwclass instance对象，通过属性XXX.$ele来获取对应的DomElement(jQuery对象)．
 - 有一个DomElement对象，通过静态方法(getInstance)[#.getInstance]来获取对应的wwclass intance．内部通过[weakmap](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakMap)来维护这一反向映射，以不干扰GC．
 
