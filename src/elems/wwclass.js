@@ -799,8 +799,8 @@ class Demo extends wwjs.wwclass {
   @return {string} 返回id字符串，如果实例未绑定Dom元素，返回空字符串。
   **/
   ensureId () {
-    if (this.$ele && this.$ele.get(0)) {
-      return wwjs.ui.ensureId(this.$ele.get(0))
+    if (this.$ele) {
+      return wwjs.ui.ensureId(this.$ele)
     }
     return ''
   }
