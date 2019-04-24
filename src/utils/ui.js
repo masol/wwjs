@@ -190,32 +190,66 @@ function inIframe () {
 // }
 
 /**
-显示消息提醒，是对[bootstrap-notify](https://github.com/mouse0270/bootstrap-notify)的一个封装，并且API针对WIDE1.0做了改进，并不兼容1.0的格式。在net.run中有对应的[message命令](module-net_commands.html#.message)
+显示消息提醒，是对[iziToast](https://github.com/marcelodolza/iziToast)的一个封装，并且API针对WIDE1.0做了改进，并不兼容1.0的格式。在net.run中有对应的[message命令](module-net_commands.html#.message)
   @exports utils/ui
   @method showMessage
-  @param {object|array|string} message - 消息对象,格式如下:
+  @param {object|array|string} message - 消息对象,格式参考[izitoast的格式](http://izitoast.marcelodolza.com/#Options):
 - 如果是对象，可以包含如下元素:
- - {string} text - 消息提示文本, 必填
- - {string} [element] - 需要提示的元素selector(或者Element)，默认为body.
+ - {string} message - 消息提示文本, 必填
+ - {string} [title] - 消息标题。
+ - {string} [messageColor] - 消息文本颜色。
+ - {array<arrayn<string,string|function>>} [buttons] - 指定一些按钮及其响应事件。事件处理可以是函数或者类似[action](module-chk_action.html)中`command`相同的格式来定义(此时refEle被设置为button对象)。例如: <pre class="prettyprint source"><code> buttons: [
+        ['<button>Ok</button>', function (instance, toast) {
+            alert("Hello world!");
+        }, true], // true to focus
+        ['<button>Close</button>', '@/@wwcmd/wwcompiler/1.0.1/wwcompiler.min.js#build a b']
+    ] </code></pre>
+ - {array<arrayn<string,string, string|function>>} [inputs] - 指定一些按钮及其响应事件。事件处理中的function可以使用[action](module-chk_action.html)字符串。
+ - {function|string} [onOpening] - 函数或bask style命令字符串。
+ - {function|string} [onOpened] - 函数或bask style命令字符串。
+ - {function|string} [onClosing] - 函数或bask style命令字符串。
+ - {function|string} [onClosed] - 函数或bask style命令字符串。
+ - {string} [target] - 需要提示的元素selector(或者Element)，默认为body.
+ - {number} [displayMode] -
  - {string} [icon] - 图标或image地址，默认图标与type相符。
- - {string} [iconType] - 图标类别,默认为icon。
- - {string} [type] - 提示的类别, 默认 info, 可选 light, dark, success, danger, warning, info, primary, secondary。参考[bootstrap alerts](https://getbootstrap.com/docs/4.0/components/alerts/)
- - {string} [layout] - 提示的位置, 默认 topCenter, 可选 top, topLeft, topCenter, topRight, bottom, bottomLeft, bottomCenter, bottomRight
- - {number} [delay] - 文本消失时间, 默认 5000, 毫秒数,小于等于0将不会自动关闭。
- - {boolean} [showProgressbar] - 是否显示进度条, 默认 false
+ - {string} [type] - 提示的类别, 默认 info, 可选 success, warning, error, question
+ - {string} [position] - 提示的位置, 默认 topCenter, 可选 topLeft, topCenter, topRight, bottomLeft, bottomCenter, bottomRight, center
+ - {number} [timeout] - 文本消失时间, 默认 5000, 毫秒数。设置为false将不会自动关闭。
+ - {boolean} [progressBar] - 是否显示进度条, 默认 false
  - 更多可能参数，参考[bootstrap-notify文档](http://bootstrap-notify.remabledesigns.com/)
 - 如果是数组，则包含若干上文描述的对象或字符串。
 - 如果是字符串，则为一个对象， 除了text全部使用默认值。
 */
+
+function bindRunner (strings) {
+  return function (instance, toast, closedBy) {
+    let evt = {
+      toast: toast,
+      closedBy: closedBy
+    }
+    wwjs.net.run(strings, instance, evt)
+  }
+}
+function genFunction (targetObj, name) {
+  if (targetObj[name] && typeof targetObj[name] === 'string') {
+    targetObj[name] = bindRunner(targetObj[name])
+  }
+}
+function genFuncInArray (array, idx) {
+  if (Array.isArray(array)) {
+    for (let i = 0; i < array; i++) {
+      let item = array[i]
+      if (Array.isArray(item) && item.length > idx) {
+        genFunction(item, idx)
+      }
+    }
+  }
+}
+
 let bsNotyLoaded = false
 function showMsgImpl (message) {
   let notyOpt = {}
-  let notySet = {
-    placement: {
-      from: 'top',
-      align: 'center'
-    }
-  }
+  let notySet = {}
   if (typeof message === 'string') {
     notyOpt.message = message
   } else if (Array.isArray(message)) {
@@ -223,18 +257,14 @@ function showMsgImpl (message) {
       showMsgImpl(message[i])
     }
   } else if (typeof message === 'object') {
-    if (typeof message.layout === 'string') {
-      if (message.layout.startsWith('bottom')) {
-        notySet.placement.from = 'bottom'
-      }
-      if (message.layout.indexOf('Left') > -1) {
-        notySet.placement.align = 'left'
-      } else if (message.layout.indexOf('Right') > -1) {
-        notySet.placement.align = 'right'
-      }
-    }
-    notyOpt.message = message.text
     $.extend(notySet, message)
+    genFunction(notySet, 'onOpening')
+    genFunction(notySet, 'onOpened')
+    genFunction(notySet, 'onClosing')
+    genFunction(notySet, 'onClosed')
+
+    genFuncInArray(notySet.buttons, 1)
+    genFuncInArray(notySet.inputs, 2)
   }
   $.notify(notyOpt, notySet)
 }
@@ -244,8 +274,16 @@ function showMessage (message) {
     return showMsgImpl(message)
   } else {
     return new Promise((resolve, reject) => {
-      loadjs.load(['css!@/animate.css/3.7.0/animate.min.css', '@/bootstrap-notify/3.1.3/bootstrap-notify.min.js'], {
+      loadjs.load(['css!@/izitoast/1.4.0/css/iziToast.min.css', '@/izitoast/1.4.0/js/iziToast.min.js'], {
         success: function () {
+          window.iziToast.settings({
+            icon: 'material-icons',
+            position: 'topCenter',
+            transitionIn: 'fadeInDown',
+            transitionOut: 'fadeOutUp',
+            transitionInMobile: 'fadeInDown',
+            transitionOutMobile: 'fadeOutUp'
+          })
           bsNotyLoaded = true
           // console.log($.notify)
           resolve(showMsgImpl(message))

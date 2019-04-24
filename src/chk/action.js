@@ -112,14 +112,8 @@ function applyHandler (event) {
   let $target = $(event.target)
   let action = cache($target)
   // let handled = false
-  if (action) {
-    let commands = action[event.type]
-    if (Array.isArray(commands)) {
-      for (let i = 0; i < commands.length; i++) {
-        net.run(commands[i], $target.get(0), event)
-        // handled = true
-      }
-    }
+  if (action && action[event.type]) {
+    net.pipe(action[event.type], $target.get(0), event)
   }
   if (!event.isDefaultPrevented()) {
     let defAction = $target.attr('data-action-default')

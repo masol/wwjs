@@ -57,7 +57,7 @@ function evalStr (params, refEle, evt) {
 }
 
 /**
-<strong><font color="green">内建命令</font></strong>:用于在指定元素(默认为body)上显示提示内容。内建支持的为[bootstrap-notify](https://github.com/mouse0270/bootstrap-notify),其它风格的提示元素，请使用net命令机制扩展，例如toast.
+<strong><font color="green">内建命令</font></strong>:用于在指定元素(默认为body)上显示提示内容。内建支持的为[iziToast](https://github.com/marcelodolza/iziToast),其它风格的提示元素，请使用net命令机制扩展，例如toast.
 @exports net
 @method message
 @static

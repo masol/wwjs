@@ -165,7 +165,7 @@ function cmdline (commandline) {
     let param = getopts(str.split(commandline, ' ', '\\'))
     if (typeof param === 'object' && param._) {
       let ret = {
-        command: param._,
+        command: Array.isArray(param._) ? param._[0] : param._,
         params: param
       }
       delete param._
@@ -179,12 +179,13 @@ function cmdline (commandline) {
 @exports net
 @method run
 @desc 在指定元素的名称空间下执行一个命令。之所以把命令名和参数编码在一起，是方便服务器端，返回一组命令，顺序执行。参考内建的[run]()命令。run命令就可以执行一组类似AST结构的语句。从中可以看出这种格式安排的作用。
-@param {object|array} cmd  命令对象，如果是对象，格式如下：
+@param {object|array|string} cmd  命令对象，如果是对象，格式如下：
 `{
 command: "命令名，例如@@xxxx#commandName",
 params: []|{}
 }`
 如果是数组，第一个元素是命令名，之后的是参数。
+如果是字符串，则当作bash style的命令行来处理。格式为/^\s*(cmdString)(;cmdString)*$/。通过\;来转义分，使得分号不再是一个转义符。命令集以pipe的方式执行。
 @param {Element} [refEle=undefined] 此命令涉及的元素。如果未指定，无法确定vm分支。
 @param {Event} [evt=undefined] 触发本次命令的event对象，如果不是从action中触发,evt未定义。
 @return {any} 如果执行成功，返回值由处理器确定，否则返回false.
@@ -201,9 +202,17 @@ function run (cmd, refEle, evt) {
   } else if (typeof cmd === 'object') {
     name = cmd.command
     params = cmd.params || []
-  } else if (typeof cmd === 'string') {
-    name = cmd
-    params = []
+  } else if (cmd && typeof cmd === 'string') {
+    let cmdArray = str.split(cmd, ';', '\\')
+    if (cmdArray.length > 1) {
+      return pipe(cmdArray, refEle, evt)
+    } else if (cmdArray.length === 1) {
+      let cmdLines = cmdline(cmdArray[0])
+      if (cmdLines) {
+        name = cmdLines.command
+        params = cmdLines.params || []
+      }
+    }
   }
   if (!name) {
     throw new TypeError('invalid cmd format')
@@ -216,6 +225,17 @@ function run (cmd, refEle, evt) {
   })
 }
 
+function promiseRun (promiseRuner, cmdArray, refEle, evt) {
+  if (Array.isArray(cmdArray)) {
+    let pipeTask = []
+    for (let i = 0; i < cmdArray.length; i++) {
+      pipeTask.push(wwjs.net.run.bind(this, cmdArray[i], refEle, evt))
+    }
+    return promiseRuner(pipeTask)
+  }
+  return wwjs.net.run(cmdArray, refEle, evt)
+}
+
 /**
 @exports net
 @method pipe
@@ -226,14 +246,20 @@ function run (cmd, refEle, evt) {
 @return {Promise|any} 如果cmdArray是数组，返回Promise，值解析为pipe中的函数依次执行后，最后一条命令的返回值。
 */
 function pipe (cmdArray, refEle, evt) {
-  if (Array.isArray(cmdArray)) {
-    let pipeTask = []
-    for (let i = 0; i < cmdArray.length; i++) {
-      pipeTask.push(wwjs.net.run.bind(this, cmdArray[i], refEle, evt))
-    }
-    return Promise.pipe(pipeTask)
-  }
-  return wwjs.net.run(cmdArray, refEle, evt)
+  return promiseRun(Promise.pipe, cmdArray, refEle, evt)
+}
+
+/**
+@exports net
+@method all
+@desc 给定一个cmdArray，并行执行其中的每条命令(pipe)。如果不是数组，等效于[run](#~run)。
+@param {object|array|string} cmdArray  命令数组，如果是一个数组，其内部有效元素为[run](#~run)函数的cmd参数的格式。或者这里可以是一个非数组的cmd参数。此时pipe等效于[run](#~run)。
+@param {Element} [refEle=undefined] 此命令涉及的元素。如果未指定，无法确定vm分支。
+@param {Event} [evt=undefined] 触发本次命令的event对象，如果不是从action中触发,evt未定义。
+@return {Promise|any} 如果cmdArray是数组，返回Promise，值解析为pipe中的函数依次执行后，最后一条命令的返回值。
+*/
+function all (cmdArray, refEle, evt) {
+  return promiseRun(Promise.all, cmdArray, refEle, evt)
 }
 
 /**
@@ -274,6 +300,7 @@ export default {
   reg: reg,
   run: run,
   pipe: pipe,
+  all: all,
   extract: extract,
   cmdline: cmdline
 }
