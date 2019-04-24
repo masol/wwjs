@@ -273,7 +273,7 @@ function showMsgImpl (message) {
   if (!Function.isFunction(window.iziToast[type])) {
     type = 'show'
   }
-  console.log('show type=', type)
+  // console.log('show type=', type)
   return window.iziToast[type](notyOpt)
 }
 
