@@ -212,7 +212,7 @@ function inIframe () {
  - {string} [target] - 需要提示的元素selector(或者Element)，默认为body.
  - {number} [displayMode] -
  - {string} [icon] - 图标或image地址，默认图标与type相符。
- - {string} [type] - 提示的类别, 默认 info, 可选 success, warning, error, question
+ - {string} [type] - 提示的类别, 默认 info, 可选 success, warning, error, question, show(无默认图标及title)
  - {string} [position] - 提示的位置, 默认 topCenter, 可选 topLeft, topCenter, topRight, bottomLeft, bottomCenter, bottomRight, center
  - {number} [timeout] - 文本消失时间, 默认 5000, 毫秒数。设置为false将不会自动关闭。
  - {boolean} [progressBar] - 是否显示进度条, 默认 false
@@ -249,7 +249,7 @@ function genFuncInArray (array, idx) {
 let bsNotyLoaded = false
 function showMsgImpl (message) {
   let notyOpt = {}
-  let notySet = {}
+  let type = 'info'
   if (typeof message === 'string') {
     notyOpt.message = message
   } else if (Array.isArray(message)) {
@@ -257,16 +257,24 @@ function showMsgImpl (message) {
       showMsgImpl(message[i])
     }
   } else if (typeof message === 'object') {
-    $.extend(notySet, message)
-    genFunction(notySet, 'onOpening')
-    genFunction(notySet, 'onOpened')
-    genFunction(notySet, 'onClosing')
-    genFunction(notySet, 'onClosed')
+    $.extend(notyOpt, message)
+    genFunction(notyOpt, 'onOpening')
+    genFunction(notyOpt, 'onOpened')
+    genFunction(notyOpt, 'onClosing')
+    genFunction(notyOpt, 'onClosed')
 
-    genFuncInArray(notySet.buttons, 1)
-    genFuncInArray(notySet.inputs, 2)
+    genFuncInArray(notyOpt.buttons, 1)
+    genFuncInArray(notyOpt.inputs, 2)
+    if (notyOpt.type) {
+      type = notyOpt.type
+      delete notyOpt.type
+    }
   }
-  $.notify(notyOpt, notySet)
+  if (!Function.isFunction(window.iziToast[type])) {
+    type = 'show'
+  }
+  console.log('show type=', type)
+  return window.iziToast[type](notyOpt)
 }
 
 function showMessage (message) {
@@ -277,7 +285,6 @@ function showMessage (message) {
       loadjs.load(['css!@/izitoast/1.4.0/css/iziToast.min.css', '@/izitoast/1.4.0/js/iziToast.min.js'], {
         success: function () {
           window.iziToast.settings({
-            icon: 'material-icons',
             position: 'topCenter',
             transitionIn: 'fadeInDown',
             transitionOut: 'fadeOutUp',
