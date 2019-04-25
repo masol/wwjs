@@ -12,6 +12,8 @@
 
 'use strict'
 
+import cfg from '../utils/cfg'
+
 export default () => {
   ko.attrChanged = 'attrChanged'
   ko.attrMapper = ko.attrMapper || {}
@@ -24,6 +26,9 @@ export default () => {
     ko.utils.objectForEach(value, function (attrName, attrValue) {
       if (ko.isWritableObservable(attrValue)) {
         attrMap[attrName] = attrValue
+        if (!cfg.strict && !attrValue() && String(attrValue()) !== element.getAttribute(attrName)) {
+          attrValue(element.getAttribute(attrName))
+        }
       }
       // console.log(attrName)
       // console.log(attrValue)

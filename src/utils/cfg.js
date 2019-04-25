@@ -21,6 +21,9 @@
 - nsprefix : "XXXX"  //如果未定义，默认为`wwns`，详情参考[ko/ns模块](module-ko_ns.html)
 - container : "Selector" //定义第一顺位选择器，详情查看[utils/ui模块](module-utils_ui.html#~$container)
 - vmtypecvt : false //设置给vm某个变量设置值时，当类型不同时，是否允许转换？默认是不允许类型转化的，设置为true可以自动转化。
+- strict : false //严格模式。在非严格模式下(默认)，支持如下特性(参考[ko.autoinit](module-ko.html#~autoinit)):
+ - ko绑定时，发现未定义的变量，自动定义。
+ - ko绑定初始化时，如果变量值为空，则自动初始化为对应的attr,text,html以及value的值。
 - indicator : false|bgcolorstr|object // 设置indicator的背景颜色，默认为“#fff0”。如果设置为false,则禁用indicator。如果是object，内容如下：
  - bgcolor: 等同于indicator的bgcolorstr。
  - style : 用于设置indicator的style，默认为“working”。有效值为'progress','img','text'。

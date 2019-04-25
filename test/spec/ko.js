@@ -1,6 +1,6 @@
 /* eslint no-undef: 0 */
 
-describe('UI数据绑定', function () {
+describe('KO数据绑定', function () {
   before(function (done) {
     wwimport('ready', () => {
       // wwjs.ui.$container().html('')
@@ -171,6 +171,22 @@ describe('UI数据绑定', function () {
       <div id="wwtest4" data-ns="CUSTOMNAME"><span data-bind="text : test"></span><span data-bind="text : test2"></span><div data-bindvar={"test":55,"test2":66}></div></div></div>`)
       // wwjs.ui.$container().append(``)
       t0 = performance.now()
+    }, 0)
+  })
+
+  it('attr绑定"testnoexist() + 1"自动添加testnoexist变量，并初始化为元素对应属性.', function (done) {
+    let ivid = setInterval(function () {
+      // console.log(wwjs.vm.get($('#wwtest11'), 'json'))
+      if ($('#wwtest11').length === 1 && wwjs.vm.get($('#wwtest11')).testnoexist) {
+        // console.log(wwjs.vm.get($('#wwtest11')).testnoexist)
+        chai.expect(wwjs.vm.get($('#wwtest11')).testnoexist()).to.be.equal('', `自动初始化的变量值不正确。`)
+        chai.expect(wwjs.vm.get($('#wwtest11')).testnoexist2()).to.be.equal('1234', `自动初始化的变量值未初始化为元素对应属性。`)
+        clearInterval(ivid)
+        done()
+      }
+    }, 1)
+    setTimeout(() => {
+      wwjs.ui.$container().append(`<div id="wwtest11" data-bind="attr : {'data-test':testnoexist() + 1,'data-test2':testnoexist2}" data-test2="1234"></div>`)
     }, 0)
   })
 

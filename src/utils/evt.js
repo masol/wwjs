@@ -27,6 +27,7 @@ window.EE = EE
 - `bindvar` : 处理`data-bindvar`时发生了错误，错误对象是第二个参数，通常是`SyntaxError`对象。第三个参数返回相关的ele对象(dom Element)
 - `elem.depfailed` : 元素dep依赖加载失败，错误对象是第二个参数。
 - `ko.dep` : KO绑定的预处理发生错误，错误对象是第一个参数。任务池是第二个参数——此时任务池不清空。
+- `ko.error` : 回调(err,element)KO绑定时发生不能自动修复的错误。
 - `wwclass.finalize` : 元素析构时发生错误，错误对象是第二个参数。查阅[elems模块](module-elems.html)
 - `wwclass.get` : 获取元素类时发生错误，加载失败的文件名是第二个参数。查阅[wwclass:get](wwclass.html#.get)
 - `net.invalidURL` : 加载网络命令处理器时发生错误，第二个参数是errFiles，第三个参数是请求的命令。
@@ -38,6 +39,7 @@ window.EE = EE
 
 系统所有的警告机制，可以通过调用`EE.on("warn",function(desc,exobj){})`的方式来拦截，提供了如下警告:
 - `elems.verMismatch` : 回调(type, name, RequestVer, RegVer)请求实例化元素，但是元素版本与当前注册表中的版本不匹配，这说明当前页面请求了不同版本的相同元素.
+- `ko.referror`: 回调(err, element, varName). ko初始化时，发现未初始化的变量，并自动初始化为默认值。只有在配置中关闭严格模式(cfg.strict)才会自动初始化。
 
 只在debug为true时发出的错误事件(这些类型的事件，通常只在开发期才会出现，开发期不出现的话，运行期不会出现):
 - `wwclass.badparameter` : 回调(type,inst) wwclass创建实例时，绑定的ele无效．查阅[wwclass:constructor](wwclass.html#~constructor)

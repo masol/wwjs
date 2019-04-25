@@ -20,6 +20,7 @@ ko模块利用[knockoutjs](https://knockoutjs.com/)来分离元素及数据逻�
 // import ko from 'knockout'
 import mapping from './mapping'
 import EE from '../utils/evt'
+import cfg from '../utils/cfg'
 import VM from './viewmodel'
 import ns from './ns'
 import attr from './attr'
@@ -58,6 +59,153 @@ window.ko = ko
 
 // console.log(attr)
 attr()
+
+// 根据配置，拦截并初始化默认绑定的
+const notDefRegex = /^([a-zA-Z_$]|[0-9a-zA-Z_$]*) is not defined$/
+function initHandler (defVar, handler, element, valueAccessor, allBindings, model, context) {
+  let suc = false
+  // console.log(model, context)
+  do {
+    try {
+      valueAccessor()
+      suc = true
+    } catch (e) {
+      if (e instanceof ReferenceError && e.message) {
+        let matched = e.message.match(notDefRegex)
+        if (matched && matched.length > 1) {
+          let varName = matched[1]
+          if (cfg.strict) {
+            suc = true
+            console.error(`发现未定义的绑定变量${varName},由于设置为严格模式(cfg.strict),未能自动声明变量。相关元素:`, element)
+          } else {
+            let value = {}
+            value[varName] = Function.isFunction(defVar) ? defVar(element) : defVar
+            wwjs.vm.set(value, wwjs.vm.get(element))
+            console.warn(`发现未定义的绑定变量${varName},定义其到默认类型“${typeof defVar}”。相关元素:`, element)
+          }
+          EE.emit('ko.referror', e, element, varName)
+        }
+      } else {
+        suc = true
+        EE.emit('ko.error', e, element)
+        console.error(`处理绑定时发生错误：${e}。相关元素:`, element)
+      }
+    }
+  } while (!suc)
+  if (Function.isFunction(handler)) {
+    return handler.call(this, element, valueAccessor, allBindings, model, context)
+  }
+}
+
+/**
+对init函数做拦截，并自动初始化遭遇的未定义变量到defVar。暴露在window.ko.autoinit名称空间下。这个函数只为需要扩展绑定类型的插件服务，为其添加了如下能力(这两个特性受到[cfg.strict](module-utils_cfg.html)的控制):
+- 自动声明未声明变量的能力，兼容任意JS语句中的变量使用。
+- 同时添加了如果变量值为false,自动初始化为元素中对应值的能力,此时忽略了变量的js语法的语义。
+
+自动初始化的变量，其值的规则如下:
+- class : 元素当前值
+- css : ''
+- attr : 对应属性的当前值
+- style : ''
+- let : ''
+- visible : 元素当前值
+- hidden : 元素当前值
+- hasFocus : 元素当前值
+- text : 元素当前值
+- html : 元素当前值
+- foreach : []
+- if : false
+- ifnot : false
+- with : {}
+- using : {}
+- enable : 元素当前值
+- disable : 元素当前值
+- value : 元素当前值
+- textInput : 元素当前值
+- options : 元素当前值
+- selectedOptions : 元素当前值
+- checked : 元素当前值
+- template : {} //因此，如果name使用变量并且没有定义，依然报错。
+- component : {} //因此，如果name使用变量并且没有定义，依然报错。
+
+@todo: 需要参考或改进[knockout-pre-rendered](https://github.com/ErikSchierboom/knockout-pre-rendered)，自动获取当前的HTML中的值做为初始化值?
+@exports ko
+@access public
+@param {string} bindingName 需要拦截的绑定类型，例如attr,foreach,text....
+@param {any} [defVar=''] 默认值
+@method autoinit
+@return undefined
+*/
+function autoinit (bindingName, defVar) {
+  defVar = defVar || ''
+  let bindingHandler = ko.bindingHandlers[bindingName]
+  if (bindingHandler) {
+    let existingInit = bindingHandler.init
+    bindingHandler.init = initHandler.bind(bindingHandler, defVar, existingInit)
+  }
+}
+window.ko.autoinit = autoinit
+
+// 被textInput及value两个绑定使用。
+function value (element) {
+  return element.value
+}
+
+// default binding
+autoinit('css')
+autoinit('attr')
+autoinit('style')
+autoinit('let')
+autoinit('class', (element) => {
+  return element.className
+})
+autoinit('visible', (element) => {
+  return $(element).is(':visible')
+})
+autoinit('hidden', (element) => {
+  return $(element).is(':hidden')
+})
+autoinit('hasFocus', (element) => {
+  return $(element).is(':focus')
+})
+autoinit('text', (element) => {
+  return element.textContent
+})
+autoinit('html', (element) => {
+  return element.innerHTML
+})
+autoinit('foreach', [])
+autoinit('if', false)
+autoinit('ifnot', false)
+autoinit('with', {})
+autoinit('using', {})
+autoinit('enable', (element) => {
+  return !element.disabled
+})
+autoinit('disable', (element) => {
+  return !!element.disabled
+})
+autoinit('value', value)
+autoinit('textInput', value)
+autoinit('options', (element) => {
+  return $.map($(element).children('option'), function (option) {
+    return option.value
+  }) || []
+})
+autoinit('selectedOptions', (element) => {
+  return $.map($(element).children('option:selected'), function (option) {
+    return option.value
+  }) || []
+})
+autoinit('checked', (element) => {
+  return element.checked || false
+})
+autoinit('template', {})
+autoinit('component', {})
+
+// for (let name in ko.bindingHandlers) {
+//   console.log(name)
+// }
 
 /**
 ko模块的初始化代码，在DomReady之后，由chk模块调用。负责建立事件监听，以监听新节点的插入，并处理新加入的节点。处理过程:
