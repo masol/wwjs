@@ -15,6 +15,7 @@
 import loadjs from '../utils/loadjs'
 import str from '../utils/str'
 import EE from '../utils/evt'
+import cfg from '../utils/cfg'
 import commands from './commands'
 import getopts from 'getopts'
 
@@ -68,7 +69,7 @@ let cmds = commands
 /**
 @exports net
 @method cmd
-@desc 获取一个命令集对象。
+@desc 根据参数，获取对应的命令对象或处理器。返回的是Promise,只有命令成功注册之后才会返回。如果命令加载失败，或者cfg.cmdTimout(默认10000=秒)时间到达，尚未收到对应的注册事件，Promise会reject。
 @param {String} name  命令集的名称。可能是如下三种:
  - 内建命令: 此时命令集中的命令就一个，因此返回的是function对象。
  - 以@@开头，省略了@/@wwcmd前缀。
@@ -115,7 +116,7 @@ function getCmd (name, noAutoLoad) {
               EE.off('command.reg', waiter)
               EE.emit('error', 'net.invalidCmd', url, name)
               reject(new Error('net.invalidCmd'))
-            }, 10000)
+            }, cfg.cmdTimout)
             let waiter = (name, handler) => {
               if (name === url) {
                 clearTimeout(timer)
