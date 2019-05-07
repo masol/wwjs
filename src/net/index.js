@@ -269,9 +269,10 @@ function all (cmdArray, refEle, evt) {
 @method extract
 @param {any} params 命令对象，可能是数组或对象。
 @param {array} mapping 命令对象格式映射。例如['abc','test']表示第一个参数名为'abc',第二个参数名为'test'。
+@param {DomElement} [refEle=undefined] 默认参数元素: 如果params没有给出对应参数，按照mapping对应名称添加`data-`前缀来获取参数并返回。这允许函数调用者通过refEle来设置默认值(默认值可以绑定到变量上来与绑定变量交互)。
 @return {object} 如果已经是对象，直接返回，否则按照参数位置返回对应参数。
 */
-function extract (params, mapping) {
+function extract (params, mapping, refEle) {
   let ret = {}
   mapping = mapping || []
   if (Array.isArray(params)) {
@@ -283,6 +284,15 @@ function extract (params, mapping) {
     ret = params
   } else if (mapping.length > 0) {
     ret[mapping[0]] = params
+  }
+  if (refEle) {
+    for (let i = 0; i < mapping.length; i++) {
+      let name = mapping[i]
+      let attrName = `data-${name}`
+      if (!ret.hasOwnProperty(name) && refEle.hasAttribute(attrName)) {
+        ret[name] = refEle.getAttribute(attrName)
+      }
+    }
   }
   return ret
 }
