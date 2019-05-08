@@ -340,18 +340,19 @@ function open (params, refEle, evt) {
     return
   }
   // 保存上下文的变量.
-  let context = wwjs.net.extract(params, ['url', 'target', 'method', 'before', 'after', 'content', 'noindicator', 'notdisable', 'noerror']) || {}
+  let context = wwjs.net.extract(params, ['url', 'target', 'method', 'before', 'after', 'content', 'noindicator', 'notdisable', 'noerror'], refEle) || {}
   if (refEle) {
     context.$refEle = $(refEle)
     context.url = context.url || context.$refEle.attr('href')
     context.target = context.target || context.$refEle.attr('target')
-    context.method = context.method || context.$refEle.attr('data-method')
-    context.before = context.before || context.$refEle.attr('data-before')
-    context.after = context.after || context.$refEle.attr('data-after')
-    context.content = context.content || context.$refEle.attr('data-content')
-    context.noindicator = context.noindicator || (context.$refEle.attr('data-noindicator') === 'true')
-    context.notdisable = context.notdisable || (context.$refEle.attr('data-notdisable') === 'true')
-    context.noerror = context.noerror || (context.$refEle.attr('data-noerror') === 'true')
+    // 已经在extract中自动处理了。只需处理非data-前缀的属性。
+    // context.method = context.method || context.$refEle.attr('data-method')
+    // context.before = context.before || context.$refEle.attr('data-before')
+    // context.after = context.after || context.$refEle.attr('data-after')
+    // context.content = context.content || context.$refEle.attr('data-content')
+    // context.noindicator = context.noindicator || (context.$refEle.attr('data-noindicator') === 'true')
+    // context.notdisable = context.notdisable || (context.$refEle.attr('data-notdisable') === 'true')
+    // context.noerror = context.noerror || (context.$refEle.attr('data-noerror') === 'true')
   }
   if (!context.url && !context.content) {
     return
@@ -399,6 +400,24 @@ function open (params, refEle, evt) {
   ])
 }
 
+/**
+<strong><font color="green">内建命令</font></strong>:将任意元素(包括自身)及其子元素的值序列化为FormData并返回。
+@exports net
+@method serialize
+@static
+@param {array|object} params
+1. |0(读取self的**url**属性) :
+**/
+function serialize (param, refEle, evt) {
+
+}
+
+function submit (param, refEle, evt) {
+
+}
+
 export default {
+  submit: submit,
+  serialize: serialize,
   open: open
 }

@@ -150,6 +150,7 @@
     "open": "^6.1.0",
     "optimize-css-assets-webpack-plugin": "^5.0.1",
     "query-string": "^6.4.0",
+    "serialize-javascript": "^1.7.0",
     "shelljs": "^0.8.2",
     "string-replace-loader": "^2.1.1",
     "terser-webpack-plugin": "^1.2.3",
