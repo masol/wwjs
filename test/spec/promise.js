@@ -45,6 +45,39 @@ describe('Promise', function () {
     })
   })
 
+  it('Promise.pipe可以正确拦截异常', function (done) {
+    let err = Error('test')
+    Promise.pipe([
+      function (val) {
+        chai.expect(val).to.equal(1)
+        val++
+        return new Promise(function (resolve) {
+          setTimeout(() => {
+            resolve(val)
+          }, 10)
+        })
+      },
+      function (val) {
+        chai.expect(val).to.equal(2)
+        val++
+        throw err
+      },
+      function (val) {
+        chai.expect(val).to.equal(3)
+        val++
+        return new Promise(function (resolve) {
+          setTimeout(() => {
+            resolve(val)
+          }, 20)
+        })
+      }
+    ], 1).then(function (val) {
+    }).catch(function (e) {
+      chai.expect(e).to.equal(err)
+      done()
+    })
+  })
+
   it('Promise.whiledo确保顺序循环，并且后一次调用正确收到前一次执行的返回值', function () {
     let total = 0
     let t0 = performance.now()
@@ -64,6 +97,31 @@ describe('Promise', function () {
       chai.expect(Math.abs(t1 - t0)).to.be.within(500, 750, 'setTimeout误差过大？')
       chai.expect(val).to.equal(50)
       chai.expect(total).to.equal(50)
+    })
+  })
+
+  it('Promise.whiledo可以正确拦截异常', function (done) {
+    let total = 0
+    let err = Error('test')
+    Promise.whiledo(function (val) {
+      return val < 50
+    }, function (val) {
+      chai.expect(val).to.equal(total)
+      total++
+      if (val === 22) {
+        return new Promise(function (resolve, reject) {
+          reject(err)
+        })
+      }
+      return new Promise(function (resolve) {
+        setTimeout(() => {
+          resolve(val + 1)
+        }, 10)
+      })
+    }, 0).then(function (val) {
+    }).catch(function (e) {
+      chai.expect(e).to.equal(err)
+      done()
     })
   })
 
