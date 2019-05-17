@@ -165,10 +165,18 @@ function procURL (url, ctx) {
             loadFailed(ctx, url, '未发现提交数据的表单(form)')
           }
           let tasks = []
+          // 首先执行所有wwclass实例对应的upload方法(如果存在的话)
           $form.find('[data-wwclass]').each(() => {
             let wwinst = wwjs.wwclass.getInstance(this)
             if (typeof inst === 'object' && Function.isFunction(wwinst.upload)) {
               tasks.push(wwinst.upload($form, ctx))
+            }
+          })
+          // 然后执行所有的data-upload指定的上传处理。
+          $form.find('[data-upload]').each(() => {
+            let actionStr = this.getAttribute('data-upload')
+            if (actionStr) {
+              tasks.push(wwjs.net.pipe(wwjs.net.cmdline(actionStr), this))
             }
           })
           return Promise.pipe([

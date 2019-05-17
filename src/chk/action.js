@@ -105,9 +105,6 @@ function cache ($ele) {
   return retAction
 }
 
-function procSubmit (event) {
-}
-
 function applyHandler (event) {
   let $target = $(event.target)
   let action = cache($target)
@@ -122,7 +119,8 @@ function applyHandler (event) {
         net.run('open', event.target, event)
         event.preventDefault()
       } else if (event.target.tagName.toUpperCase() === 'FORM' && event.type.toLowerCase() === 'submit') {
-        procSubmit.apply(this, arguments)
+        net.run('submit', event.target, event)
+        event.preventDefault()
       }
     }
   }
