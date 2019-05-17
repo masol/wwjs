@@ -344,6 +344,7 @@ wwclass类提供了如下修饰符(使用派生类不可见):
 
 以及如下派生类可以实现的函数:
 - init: 本函数在new完类对象时调用，如果派生类实现了本函数，则创建需要等本函数返回值解析之后(如果返回Promise)才会继续执行。用于弥补构造函数无法返回Promise的缺陷。
+- upload: upload($form,context);如果实例处于一个form表单中，在表单每次上传开始前调用，如果需要，负责构建隐藏的input并设置/更新值以上传数据。对于文件类的上传，可以使用input[type=file]，并为$.val(blob-util)通过[](https://github.com/nolanlawson/blob-util)来设置值，启用模拟文件的上传。如果需要用户交互，需要自行设置<label for='id'>来允许用户交互。唯一id可以使用[wwjs.ui.uniq](module-utils_ui.html#~uniq)来创建。这一函数可以返回promise,此时promise结束之后才会继续上传。
 
 wwclass元素只处理客户端展示与逻辑，无需处理任意的数据源．这个概念类似[redux](https://redux.js.org/),不过是应用在整个系统，reducer就是服务器响应某个action的脚本，而action对象就是请求．redux与wwclass元素无关，设计初衷是：所有的公共数据(需要保存在服务器端的数据)，都是通过同步机制同步到KO层，再绑定到Dom元素上，从而触发wwclass元素作出反应，任意对服务器的请求就是一次状态变化请求．因此，wwclass没有提供任意与服务器通信的机制(也不需要与服务器通信，除了专门负责通信的元素)，只提供了如下机制:
 - 绘制机制：任意时刻，调用```requestRender()```,在下一帧绘制时自动调用`doRender`,派生类可以重载`doRender`，函数内调用```this.render`Template．．．．````(<font color="red">注意不是函数调用，而是es6文字模板调用，没有括号</font>)即可实现模板动态绘制．这会自动维护增量更新，只需写出全模板即可．

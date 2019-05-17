@@ -267,7 +267,7 @@ function all (cmdArray, refEle, evt) {
 给定params对象，以及变量位置数组，提取其中的变量，并转化为对象返回。如果params不是一个对象，则将其当作位置变量中的第一个返回对象。
 @exports net
 @method extract
-@param {any} params 命令对象，可能是数组或对象。
+@param {any} params 命令对象，可能是数组或对象，如果指定了其它类型(数字，字符串)，为mapping的第一个参数而指定。
 @param {array} mapping 命令对象格式映射。例如['abc','test']表示第一个参数名为'abc',第二个参数名为'test'。
 @param {DomElement} [refEle=undefined] 默认参数元素: 如果params没有给出对应参数，按照mapping对应名称添加`data-`前缀来获取参数并返回。这允许函数调用者通过refEle来设置默认值(默认值可以绑定到变量上来与绑定变量交互)。
 @return {object} 如果已经是对象，直接返回，否则按照参数位置返回对应参数。
@@ -282,7 +282,7 @@ function extract (params, mapping, refEle) {
     }
   } else if (typeof params === 'object') {
     ret = params
-  } else if (mapping.length > 0) {
+  } else if (mapping.length > 0) { // 如果指定了其它类型(数字，字符串)，为mapping的第一个参数而指定。
     ret[mapping[0]] = params
   }
   if (refEle) {

@@ -36,9 +36,12 @@ const OPENINFRAME = 3
 const OPENPAGE = 11
 const OPENINVIEW = 12
 const OPENINSELF = 13
+
+const OPENMAPPING = ['url', 'target', 'method', 'before', 'after', 'content', 'noindicator', 'notdisable', 'noerror']
+
 function getTarget (ctx) {
   let $target = null
-  if (typeof target === 'string') {
+  if (typeof ctx.target === 'string') {
     // 如果要求新页面打开，或者位于IFrame中，请求打开parent或top，直接返回，让浏览器处理。
     if (ctx.target === '_blank') {
       ctx.mode = OPENINNEW
@@ -124,6 +127,19 @@ function procHashURL (url, ctx, context) {
   return false
 }
 
+function loadFailed (ctx, url, err) {
+  // @TODO 这里拦截错误，并给出友好提示。
+  if (!ctx.noerror) {
+    ui.showMessage({
+      'text': `请求${url}时发生错误:${err}`,
+      'layout': 'top',
+      'type': 'warning'
+    })
+  }
+  return disableElePair(false, ctx)
+  // throw err
+}
+
 const TPLRX = /\${.+?}/
 function procURL (url, ctx) {
   let hashIdx = url.indexOf('#')
@@ -143,20 +159,39 @@ function procURL (url, ctx) {
     }
     return Promise.pipe([
       function () {
-        return fetch(url, {
-          method: ctx.method || 'GET'
-        }).catch(function (err) {
-          // @TODO 这里拦截错误，并给出友好提示。
-          if (!ctx.noerror) {
-            ui.showMessage({
-              'text': `忽略对${url}的请求:${err}`,
-              'layout': 'top',
-              'type': 'warning'
-            })
+        if (ctx.method === 'submit') { // 上传类请求。
+          let $form = ctx.$refEle.closest('form')
+          if ($form.length === 0) {
+            loadFailed(ctx, url, '未发现提交数据的表单(form)')
           }
-          return disableElePair(false, ctx)
-          // throw err
-        })
+          let tasks = []
+          $form.find('[data-wwclass]').each(() => {
+            let wwinst = wwjs.wwclass.getInstance(this)
+            if (typeof inst === 'object' && Function.isFunction(wwinst.upload)) {
+              tasks.push(wwinst.upload($form, ctx))
+            }
+          })
+          return Promise.pipe([
+            Promise.all(tasks),
+            () => {
+              let formData = new FormData($form.get(0))
+              return fetch(url, {
+                method: 'POST',
+                body: formData
+              }).catch(function (err) {
+                // @TODO 这里拦截错误，并给出友好提示。
+                loadFailed(ctx, url, err)
+              })
+            }
+          ])
+        } else {
+          return fetch(url, {
+            method: ctx.method || 'GET'
+          }).catch(function (err) {
+            // @TODO 这里拦截错误，并给出友好提示。
+            loadFailed(ctx, url, err)
+          })
+        }
       },
       function (response) {
         if (typeof response === 'object' && response.ok && response.headers) {
@@ -340,7 +375,7 @@ function open (params, refEle, evt) {
     return
   }
   // 保存上下文的变量.
-  let context = wwjs.net.extract(params, ['url', 'target', 'method', 'before', 'after', 'content', 'noindicator', 'notdisable', 'noerror'], refEle) || {}
+  let context = wwjs.net.extract(params, OPENMAPPING, refEle) || {}
   if (refEle) {
     context.$refEle = $(refEle)
     context.url = context.url || context.$refEle.attr('href')
@@ -401,23 +436,33 @@ function open (params, refEle, evt) {
 }
 
 /**
-<strong><font color="green">内建命令</font></strong>:将任意元素(包括自身)及其子元素的值序列化为FormData并返回。
+<strong><font color="green">内建命令</font></strong>:将refEle所处的form表单提交。
 @exports net
-@method serialize
+@method submit
 @static
-@param {array|object} params
-1. |0(读取self的**url**属性) :
+@param {any} params params的定义参考open,不过强制将method设置为'submit'。同时,下列属性默认值不同:
+- noindicator: 默认为true。
+- url: 默认从所处表单的action中获取。
 **/
-function serialize (param, refEle, evt) {
-
-}
-
-function submit (param, refEle, evt) {
-
+function submit (params, refEle, evt) {
+  let $refEle = $(refEle)
+  let $form = $refEle.closest('form')
+  if ($form.length === 0) {
+    ui.showMessage({
+      'text': `请求submit的元素不处于表单(form)中，忽略请求`,
+      'layout': 'top',
+      'type': 'warning'
+    })
+    return
+  }
+  let context = wwjs.net.extract(params, OPENMAPPING, refEle) || {}
+  context.noindicator = context.noindicator || true
+  context.method = 'submit'
+  context.url = context.url || $form.attr('action')
+  return open(context, refEle, evt)
 }
 
 export default {
   submit: submit,
-  serialize: serialize,
   open: open
 }
