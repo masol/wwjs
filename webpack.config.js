@@ -75,7 +75,15 @@ module.exports = env => {
     optimization: optimization,
     mode: isProd ? 'production' : 'development',
     devtool: isProd ? 'source-map' : (!env ? 'cheap-module-eval-source-map' : false),
-    devServer: { headers: { 'Access-Control-Allow-Origin': '*' } },
+    devServer: {
+      headers: { 'Access-Control-Allow-Origin': '*' },
+      setup (app) {
+        app.post('*', (req, res) => {
+          // console.log('on post...')
+          res.redirect(req.originalUrl)
+        })
+      }
+    },
     // target: 'web',
     module: {
       rules: [ {

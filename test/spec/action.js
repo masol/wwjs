@@ -34,12 +34,15 @@ describe('action', function () {
   }).timeout(5000)
 
   it('submit正确派遣到默认处理器，正确添加了"#waitfinish子节点,并正确播放动画"', function (done) {
+    $('#wwcontainer').html('')
     wwjs.ui.$container().append(`<form data-action action="/test/compatible.html"><input type="hide" name="name1" value="haha"><label for="testsubmit" id="labelsubmit">提交</label><input type="submit" id="testsubmit" class="d-none"></form>`)
     let event = jQuery.Event('click')
     $('#labelsubmit').trigger(event)
     intvalCount = 0
     let intvalID = setInterval(function () {
-      if (intvalCount >= 120 && event.isDefaultPrevented() && $('#waitfinish').length === 1) {
+      // console.log("$('#waitfinish').length=", $('#waitfinish').length)
+      // 这里不能检查event.isDefaultPrevented()，因为由submit input触发了form的submit事件，本click事件并没有isDefaultPrevented。
+      if (intvalCount >= 120 && $('#waitfinish').length === 1) {
         clearInterval(intvalID)
         done()
       }
