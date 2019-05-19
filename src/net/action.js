@@ -463,6 +463,15 @@ function submit (params, refEle, evt) {
     })
     return
   }
+  if ($form.hasClass('needs-validation')) {
+    let form = $form.get(0)
+    if (form.checkValidity() === false) {
+      evt.preventDefault()
+      evt.stopPropagation()
+      return
+    }
+    form.classList.add('was-validated')
+  }
   let context = wwjs.net.extract(params, OPENMAPPING, refEle) || {}
   context.noindicator = context.noindicator || true
   context.method = 'submit'
