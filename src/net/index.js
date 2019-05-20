@@ -140,7 +140,7 @@ function getCmd (name, noAutoLoad) {
 /**
 @exports net
 @method reg
-@desc 注册一个命令集的处理器。由于默认了全局加载，而不是模块加载方式。因此扩展插件需要在被加载时调用`wwjs.net.reg`函数来自行注册。
+@desc 注册一个命令集的处理器。由于默认了全局加载，而不是模块加载方式。因此扩展插件需要在被加载时调用`wwjs.net.reg`函数来自行注册。函数调用以func(params, refEle, evt)的形式调用，其中params是参数，可能是字符串，数组或对象(请使用wwjs.net.extract来解析params)。refEle是相关元素,如果没有则为空。evt是相关事件，如果不处于事件上下文，则为空。
 @param {String} name  命令集的名称。
 @param {function|object} [handler=undefined] 命令集的处理器。可能是函数，也可能是对象。如果传入undefined，则删除此处理器。
 @return {function|object} 返回设置之前的旧处理器。
