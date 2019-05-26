@@ -286,15 +286,11 @@ function check (nodeArray) {
       // if (item.nodeType !== 1) { continue }  //不再需要，已经被chk实现。
       // 2019-3-30之后，不再需要，调用顺序已经被保障。
       EE.emit('koprepare', $item)
-      // 为确保执行顺序，手动调用ns.check,而不是由ns.check注册事件。
-      // ns.check($item)
-      // for (j = 0; j < Notifiers.length; j++) {
-      //   Notifiers[j]($item)
-      // }
-      // console.log(VM.get('', 'json'))
       if ($item.is('[data-bind]') || $item.find('[data-bind]').length > 0) {
       // console.log(VM, nodeArray[i])
-        ko.applyBindings(VM.get(), nodeArray[i])
+        if (!ko.dataFor($item.get(0))) { // 如果未绑定过，则开始绑定，否则忽略绑定初始化。
+          ko.applyBindings(VM.get(), nodeArray[i])
+        }
       }
     }
   }
