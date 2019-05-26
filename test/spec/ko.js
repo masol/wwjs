@@ -174,6 +174,14 @@ describe('KO数据绑定', function () {
     }, 0)
   })
 
+  // it('手动测试文件绑定', function (done) {
+  //   setTimeout(() => {
+  //     wwjs.ui.$container().append(`<input type='file' id="wwtestfile" data-bind="file:testimg">`)
+  //     // wwjs.ui.$container().append(``)
+  //     t0 = performance.now()
+  //   }, 0)
+  // }).timeout(10000000)
+
   it('attr绑定"testnoexist() + 1"自动添加testnoexist变量，并初始化为元素对应属性.', function (done) {
     let ivid = setInterval(function () {
       // console.log(wwjs.vm.get($('#wwtest11'), 'json'))

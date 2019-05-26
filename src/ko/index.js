@@ -24,6 +24,7 @@ import cfg from '../utils/cfg'
 import VM from './viewmodel'
 import ns from './ns'
 import attr from './attr'
+import file from './file'
 import state from '../utils/state'
 
 ko.mapping = mapping
@@ -59,6 +60,7 @@ window.ko = ko
 
 // console.log(attr)
 attr()
+file()
 
 // 根据配置，拦截并初始化默认绑定的
 const notDefRegex = /^([a-zA-Z_$]|[0-9a-zA-Z_$]*) is not defined$/
@@ -112,6 +114,7 @@ function initHandler (defVar, handler, element, valueAccessor, allBindings, mode
 - hidden : 元素当前值
 - hasFocus : 元素当前值
 - text : 元素当前值
+- file : 元素当前值
 - html : 元素当前值
 - foreach : []
 - if : false
@@ -156,6 +159,11 @@ autoinit('css')
 autoinit('attr')
 autoinit('style')
 autoinit('let')
+autoinit('file', (element) => { // 延时向element发出change事件，以触发自动更新到元素当前值。
+  setTimeout(() => {
+    $(element).trigger('change')
+  }, 0)
+})
 autoinit('class', (element) => {
   return element.className
 })
@@ -219,6 +227,8 @@ ko模块的初始化代码，在DomReady之后，由chk模块调用。负责建�
 - 更新ko的attr，提供如下两个改进:
  - 定义了'ko.attrChanged'事件，可以在一个元素上$ele.trigger(ko.attrChanged, infoName[, value])来触发attr更新内部值并notify。
  - 定义了'ko.attrMapper'对象，key为属性名,值为形如(element,value,toRemove)的回调函数。——这一特性目前只供内部使用，不要使用插件扩展。
+- 增加了file绑定。参考了[knockoutjs-file-binding](https://github.com/TooManyBees/knockoutjs-file-binding)以及[knockout-file-bindings](https://github.com/adrotec/knockout-file-bindings)来支持文件绑定。默认的文件绑定从文件元素读取其内容，并转化为URL，可以直接在img.src中使用。
+
 @exports ko
 @access private
 @method setup
@@ -247,6 +257,8 @@ ko可以从如下几个角度扩展:
 ko.dep = function (task) {
   if (task instanceof Promise) {
     depTasks.push(task)
+  } else if (Function.isFunction(task)) {
+    depTasks.push(task())
   }
   return depTasks
 }
