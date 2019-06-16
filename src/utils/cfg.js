@@ -22,6 +22,7 @@
 - container : "Selector" //定义第一顺位选择器，详情查看[utils/ui模块](module-utils_ui.html#~$container)
 - vmtypecvt : false //设置给vm某个变量设置值时，当类型不同时，是否允许转换？默认是不允许类型转化的，设置为true可以自动转化。
 - cmdTimout: 10000 //设置等待命令注册的超时时间，默认是10秒，参考[net.cmd](module-net.html#~cmd)
+- clsTimeout: 10000 //设置wwclass.get等待外部类加载的超时时间，默认是秒，参考[wwclass.get](wwclass.html#.get).
 - strict : false //严格模式。在非严格模式下(默认)，支持如下特性(参考[ko.autoinit](module-ko.html#~autoinit)):
  - ko绑定时，发现未定义的变量，自动定义。
  - ko绑定初始化时，如果变量值为空，则自动初始化为对应的attr,text,html以及value的值。
@@ -45,18 +46,25 @@ window.wwcfg  = {
 */
 
 let cfg = {}
+const CMDTIMEOUT = 10000
+const CLSTIMEOUT = 10000
 
 cfg.libbase = '//libs.wware.org'
 cfg.debug = true
-cfg.cmdTimout = 10000
+cfg.cmdTimout = CMDTIMEOUT
+cfg.clsTimeout = CLSTIMEOUT
 if ((typeof window.wwcfg === 'object')) {
   for (let i in window.wwcfg) {
     cfg[i] = window.wwcfg[i]
   }
   // 如果等待命令注册的超时时间小于100毫秒(例如设置了非数字)，改回默认值。
-  cfg.cmdTimout = parseInt(cfg.cmdTimout)
+  cfg.cmdTimout = parseInt(cfg.cmdTimout) || CMDTIMEOUT
   if (!(cfg.cmdTimout > 100)) {
-    cfg.cmdTimout = 10000
+    cfg.cmdTimout = CMDTIMEOUT
+  }
+  cfg.clsTimeout = parseInt(cfg.clsTimeout) || CLSTIMEOUT
+  if (!(cfg.clsTimeout > 100)) {
+    cfg.clsTimeout = CLSTIMEOUT
   }
   if (cfg.libbase[cfg.libbase.length - 1] === '/') {
     cfg.libbase = cfg.libbase.substr(0, cfg.libbase.length - 1)

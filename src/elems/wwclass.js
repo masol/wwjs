@@ -615,7 +615,7 @@ class Demo extends wwjs.wwclass {
   @static
   @param {string} name 给出需要加载的元素类的名称。
   @param {string} [url] 可选的，给出其加载的url地址。元素上通过属性`[data-classurl]`来指定．
-  @param {number} [delay] 可选的，给出毫秒为单位的延迟加载时间。在延迟时间内，如果有元素注册在这个名称下，则立即返回。延时到达，尚未有元素注册，则开始加载。元素上通过属性`[data-delay-load]`来指定．
+  @param {number} [delay] 可选的，给出毫秒为单位的延迟加载时间。在延迟时间内，如果有元素注册在这个名称下，则立即返回。延时到达，尚未有元素注册，则开始加载。元素上通过属性`[data-delay-load]`来指定。注意此属性不同于cfg中的clsTimeout配置。
   @return {Promise<function>} 返回元素类对象。如果发生错误，则reject。
   **/
   static get (name, url, delay) {
@@ -635,10 +635,15 @@ class Demo extends wwjs.wwclass {
               if (clsName === name) {
                 EE.off('wwclass.reg', regHandler)
                 resolve(clsdef)
+              } else if (!clsName && !clsdef) { // timeout
+                clearTimeout(timeOutHandler)
+                timeOutHandler = null
+                EE.off('wwclass.reg', regHandler)
+                reject(new Error('timeout'))
               }
             }
             EE.on('wwclass.reg', regHandler)
-            // @TODO: 这里需要设置一个超时，例如5秒，然后发出get失败的事件。
+            let timeOutHandler = setTimeout(regHandler, cfg.clsTimeout)
           } else {
             // loadjs.done(bundleName)
             resolve(item)
