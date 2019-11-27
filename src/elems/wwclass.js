@@ -313,7 +313,7 @@ function updateProp (self, newValue, attrName, propName, methodName, options) {
 
 /**
 @class wwclass
-@classdesc wwclass提供了wwjs元素类的基类，通过扩展wwclass来开发元素。这些元素不依赖[Shadow DOM](https://caniuse.com/#search=Shadow%20DOM%20v0)、[Custom Elements](https://caniuse.com/#search=Custom%20Elements)等当前支持不普遍的特性，而是利用普遍支持的[Mutation Observer](https://caniuse.com/#search=Mutation%20Observer)(性能问题参考[这里](http://stackoverflow.com/questions/31659567/performance-of-mutationobserver-to-detect-nodes-in-entire-dom))，结合模板库(当前选择[hyperHTML](https://github.com/WebReflection/hyperHTML))，局部css并不依赖被废弃的[Scoped CSS](https://caniuse.com/#search=Scoped%20CSS)或ShadowDom，而是利用PostCSS或[scope-css](https://github.com/dy/scope-css#readme)自动为元素css添加`[data-wwclass=XXX]`的前缀选择器。
+@classdesc wwclass提供了wwjs元素类的基类，通过扩展wwclass来开发元素，通过wwjs.wwclass来访问类对象。这些元素不依赖[Shadow DOM](https://caniuse.com/#search=Shadow%20DOM%20v0)、[Custom Elements](https://caniuse.com/#search=Custom%20Elements)等当前支持不普遍的特性，而是利用普遍支持的[Mutation Observer](https://caniuse.com/#search=Mutation%20Observer)(性能问题参考[这里](http://stackoverflow.com/questions/31659567/performance-of-mutationobserver-to-detect-nodes-in-entire-dom))，结合模板库(当前选择[hyperHTML](https://github.com/WebReflection/hyperHTML))，局部css并不依赖被废弃的[Scoped CSS](https://caniuse.com/#search=Scoped%20CSS)或ShadowDom，而是利用PostCSS或[scope-css](https://github.com/dy/scope-css#readme)自动为元素css添加`[data-wwclass=XXX]`的前缀选择器。
 
 wwjs元素处于三种状态:
 - 初始状态:此时元素类尚未加载，元素以自己的原始定义被浏览器绘制。
@@ -337,6 +337,13 @@ wwclass类提供了如下修饰符(使用派生类不可见):
 - [wwjs.wwclass.reg](#.reg)
 - [wwjs.wwclass.unreg](#.unreg)
 - [wwjs.wwclass.getInstance](#.getInstance)
+
+以及如下{@link 元素事件}:
+- 'elems.inst' : 元素实例被初始化完毕之后发出。参数为[inst, cls]。
+
+以及如下EE事件:
+- 'elems.inst' : 元素实例被初始化完毕之后发出。参数为[ele, inst, cls]。
+- ‘wwclass.reg' : 新的元素类被注册完毕，并保持可用,只有首次加载元素类代码时才会发出，并不关联到任意元素。参数为[name, clsdef]。
 
 以及如下渲染支持(使用派生类可见):
 - [requestRender](#requestRender)

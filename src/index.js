@@ -29,6 +29,7 @@ import queryString from 'query-string'
 import getKY from './utils/ky'
 import AnimEvent from 'anim-event'
 import state from './utils/state'
+import ObjectPath from 'objectpath'
 import './utils/lazysizes'
 
 // console.log(loadjs)
@@ -231,7 +232,7 @@ polyfillSetup(() => {
 
 /**
    @module wwjs
-   @desc wwjs主模块，负责构建wware在浏览器下的执行环境。wware假定代码都由编译器做完transpiling之后产生。wwjs只是提供一个抽象的浏览器虚拟机(<font color="red">所有可以提供相同API的虚拟机都可以被WWARE transpiling所支持</font>)，其自身可以执行于ie8+以上的环境。并确保如下功能:
+   @desc wwjs主模块，负责构建wware在浏览器下的执行环境。本模块会创建一个全局变量wwjs,并暴露在window下。wware假定代码都由编译器做完transpiling之后产生。wwjs只是提供一个抽象的浏览器虚拟机(<font color="red">所有可以提供相同API的虚拟机都可以被WWARE transpiling所支持</font>)，其自身可以执行于ie8+以上的环境。并确保如下功能:
    - Promise
    - MutationObserver
    - ES6 Module Loader
@@ -349,6 +350,10 @@ let wwjs = {
    * @name ns
   **/
   ns: ns.pub,
+  /**
+   暴露的Objectpath分析库。(https://github.com/mike-marcacci/objectpath)。可以简单分析js变量语句，形如: `a.b['test'].d`
+   */
+  objectPath: ObjectPath,
   /**
   queryString的解析器，通过wwjs暴露到全局空间。详细文档查看[query-string](https://github.com/sindresorhus/query-string)
   * @member wwjs

@@ -39,7 +39,7 @@ function isView (data) {
 window.wwimport('ready', () => {
   /**
   @class View
-  @classdesc View支持如下几个属性:
+  @classdesc View是一个元素，因此可以通过wwjs.wwclass.getInstance(DomElement)来获取其实例对象。插入对应DOM元素自动初始化实例——可以通过相应事件[elems.inst](wwclass.html#DomEvent)来确保元素实例化完毕。View支持如下几个属性:
   - src: 指定View获取的url,如果src变化，则立即尝试获取数据．如果服务器组装，请不要设置src值，直接向view中填写内容.
   - data-forcelocal: 指定view中的a[href]的链接，强制刷新本view．a[href]中也可以通过明确设置`target`来规避刷新view.
   @extends wwjs.wwclass

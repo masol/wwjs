@@ -44,6 +44,7 @@ function construCls (ele, cls) {
   let onCreated = (inst) => {
     EE.emit('elems.inst', ele, inst, cls)
     state.pop(ele)
+    $(ele).trigger('elems.inst', [ inst, cls ])
     if (!inst._rid && typeof (inst.doRender) === 'function') {
       inst.requestRender()
     }

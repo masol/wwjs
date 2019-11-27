@@ -338,38 +338,39 @@ function disableElePair (bEnable, ctx) {
 @static
 @param {array|object} params
 1. url|0(读取self的**url**属性) : 请求打开的URL数组。数组以' '(空格)分割。可以通过'\ '来转义。对于每个URL,可以使用es6 string template。此时，使用refEle所确定的名称空间的变量。在发送服务器请求时，会将‘#’后的内容裁掉，并在有回应后，更新url地址时加入#号(如果不更新URL，也会更新hash部分)。如果URL只有#，则等效于**content**属性给出值，并可能通过\#?附加部分vm变量更新。注意#的一些扩展:
- - \#? 后续内容是VM变量更新。
- - \# 后续内容引用模板或者锚的ID。
+  - \#? 后续内容是VM变量更新。
+  - \# 后续内容引用模板或者锚的ID。
+
 url的回应，根据其mine-type来决定:
- - 如果是HTML，更新target的内容为返回内容。
-  - 基础检查通过: evt有并且使用左钮，并且没有按ctrl或者alt或shift;url或content至少存在一个;target元素必须存在。
-  - 根据配置，禁用src及target。
-  - 播放before动画，同时开始获取数据。
-  - before结束，启用src及target，然后更新数据到target。
-  - 播放after动画。
- - 如果是图片，视频，PDF等资源，并且目标元素是对应的类型，直接重置其URL。否则，替换目标元素的内容。
- - 如果是JSON，使用目标元素做refEle,执行其回应。
-  - 执行动作与HTML相同，区别是启用在回应的命令执行完毕之后。
- - 如果是markdown，转化为HTML，并继续执行。
+  - 如果是HTML，更新target的内容为返回内容。
+    - 基础检查通过: evt有并且使用左钮，并且没有按ctrl或者alt或shift;url或content至少存在一个;target元素必须存在。
+    - 根据配置，禁用src及target。
+    - 播放before动画，同时开始获取数据。
+    - before结束，启用src及target，然后更新数据到target。
+    - 播放after动画。
+  - 如果是图片，视频，PDF等资源，并且目标元素是对应的类型，直接重置其URL。否则，替换目标元素的内容。
+  - 如果是JSON，使用目标元素做refEle,执行其回应。
+    - 执行动作与HTML相同，区别是启用在回应的命令执行完毕之后。
+  - 如果是markdown，转化为HTML，并继续执行。
 2. target|1(读取self的**target**属性): 如下几个值中的一个(默认为_self):
- - _self: 目标文档载入并显示在相同的框架或者窗口中作为源文档
- - _blank: 在新窗口中打开被链接文档。
- - _parent: 在父框架集中打开被链接文档。
- - _top: 在整个窗口中打开被链接文档。
- - framename: 在指定的框架中打开被链接文档。如果framename指示了一个view,则更新此view的src属性.
- - \*g:selector: 全局索引的selector(可能多个)。
- - \*p:selector: 符合selector的父节点(0或一个)。如果selector未给出，则为*p:[data-wwclass=view]
- - \*c:selector: 符合selector的直接子节点(可能多个)。
- - \*d:selector: 符合selector的后代(descendant,可能多个)。
+  - _self: 目标文档载入并显示在相同的框架或者窗口中作为源文档
+  - _blank: 在新窗口中打开被链接文档。
+  - _parent: 在父框架集中打开被链接文档。
+  - _top: 在整个窗口中打开被链接文档。
+  - framename: 在指定的框架中打开被链接文档。如果framename指示了一个view,则更新此view的src属性。特殊的名称格式如下:
+    - \*g:selector: 全局索引的selector(可能多个)。
+    - \*p:selector: 符合selector的父节点(0或一个)。如果selector未给出，则为*p:[data-wwclass=view]
+    - \*c:selector: 符合selector的直接子节点(可能多个)。
+    - \*d:selector: 符合selector的后代(descendant,可能多个)。
 3. method|2(读取self的属性**data-method**): 请求方法，统一应用在所有的URL请求上，默认是GET。如果target是一个form，则采用form中的method,如果form没有method,并且包含了文件字段，则默认使用POST。
 4. before|3(读取self的属性**data-before**): target替换前的动画。默认是target元素上的渐隐。
 5. after|4(读取self的属性**data-after**), target替换后的动画。默认是target元素上的渐显以及min(max)-width(height)的transition。
 6. content|5(读取self的属性**data-content**): 这里的内容被当作HTML内容注入到targt中去。注意“#”开头引用本地层或锚定元素ID。这一属性等效于URL直接使用`#XXXXX`。
 7. noindicator|6(读取self的属性**data-noindicator**): 在发起网络请时，不调用state.push/pop对。根据配置，这可能触发indicator的显示(默认显示)。
 8. notdisable|7(读取self的属性**data-notdisable**): 不再禁止target及refEle。可能的值为:
- - true|all|yes: 不禁止两者.
- - target: 不禁用target.
- - self: 不禁用self.
+  - true|all|yes: 不禁止两者.
+  - target: 不禁用target.
+  - self: 不禁用self.
 9. noerror|8(读取self的属性**data-noerror**): 不使用ui.showMessage报错。
 
 @param {Element} [refEle=undefined] 获取默认参数的元素——这里的参数优先级低于params。并使用此元素做重入判定，如果没有指定元素，不执行重入判定。
