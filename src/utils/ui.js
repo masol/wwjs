@@ -305,6 +305,50 @@ function showMessage (message) {
 }
 
 /**
+ * 检查给定变量是否是一个Dom元素。
+@exports utils/ui
+@method isElement
+@param {any} [element] 需要检查的变量
+@return {boolean} 返回值指示了本变量是否是一个DomElement元素对象。
+@throw ReferenceError 在不支持{Dom Level2}[http://www.w3.org/TR/2003/REC-DOM-Level-2-HTML-20030109/html.html]规范的浏览器上，会抛出异常。
+ */
+function isElement (element) {
+  return element instanceof Element || element instanceof HTMLDocument
+}
+
+/**
+ * 检查当前页面是否处于全屏状态。或者设置全屏状态
+@exports utils/ui
+@method fullscreen
+@param {boolean} [ful=undefined] 设置当前全屏状态。如果未给出，则返回当前全屏状态。
+@param {DomElement} [element=body] 设置请求全屏状态的元素。如果未给出，则将当前页面全屏。
+@return {Promise<boolean>} 返回最新的全屏状态。
+ */
+function fullscreen (ful, element) {
+  function getFullscreen () {
+    return outerHeight - innerHeight <= 1
+  }
+  if (typeof ful === 'undefined') {
+    return getFullscreen()
+  }
+  if (ful) {
+    let ele = isElement(element) ? element : document.documentElement
+    let requestMethod = ele.requestFullScreen || ele.webkitRequestFullScreen || ele.mozRequestFullScreen || ele.msRequestFullScreen
+    if (requestMethod) {
+      requestMethod.call(ele)
+      return true
+    }
+  } else {
+    let exitMethod = document.exitFullscreen || document.mozCancelFullScreen || document.webkitExitFullscreen || document.msExitFullscreen
+    if (exitMethod) {
+      exitMethod.call(document)
+      return false
+    }
+  }
+  return getFullscreen()
+}
+
+/**
 对指定的元素添加，移除基于CSS的动画，以[animate.css](https://github.com/daneden/animate.css)的规范为准。如果动画的开始/移除都使用本函数，则维护了data('transitioning',true)——当动画进行时。参考[这里的说明](https://stackoverflow.com/questions/9736919/check-if-element-is-being-animated-css3)
 @exports utils/ui
 @method animateCSS
@@ -513,6 +557,8 @@ export default {
   cssAnimate: cssAnimate,
   loadImg: waitme.img,
   baseurl: baseurl,
+  isElement: isElement,
+  fullscreen: fullscreen,
   /**
   获取基于时间的唯一字符串。详见[uniqid](https://github.com/adamhalasz/uniqid)
   @exports utils/ui
