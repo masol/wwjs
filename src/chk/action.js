@@ -18,11 +18,12 @@ import net from '../net'
 
 /**
 ### 1. 概念
-action模块处理页面的`data-action`属性，并将action与command关联在一起。这个command通常引用了[net模块](module-net.html)所支持的远程命令。
+action模块处理页面的`data-action`属性，一个action就是在何时(trigger)，执行何事(command)。这个command通常引用了[net模块](module-net.html)所支持的远程命令。
 
 data-action概念上是一个action mapping的数组。每个action mapping包含两个部分(do Command when Trigger):
  - trigger: 事件源，可以是任意有效的jQuery支持的事件。如果不存在，指示当前元素的默认事件。
- - command: bash格式的命令字符串，调用net模块中的run指令。注意，此时很多额外参数可以保存在元素上，这些额外属性是由具体的command实现者来定义的。如果不存在，指示当前元素的wwjs默认处理。
+ - command: bash格式的命令字符串(遵守[getopts语法](https://github.com/jorgebucaran/getopts))，调用net模块中的run指令。注意，此时很多额外参数可以保存在元素上，这些额外属性是由具体的command实现者来定义的。如果不存在，指示当前元素的wwjs默认处理。
+
 以上两个部分，如果只有一项，为command。
 
 ### 2.格式
@@ -34,7 +35,7 @@ data-action概念上是一个action mapping的数组。每个action mapping包�
  - 通过\;来转义分，使得分号不再是一个转义符。
 - action maping: trigger->command
  - 通过\->来转义，使得“->”不再是一个分割符，而是传统的->。
-- data-action: action mapping1(/s*);;action mapping1...
+- data-action: action mapping1(\s*);;action mapping1...
  - 通过\;;来转义，使得双分号不再分割一个action mapping。如果command中需要“;;”，需要录入“\;\;”而不是使用mapping分割“”。
 
 常见特殊值说明,通常data-action的值可能是如下两种:
