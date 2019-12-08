@@ -113,7 +113,7 @@ function getCmd (name, noAutoLoad) {
   }
   let ret = internalGetCmd(url, subName)
   if (!ret && !noAutoLoad) {
-    if (url.length > 1 && url[0] === url[1] === '@') {
+    if (url.length > 1 && url[0] === url[1] && url[1] === '@') {
       url = loadjs.url(url.substr(2), '@wwcmd')
     }
     // try loading functor.
