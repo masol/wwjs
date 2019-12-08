@@ -73,6 +73,9 @@ module.exports = env => {
     //   }
     // },
     optimization: optimization,
+    performance: {
+      hints: isProd ? false : 'warning'
+    },
     mode: isProd ? 'production' : 'development',
     devtool: isProd ? 'source-map' : (!env ? 'cheap-module-eval-source-map' : false),
     devServer: {
