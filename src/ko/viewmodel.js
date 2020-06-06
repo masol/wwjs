@@ -36,6 +36,7 @@ function getObjectFromHash (hashString) {
     if (idx >= 0) {
       let vmstr = hashString.substr(idx + VMINHASHPREFIX.length)
       if (vmstr) {
+        // @TODO: 支持路径.
         $.extend(ret, queryString.parse(vmstr))
         // console.log('set viewmode1=', ret)
       }
