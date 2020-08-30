@@ -70,11 +70,11 @@ function procNode (ele, condition, inst) {
 }
 
 function addTreeMonitor (isAdd, subtree, selector, handleName, nodeType, render) {
-  let self = this
-  self._mut = self._mut || {}
+  let that = this
+  that._mut = that._mut || {}
   let treeName = isAdd ? 'addtree' : 'rmtree'
-  self._mut[treeName] = self._mut[treeName] || []
-  self._mut[treeName].push({
+  that._mut[treeName] = that._mut[treeName] || []
+  that._mut[treeName].push({
     selector: selector,
     handler: handleName,
     nodeType: nodeType,
@@ -82,27 +82,27 @@ function addTreeMonitor (isAdd, subtree, selector, handleName, nodeType, render)
   })
   let subType = subtree ? 'subtree' : false
   // console.log('subType=', subType)
-  monitor(self, 'childList', subType)
+  monitor(that, 'childList', subType)
 }
 
-function callMethod (self, name) {
+function callMethod (that, name) {
   const updateRes = (info, mid) => {
     info = String(info || '')
-    if (info.length > 0 && self.$ele) {
+    if (info.length > 0 && that.$ele) {
       const infoName = `data-${mid}-${name}`
-      console.log(self.$ele)
-      self.$ele.attr(infoName, info)
-      self.$ele.trigger(ko.attrChanged, infoName)
+      console.log(that.$ele)
+      that.$ele.attr(infoName, info)
+      that.$ele.trigger(ko.attrChanged, infoName)
     }
   }
 
-  const opt = self._mut.methods[name]
+  const opt = that._mut.methods[name]
   let err = ''
-  if (typeof opt === 'object' && Function.isFunction(self[name])) {
-    const func = self[name]
+  if (typeof opt === 'object' && Function.isFunction(that[name])) {
+    const func = that[name]
     const defValue = opt.defValue || ''
     const attrName = `${callPrefix}${name}`
-    const attrValue = self.$ele.attr(attrName)
+    const attrValue = that.$ele.attr(attrName)
     if (defValue === attrValue) { // 默认值，不触发函数调用，直接返回.
       return
     }
@@ -127,18 +127,18 @@ function callMethod (self, name) {
         param = [param]
       }
       const chkCacheReq = () => {
-        if (self.$ele) { // 尚未析构。
+        if (that.$ele) { // 尚未析构。
           opt.req = opt.req || []
           if (opt.req.length > 0) {
             let reqParam = opt.req.shift()
             callMethodImpl(reqParam)
           } else { // 将属性更新为默认值，以方便下次调用。
-            self.$ele.attr(attrName, defValue)
+            that.$ele.attr(attrName, defValue)
           }
         }
       }
       const callMethodImpl = (param) => {
-        opt.result = Promise.resolve(func.apply(self, param)).then((result) => {
+        opt.result = Promise.resolve(func.apply(that, param)).then((result) => {
           updateRes(result, 'x')
           opt.result = undefined
           chkCacheReq()
@@ -165,59 +165,59 @@ function callMethod (self, name) {
 }
 
 function check (mutations) {
-  let self = this
+  let that = this
   // console.log('enter mutation callback')
   mutations.forEach(function (mutation) {
     if (mutation.removedNodes && mutation.removedNodes.length > 0) {
-      // @TODO 实现选择器判定式通知self指定函数.
-      if (self._mut.rmtree && self._mut.rmtree.length > 0) {
+      // @TODO 实现选择器判定式通知that指定函数.
+      if (that._mut.rmtree && that._mut.rmtree.length > 0) {
         for (let i = 0; i < mutation.removedNodes.length; i++) {
-          procNode(mutation.removedNodes[i], self._mut.rmtree, self)
+          procNode(mutation.removedNodes[i], that._mut.rmtree, that)
         }
       }
     }
     if (mutation.addedNodes && mutation.addedNodes.length > 0) {
-      // @TODO 实现选择器判定式通知self指定函数.
-      if (self._mut.addtree && self._mut.addtree.length > 0) {
+      // @TODO 实现选择器判定式通知that指定函数.
+      if (that._mut.addtree && that._mut.addtree.length > 0) {
         for (let i = 0; i < mutation.addedNodes.length; i++) {
-          procNode(mutation.addedNodes[i], self._mut.addtree, self)
+          procNode(mutation.addedNodes[i], that._mut.addtree, that)
         }
       }
     }
     if (mutation.attributeName) {
       const attrName = String(mutation.attributeName)
       // console.log('attrName=', attrName)
-      if (self.$ele.is(mutation.target)) {
-        const propName = self._mut.attr[attrName]
+      if (that.$ele.is(mutation.target)) {
+        const propName = that._mut.attr[attrName]
         // console.log('propName=', propName)
         if (propName) {
-          self.props[propName] = self.$ele.attr(attrName)
+          that.props[propName] = that.$ele.attr(attrName)
         } else if (attrName.startsWith(callPrefix)) {
-          callMethod(self, attrName.substr(callPrefix.length))
+          callMethod(that, attrName.substr(callPrefix.length))
         }
       }
     }
   })
 }
 
-function monitor (self, type, subType) {
-  self._mut = self._mut || {}
-  self._mut.attr = self._mut.attr || {}
-  self._mut.methods = self._mut.methods || {}
-  self._mut.config = self._mut.config || {}
+function monitor (that, type, subType) {
+  that._mut = that._mut || {}
+  that._mut.attr = that._mut.attr || {}
+  that._mut.methods = that._mut.methods || {}
+  that._mut.config = that._mut.config || {}
   // 尚未开始监听此类型．添加监听.
-  if (!self._mut.config[type] || (subType && !self._mut.config[subType])) {
-    if (self._mut.observer) {
-      self._mut.observer.disconnect()
-      self._mut.observer = undefined
+  if (!that._mut.config[type] || (subType && !that._mut.config[subType])) {
+    if (that._mut.observer) {
+      that._mut.observer.disconnect()
+      that._mut.observer = undefined
     }
-    self._mut.config[type] = true
+    that._mut.config[type] = true
     if (subType) {
-      self._mut.config[subType] = true
+      that._mut.config[subType] = true
     }
-    self._mut.observer = new MutationObserver(Function.bind.call(check, self))
-    // console.log('self.$ele=', self.$ele, 'config=', self._mut.config)
-    self._mut.observer.observe(self.$ele[0], self._mut.config)
+    that._mut.observer = new MutationObserver(Function.bind.call(check, that))
+    // console.log('that.$ele=', that.$ele, 'config=', that._mut.config)
+    that._mut.observer.observe(that.$ele[0], that._mut.config)
   }
 }
 
@@ -244,7 +244,7 @@ function wrap (wrapperMethod) {
       // @FIXME 如何使用new的时候,可以apply arguments?
       let newTarget = function (arg) {
         // let args = Array.prototype.slice.call(arg, 0)
-        let self = this
+        let that = this
         // console.log('in wrap before ,arg=', arg)
         return (function () {
           let methodCallback = function () {
@@ -253,17 +253,17 @@ function wrap (wrapperMethod) {
             // console.log('in wrap,arg=', arg)
             return new Target(arg)
           }
-          return wrapperMethod.call(self, methodCallback, arg, Target.name, 'class', Target)
+          return wrapperMethod.call(that, methodCallback, arg, Target.name, 'class', Target)
         }())
       }
       return newTarget
     } else {
       let orgMethod = descriptor.value
       descriptor.value = function (...arg) {
-        let self = this
+        let that = this
         return (function () {
-          let methodCallback = function () { return orgMethod.apply(self, arg) }
-          return wrapperMethod.call(self, methodCallback, arg, key, 'function', Target)
+          let methodCallback = function () { return orgMethod.apply(that, arg) }
+          return wrapperMethod.call(that, methodCallback, arg, key, 'function', Target)
         }())
       }
       return descriptor
@@ -288,32 +288,37 @@ function frameProc (/*, timeStamp */) {
 }
 
 // 更新属性，是否需要将本方法公开给派生类使用？
-function updateProp (self, newValue, attrName, propName, methodName, options) {
+function updateProp (that, newValue, attrName, propName, methodName, options) {
   // console.log('enter updateProp', arguments)
-  if (newValue !== self._p[propName]) {
-    let oldValue = self._p[propName]
-    self._p[propName] = newValue
-    // console.log(self.props.test)
-    if (!options.noSyncEle && self.$ele.attr(attrName) !== newValue) {
-      self.$ele.attr(attrName, newValue)
+  if (newValue !== that._p[propName]) {
+    let oldValue = that._p[propName]
+    that._p[propName] = newValue
+    // console.log(that.props.test)
+    if (!options.noSyncEle && that.$ele.attr(attrName) !== newValue) {
+      that.$ele.attr(attrName, newValue)
     }
     if (!options.noSyncKO) {
       // console.log('to trigger attrChanged event')
-      self.$ele.trigger(ko.attrChanged, attrName)
+      that.$ele.trigger(ko.attrChanged, attrName)
     }
     if (options.render) {
-      self.requestRender()
+      that.requestRender()
     }
     // 必须在最后调用回调，以确保属性更新完毕，否则回调中可能重新更新属性值，如果属性更新放在后面，会导致回调中设置的值被覆盖．
-    if (Function.isFunction(self[methodName])) {
-      self[methodName](oldValue, newValue)
+    if (Function.isFunction(that[methodName])) {
+      that[methodName](oldValue, newValue)
     }
   }
 }
 
 /**
 @class wwclass
-@classdesc wwclass提供了wwjs元素类的基类，通过扩展wwclass来开发元素，通过wwjs.wwclass来访问类对象。这些元素不依赖[Shadow DOM](https://caniuse.com/#search=Shadow%20DOM%20v0)、[Custom Elements](https://caniuse.com/#search=Custom%20Elements)等当前支持不普遍的特性，而是利用普遍支持的[Mutation Observer](https://caniuse.com/#search=Mutation%20Observer)(性能问题参考[这里](http://stackoverflow.com/questions/31659567/performance-of-mutationobserver-to-detect-nodes-in-entire-dom))，结合模板库(当前选择[hyperHTML](https://github.com/WebReflection/hyperHTML))，局部css并不依赖被废弃的[Scoped CSS](https://caniuse.com/#search=Scoped%20CSS)或ShadowDom，而是利用PostCSS或[scope-css](https://github.com/dy/scope-css#readme)自动为元素css添加`[data-wwclass=XXX]`的前缀选择器。
+@classdesc wwjs对任意dom元素的扩展机制不同于vue,react等webcomponent框架,wwclass提供的不是一个新组件,而是在任意dom元素上增加了一些特性(trait).例如卷滚控制,背景控制.
+其绘制代码需要考虑共存.当然,wwclass也可以视为一个webcomponent元素.
+
+wwclass提供了wwjs元素类的基类，通过扩展wwclass来开发元素，通过wwjs.wwclass来访问类对象。这些元素不依赖[Shadow DOM](https://caniuse.com/#search=Shadow%20DOM%20v0)、[Custom Elements](https://caniuse.com/#search=Custom%20Elements)等当前支持不普遍的特性，而是利用普遍支持的[Mutation Observer](https://caniuse.com/#search=Mutation%20Observer)(性能问题参考[这里](http://stackoverflow.com/questions/31659567/performance-of-mutationobserver-to-detect-nodes-in-entire-dom))，结合模板库(当前选择[hyperHTML](https://github.com/WebReflection/hyperHTML))，局部css并不依赖被废弃的[Scoped CSS](https://caniuse.com/#search=Scoped%20CSS)或ShadowDom，而是利用PostCSS或[scope-css](https://github.com/dy/scope-css#readme)自动为元素css添加`[data-wwclass=XXX]`的前缀选择器。
+
+@todo: 一个Dom元素上可以实例化多个wwclass.data-wwclass的值中,使用';'或者','或者空格分割.
 
 wwjs元素处于三种状态:
 - 初始状态:此时元素类尚未加载，元素以自己的原始定义被浏览器绘制。
@@ -365,8 +370,8 @@ wwclass元素只处理客户端展示与逻辑，无需处理任意的数据源�
 - 什么是增量更新？考虑一个例子`<ul>由DATA控制的li数组</ul>`．这个例子看起来很简单，直觉就会使用如下模板:
   ```
   doRender(){
-  let self = this
-  self.render`<ul>${DATA.map((item)=>{
+  let that = this
+  that.render`<ul>${DATA.map((item)=>{
     return `<li>${item.data}</li>`
   })}</ul>`
 }```
@@ -375,8 +380,8 @@ wwclass元素只处理客户端展示与逻辑，无需处理任意的数据源�
 - 增量更新唯一需要注意的是在循环中，需要利用`wwjs.hyper.wire(Object)`来维护Object是否变化，如果是新的Object则新建Dom元素，否则更新原Dom节点.因此，循环体中，必须`wire`到一个Object上，由这个Object来控制是否需要删除旧元素并新建，还是直接在对应的旧元素上更新．参考测试用例关于wwclass的部分,有测试此特性的代码，摘抄如下：
 ```
 doRender(){
-  let self = this
-  self.render`<ul>${DATA.map((item)=>{
+  let that = this
+  that.render`<ul>${DATA.map((item)=>{
     return wwjs.hyper.wire(item)`<li>${item.data}</li>`
   })}</ul>`
 }```
@@ -418,21 +423,21 @@ class Demo extends wwjs.wwclass {
       methodName = `on${propName}Changed`
     }
     options = options || {}
-    let self = this
-    self._p = self._p || {}
-    Object.defineProperty(self.props, propName, {
+    let that = this
+    that._p = that._p || {}
+    Object.defineProperty(that.props, propName, {
       get () {
-        return self._p[propName]
+        return that._p[propName]
       },
       set (newValue) {
-        updateProp(self, newValue, attrName, propName, methodName, options)
+        updateProp(that, newValue, attrName, propName, methodName, options)
       },
       enumerable: true
     })
-    monitor(self, 'attributes')
-    self._mut.attr[attrName] = propName
-    // 必须在defineProperty后调用．否则回调里访问self.props会出错．先写入初始的attr值.updateProp中会判定新旧值是否一致，因此这里不判定．
-    updateProp(self, self.$ele.attr(attrName), attrName, propName, methodName, options)
+    monitor(that, 'attributes')
+    that._mut.attr[attrName] = propName
+    // 必须在defineProperty后调用．否则回调里访问that.props会出错．先写入初始的attr值.updateProp中会判定新旧值是否一致，因此这里不判定．
+    updateProp(that, that.$ele.attr(attrName), attrName, propName, methodName, options)
   }
 
   /**
@@ -471,10 +476,10 @@ class Demo extends wwjs.wwclass {
   **/
   method (name, options) {
     options = options || {}
-    let self = this
-    self._p = self._p || {}
-    monitor(self, 'attributes')
-    self._mut.methods[name] = options
+    let that = this
+    that._p = that._p || {}
+    monitor(that, 'attributes')
+    that._mut.methods[name] = options
   }
 
   /**
@@ -557,12 +562,12 @@ class Demo extends wwjs.wwclass {
   **/
   static dep (urlArray, errhandler) {
     return wrap(function (method, args, key, type, Target) {
-      let self = this
+      let that = this
       // console.log('enter wrap function....type=', type, 'urlArray=', urlArray, 'Target=', Target)
       return new Promise(function (resolve, reject) {
         loadjs.load(urlArray, {
           'success': () => {
-            resolve(method.apply(self, args))
+            resolve(method.apply(that, args))
           },
           error: function (errFiles) {
             // console.log('load failed:', errFiles)
@@ -571,7 +576,7 @@ class Demo extends wwjs.wwclass {
               errFunc = Target[errhandler]
             }
             if (typeof (errFunc) === 'function') {
-              errFunc.call(self, errFiles)
+              errFunc.call(that, errFiles)
             }
             if (cfg.debug) {
               // console.log(Target)
@@ -756,31 +761,31 @@ class Demo extends wwjs.wwclass {
   **/
   constructor (ele) {
     // console.log('in constructor:', arguments, 'ele=', ele)
-    let self = this
+    let that = this
     if (cfg.debug && !(ele instanceof Element)) {
       console.error('wwclass基类构造函数中，未传入有效的DOM元素对象，派生类忘记调用＂super($ele)？＂')
-      EE.emit('error', 'wwclass.badparameter', self)
+      EE.emit('error', 'wwclass.badparameter', that)
     }
-    self.$ele = $(ele)
-    self.props = {}
+    that.$ele = $(ele)
+    that.props = {}
     /**
     render模板渲染属性，利用[HyperHTML](https://github.com/WebReflection/hyperHTML/blob/master/index.js)，可以直接调用```this.render`ES6 Template String` ```，通常在`doRender`函数中使用．这样引发的更新是增量更新．
     @member render
     @access private
     @memberof wwclass
     **/
-    Object.defineProperty(self, 'render', {
+    Object.defineProperty(that, 'render', {
       get () { // [HyperHTML的实现](https://github.com/WebReflection/hyperHTML/blob/master/index.js)，非常轻量，每次直接调用无问题,无需利用一个变量缓冲．
         // console.log('123123')
-        if (!self._renderInst) {
+        if (!that._renderInst) {
           // console.log('aaaa')
-          self._renderInst = self.$ele ? hyper.bind(self.$ele[0]) : Function.dummy
+          that._renderInst = that.$ele ? hyper.bind(that.$ele[0]) : Function.dummy
         }
-        return self._renderInst
+        return that._renderInst
       },
       enumerable: false
     })
-    getE2Iwmap().set(ele, self)
+    getE2Iwmap().set(ele, that)
   }
 
   /**
