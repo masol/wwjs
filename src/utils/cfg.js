@@ -21,6 +21,7 @@
 - nsprefix : "XXXX"  //如果未定义，默认为`wwns`，详情参考[ko/ns模块](module-ko_ns.html)
 - container : "Selector" //定义第一顺位选择器，详情查看[utils/ui模块](module-utils_ui.html#~$container)
 - vmtypecvt : false //设置给vm某个变量设置值时，当类型不同时，是否允许转换？默认是不允许类型转化的，设置为true可以自动转化。
+- container: '#wwcontainer' //设置页面中wwjs checker处理的根元素的selector.
 - cmdTimout: 10000 //设置等待命令注册的超时时间，默认是10秒，参考[net.cmd](module-net.html#~cmd)
 - clsTimeout: 10000 //设置wwclass.get等待外部类加载的超时时间，默认是秒，参考[wwclass.get](wwclass.html#.get).
 - strict : false //严格模式。在非严格模式下(默认)，支持如下特性(参考[ko.autoinit](module-ko.html#~autoinit)):
@@ -53,6 +54,7 @@ cfg.libbase = '//libs.wware.org'
 cfg.debug = true
 cfg.cmdTimout = CMDTIMEOUT
 cfg.clsTimeout = CLSTIMEOUT
+cfg.container = '#wwcontainer'
 if ((typeof window.wwcfg === 'object')) {
   for (let i in window.wwcfg) {
     cfg[i] = window.wwcfg[i]

@@ -42,10 +42,10 @@ function $container () {
     return $containerCache
   }
   let $ele
-  if (typeof (cfg.$container) !== 'string') {
-    $ele = $(cfg.$container).first()
+  if (typeof (cfg.container) === 'string') {
+    $ele = $(cfg.container).first()
   }
-  if (!isEleValid($ele)) {
+  if (!isEleValid($ele)) { // 设置错误时的容错措施.
     $ele = $('#wwcontainer').first()
     if (!isEleValid($ele)) {
       $ele = $('body > div.container,body > div.container-fluid').first()
@@ -462,6 +462,38 @@ function cssAnimate ($ele, effectName, options, beforecss, aftercss) {
 }
 
 /**
+ @param {String} [state='finish'] 设置目标加载状态.
+ @param {Object} [opt={}] 设置指定元素的加载状态.默认是,完成了加载,开始正常显示.opt可以包含如下属性:
+ - root: SelectorString|DomElement|JQueryDom 如果未给定,则采用UI的$container元素.
+ - class: [wwloading]  容器类,在容器加载状态结束后,此类被删除.
+ - content: [.wwcontent] 内容类,在加载状态结束后,此类元素被显示.
+ - effect: [.wwloadeffect] 效果类,在加载状态结束后,此类元素被隐藏.如果没有effect,默认采用waitMe(调用block)
+ - loading: [false] 是否将状态切换为加载中.
+ */
+function loadState (state, opt) {
+  opt = opt || {}
+  const Finish = 'finish'
+  state = state || Finish
+  let $rootEle = opt.root ? $(opt.root) : $container()
+  if ($rootEle) {
+    opt.class = opt.class || 'wwloading'
+    opt.content = opt.content || '.wwcontent'
+    opt.effect = opt.effect || '.wwloadeffect'
+    let $effects = $rootEle.find(opt.effect)
+    let $contents = $rootEle.find(opt.content)
+    if ($effects.length === 0) {
+      block($rootEle, state !== Finish)
+    } else {
+      state === Finish ? $effects.hide() : $effects.show()
+    }
+    if ($contents.length > 0) {
+      state === Finish ? $contents.show() : $contents.hide()
+    }
+    $rootEle.find('.' + opt.class).removeClass(opt.class)
+  }
+}
+
+/**
 确保元素有id，并返回id。如果没有id，创建唯一id，并返回这一唯一id.返回第一个获取到的。
 @exports utils/ui
 @method endureId
@@ -515,7 +547,7 @@ block指定元素．默认实现使用了[waitMe](https://github.com/vadimsva/wa
 */
 function assignValue ($ele, opt, suffix) {
   if (!opt[suffix]) {
-    let value = $ele.attr(`data-disable-${suffix}`)
+    let value = $ele.attr(`data-block-${suffix}`)
     if (value) {
       opt[suffix] = value
     }
@@ -556,6 +588,7 @@ export default {
   title: title,
   cssAnimate: cssAnimate,
   loadImg: waitme.img,
+  loadState: loadState,
   baseurl: baseurl,
   isElement: isElement,
   fullscreen: fullscreen,
