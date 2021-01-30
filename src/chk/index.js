@@ -81,7 +81,9 @@ function setup () {
   EE.on('nodeBeforeAdd', scriptChecker)
   EE.on('nodeAdd', action.check)
   EE.on('nodeAdd', wwclass.check)
-  EE.on('nodeAdd', kosetup.check)
+  if(cfg.autoko) {
+    EE.on('nodeAdd', kosetup.check)
+  }
 
   var MutationObserver = window.MutationObserver || window.WebKitMutationObserver
   if (!MutationObserver) {
