@@ -81,7 +81,7 @@ function initHandler (defVar, handler, element, valueAccessor, allBindings, mode
             console.error(`发现未定义的绑定变量${varName},由于设置为严格模式(cfg.strict),未能自动声明变量。相关元素:`, element)
           } else {
             let value = {}
-            ///@TODO 按照utils中的配置，来决定defVar。这允许我们动态设定函数绑定。defVar是一个ko.computed.
+            /// @TODO 按照utils中的配置，来决定defVar。这允许我们动态设定函数绑定。defVar是一个ko.computed.
             value[varName] = Function.isFunction(defVar) ? defVar(element) : defVar
             wwjs.vm.set(value, wwjs.vm.get(element))
             console.warn(`发现未定义的绑定变量${varName},定义其到默认类型“${typeof defVar}”。相关元素:`, element)

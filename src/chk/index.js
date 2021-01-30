@@ -81,7 +81,7 @@ function setup () {
   EE.on('nodeBeforeAdd', scriptChecker)
   EE.on('nodeAdd', action.check)
   EE.on('nodeAdd', wwclass.check)
-  if(cfg.autoko) {
+  if (cfg.autoko) {
     EE.on('nodeAdd', kosetup.check)
   }
 

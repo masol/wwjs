@@ -19,8 +19,7 @@
   "plugins": [
     "import",
     "promise",
-    "compat",
-    "standard"
+    "compat"
   ],
 
   "globals": {
@@ -289,11 +288,6 @@
     // "node/no-deprecated-api": "error",
     // "node/process-exit-as-throw": "error",
 
-    "promise/param-names": "error",
-
-    "standard/array-bracket-even-spacing": ["error", "either"],
-    "standard/computed-property-even-spacing": ["error", "even"],
-    "standard/no-callback-literal": "error",
-    "standard/object-curly-even-spacing": ["error", "either"]
+    "promise/param-names": "error"
   }
 }
