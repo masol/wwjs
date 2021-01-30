@@ -311,5 +311,6 @@ function check (nodeArray) {
 }
 
 setup.check = check
+ko.check = check
 
 export default setup
