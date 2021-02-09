@@ -80,7 +80,7 @@ function setup (param, value) {
         if (value && !alreadyBind) {
           EE.on('nodeAdd', ko.check)
           let $container = UI.$container()
-          ko.check([$container])
+          ko.check([$container[0]])
         } else if (!value && alreadyBind) {
           EE.off('nodeAdd', ko.check)
         }
