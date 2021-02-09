@@ -18,6 +18,7 @@ import json from '../utils/json'
 import cfg from '../utils/cfg'
 import ObjectPath from 'objectpath'
 import queryString from 'query-string'
+import UI from '../utils/ui'
 
 // console.log(ObjectPath)
 
@@ -56,13 +57,48 @@ function processHashViewModel () {
 将viewModel重置为初始状态。如果已有绑定，这些绑定会被固化(也就是不再响应数据变动)，重置之后的vm只影响新加入的元素。这个函数在ko就绪时会被调用一次，伪单页跳转时也会被调用一次。请不要直接调用。
 @exports ko/viewmodel
 @method setup
+@param {string} [param = null] 需要设置的参数.如果没有给出参数，执行默认的setup。
+@param {any} [value = null] 参数值
 @return {undefined}
 */
-function setup () {
-  viewModel = ko.mapping.fromJS(getObjectFromHash())
-  if (!ko.hashBinding) {
-    ko.hashBinding = true
-    $(window).on('hashchange', processHashViewModel)
+function setup (param, value) {
+  if (!viewModel) {
+    viewModel = ko.mapping.fromJS(cfg.autohash ? getObjectFromHash() : {})
+  }
+  switch (param) {
+    case 'autoko':
+      if ((!!cfg.autoko) !== (!!value)) {
+        cfg.autoko = !!value
+        let handles = EE.listeners('nodeAdd') || []
+        let alreadyBind = false
+        for (let i = 0; i < handles.length; i++) {
+          if (handles[i] === ko.check) {
+            alreadyBind = true
+            break
+          }
+        }
+        if (value && !alreadyBind) {
+          EE.on('nodeAdd', ko.check)
+          let $container = UI.$container()
+          ko.check([$container])
+        } else if (!value && alreadyBind) {
+          EE.off('nodeAdd', ko.check)
+        }
+      }
+      break
+    case 'autohash':
+      if ((!!cfg.autohash) !== (!!value)) {
+        cfg.autohash = !!value
+        if (value && !ko.hashBinding) {
+          ko.hashBinding = true
+          processHashViewModel() // 调用一次，以读取并设置当前值。
+          window.addEventListener('hashchange', processHashViewModel)
+        } else if (!value && ko.hashBinding) {
+          ko.hashBinding = false
+          window.removeEventListener('hashchange', processHashViewModel)
+        }
+      }
+      break
   }
 }
 

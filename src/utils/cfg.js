@@ -16,9 +16,10 @@
 本模块检查全局的window.wwcfg配置。如果未配置，则给出默认设置。
 
 配置wwjs的方式是，在引入wwjs之前，定义`window.wwcfg`全局对象，其中可以包括如下属性：
-- debug : true 如果被定义为false，则关闭调试模式，不再在console输出错误信息。默认是true.
+- debug : false 如果被定义为false，则关闭调试模式，不再在console输出错误信息。默认是true.
 - libbase : "//libs.YOURDOMAIN.COM" , 如果被定义一个字符串(空字符串表示引用本地服务器地址)，则用来做外部引入库的根路径。默认是"//libs.wware.org" : 注意服务器的CORS设置。
-- autoko: true 自动启用ko对mutation的监听处理。如果设置为false,则不启动自动监听处理，这在页面加载时，对平滑加载有帮助。
+- autoko: false 自动启用ko对mutation的监听处理。如果设置为false,则不启动自动监听处理，这在页面加载时，对平滑加载有帮助。
+- autohash: false 自动监听hash的变化，并将hash中#?KEY=VALUE形式的部分抽取出来，加入到viewmodel中。
 - nsprefix : "XXXX"  //如果未定义，默认为`wwns`，详情参考[ko/ns模块](module-ko_ns.html)
 - container : "Selector" //定义第一顺位选择器，详情查看[utils/ui模块](module-utils_ui.html#~$container)
 - vmtypecvt : false //设置给vm某个变量设置值时，当类型不同时，是否允许转换？默认是不允许类型转化的，设置为true可以自动转化。
@@ -52,8 +53,9 @@ const CMDTIMEOUT = 10000
 const CLSTIMEOUT = 10000
 
 cfg.libbase = '//libs.wware.org'
-cfg.debug = true
-cfg.autoko = true
+// cfg.debug = true
+// cfg.autoko = true
+// cfg.autohash = true
 cfg.cmdTimout = CMDTIMEOUT
 cfg.clsTimeout = CLSTIMEOUT
 cfg.container = '#wwcontainer'
