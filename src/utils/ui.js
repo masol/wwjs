@@ -396,7 +396,7 @@ function cssAnimate ($ele, effectName, options, beforecss, aftercss) {
     }
     if (effectName) {
       if ($ele.data(transitioning)) {
-        handleAnimationEnd(true)
+        handleAnimationEnd(null, true)
       }
       if (options.unhide) {
         if ($ele.css('visibility') === 'hidden') {
