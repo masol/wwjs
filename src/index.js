@@ -13,6 +13,7 @@
 'use strict'
 
 // import $ from 'jquery'
+import './index.css'
 import loadjs from './utils/loadjs'
 import cfg from './utils/cfg'
 import ns from './ko/ns'
