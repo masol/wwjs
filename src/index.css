@@ -25,3 +25,136 @@
 .zindex-tooltip {
     z-index: 1070;
 }
+
+
+.opacity-0 {
+    opacity: 0;
+}
+
+.opacity-10 {
+    opacity: 0.1;
+}
+
+.opacity-20 {
+    opacity: 0.2;
+}
+
+.opacity-30 {
+    opacity: 0.3;
+}
+
+.opacity-40 {
+    opacity: 0.4;
+}
+
+.opacity-50 {
+    opacity: 0.5;
+}
+
+.opacity-60 {
+    opacity: 0.6;
+}
+
+.opacity-70 {
+    opacity: 0.7;
+}
+
+.opacity-80 {
+    opacity: 0.8;
+}
+
+.opacity-90 {
+    opacity: 0.9;
+}
+
+.opacity-100 {
+    opacity: 1;
+}
+
+.nopointer {
+    pointer-events: none;
+}
+
+.overlay-auto {
+    left: auto;
+    right: auto;
+    top: auto;
+    bottom: auto;
+    overflow: hidden;
+}
+
+.overlay-full {
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    overflow: hidden;
+}
+
+/* overlay right top */
+.overlay-rt {
+    top: 0px;
+    right: 0px;
+    overflow: hidden;
+}
+
+/* overlay right center */
+.overlay-rc {
+    right: 0px;
+    top: 50%;
+    transform: translateY(-50%);
+    overflow: hidden;
+}
+
+/* overlay right bottom */
+.overlay-rb {
+    right: 0px;
+    bottom: 0px;
+    overflow: hidden;
+}
+
+/* overlay left top */
+.overlay-lt {
+    left: 0;
+    top: 0;
+    overflow: hidden;
+}
+
+/* overlay left center */
+.overlay-lc {
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    overflow: hidden;
+}
+
+/* overlay left bottom */
+.overlay-lb {
+    left: 0;
+    bottom: 0;
+    overflow: hidden;
+}
+
+/* overlay top center*/
+.overlay-tc {
+    left: 50%;
+    top: 0;
+    transform: translateX(-50%);
+    overflow: hidden;
+}
+
+/* overlay center center*/
+.overlay-cc {
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    overflow: hidden;
+}
+
+/* overlay bottom center*/
+.overlay-bc {
+    left: 50%;
+    bottom: 0;
+    transform: translateX(-50%);
+    overflow: hidden;
+}
